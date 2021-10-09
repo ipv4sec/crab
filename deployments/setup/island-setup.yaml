@@ -29,14 +29,16 @@ metadata:
   name: island-setup
   namespace: island-system
   labels:
-    app: island-setup
+    app: island
+    component: setup
 spec:
   replicas: 1
   template:
     metadata:
       name: island-setup
       labels:
-        app: island-setup
+        app: island
+        component: setup
     spec:
       containers:
         - name: island-setup
@@ -46,4 +48,20 @@ spec:
       serviceAccountName: island-setup-user
   selector:
     matchLabels:
-      app: island-setup
+      app: island
+      component: setup
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: island-setup
+spec:
+  selector:
+    app: island
+    component: setup
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000
+---

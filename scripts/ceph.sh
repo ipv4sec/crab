@@ -1,16 +1,16 @@
 #!/bin/bash
 
 yaml=(
-  "ceph/crds.yaml"
-  "ceph/common.yaml"
-  "ceph/operator.yaml"
-  "ceph/toolbox.yaml"
-  "ceph/csi/rbd/storageclass.yaml"
-  "ceph/filesystem.yaml"
-  "ceph/csi/cephfs/storageclass.yaml"
-  "ceph/object.yaml"
-  "ceph/storageclass-bucket-delete.yaml"
-  "ceph/object-bucket-claim-delete.yaml")
+  "assets/ceph/crds.yaml"
+  "assets/ceph/common.yaml"
+  "assets/ceph/operator.yaml"
+  "assets/ceph/toolbox.yaml"
+  "assets/ceph/csi/rbd/storageclass.yaml"
+  "assets/ceph/filesystem.yaml"
+  "assets/ceph/csi/cephfs/storageclass.yaml"
+  "assets/ceph/object.yaml"
+  "assets/ceph/storageclass-bucket-delete.yaml"
+  "assets/ceph/object-bucket-claim-delete.yaml")
 
 for var in ${yaml[@]}; do
   n=0

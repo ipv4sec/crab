@@ -4,6 +4,10 @@ import (
 	"bytes"
 	"context"
 	"crab/cluster"
+	d "crab/domain"
+	"crab/exec"
+	"crab/storage"
+	"crab/user"
 	"crab/utils"
 	"errors"
 	"flag"
@@ -22,10 +26,9 @@ import (
 
 func main() {
 	var err error
-	var domain, password, storage string
+	var domain, password string
 	flag.StringVar(&domain, "domain", "example.com", "根域")
 	flag.StringVar(&password, "password", "password", "密码")
-	flag.StringVar(&storage, "storage", "false", "存储")
 	flag.Parse()
 
 	klog.Infoln("开始集群认证")
@@ -141,11 +144,11 @@ func main() {
 	if err != nil {
 		panic(fmt.Errorf("集群认证错误 :%w", err))
 	}
-	exec, err := remotecommand.NewSPDYExecutor(conf, "POST", req.URL())
+	e, err := remotecommand.NewSPDYExecutor(conf, "POST", req.URL())
 	if err != nil {
 		panic(fmt.Errorf("执行POST错误 :%w", err))
 	}
-	err = exec.Stream(remotecommand.StreamOptions{
+	err = e.Stream(remotecommand.StreamOptions{
 		Stdin:  nil,
 		Stdout: &stdout,
 		Stderr: &stderr,
@@ -159,7 +162,8 @@ func main() {
 	}
 
 	klog.Infoln("开始设置存储")
-	output, err := utils.ExecWithNothing("scripts/ceph.sh")
+	executer := exec.CommandExecutor{}
+	output, err := executer.ExecuteCommandWithCombinedOutput("scripts/ceph.sh")
 	if err != nil {
 		panic(fmt.Errorf("设置存储组件失败: %w", err))
 	}
@@ -222,11 +226,11 @@ data:
 	klog.Infoln("部署应用完成")
 
 	klog.Infoln("开始按需设置存储")
-	if storage == "true" {
-		// 按需选择磁盘的情况在界面上设置
-	} else {
-		klog.Infoln("并未设置存储")
-	}
+	//if storage == "true" {
+	//	// 按需选择磁盘的情况在界面上设置
+	//} else {
+	//	klog.Infoln("并未设置存储")
+	//}
 	klog.Infoln("设置存储结束")
 
 
@@ -237,11 +241,22 @@ data:
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
 	r.Use(gin.Recovery())
-	r.GET("/", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
+	userGroup := r.Group("/user")
+	{
+		userGroup.GET("/:username", user.GetUserHandlerFunc)
+	}
+
+	// todo 测试
+	// todo 统一接口返回
+
+	clusterGroup := r.Group("/cluster")
+	{
+		clusterGroup.GET("/addrs", storage.GetAddrsHandlerFunc)
+		clusterGroup.GET("/domain", d.GetDomainHandlerFunc)
+		clusterGroup.PUT("/domain", d.PutDomainHandlerFunc)
+		clusterGroup.GET("/storage", storage.GetStorageHandlerFunc)
+		clusterGroup.POST("/storage", storage.PostStorageHandlerFunc)
+	}
 	err = r.Run("0.0.0.0:3000")
 	if err != nil {
 		panic(fmt.Errorf("监听端口失败: %w", err))
