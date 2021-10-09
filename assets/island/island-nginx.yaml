@@ -4,14 +4,16 @@ metadata:
   name: island-nginx
   namespace: island-system
   labels:
-    app: island-nginx
+    app: island
+    component: nginx
 spec:
   replicas: 1
   template:
     metadata:
       name: island-nginx
       labels:
-        app: island-nginx
+        app: island
+        component: nginx
     spec:
       containers:
         - name: island-nginx
@@ -20,4 +22,5 @@ spec:
       restartPolicy: Always
   selector:
     matchLabels:
-      app: island-nginx
+      app: island
+      component: nginx

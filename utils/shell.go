@@ -15,3 +15,10 @@ func Exec(command string) (string, error) {
 	output, err := cmd.CombinedOutput()
 	return strings.TrimSpace(string(output)), err
 }
+
+func ExecWithNothing(command string) (string, error) {
+	cmd := exec.Command("bash", "-c", command)
+	cmd.Env = os.Environ()
+	output, err := cmd.CombinedOutput()
+	return strings.TrimSpace(string(output)), err
+}

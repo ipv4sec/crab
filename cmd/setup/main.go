@@ -22,9 +22,10 @@ import (
 
 func main() {
 	var err error
-	var domain, password string
+	var domain, password, storage string
 	flag.StringVar(&domain, "domain", "example.com", "根域")
 	flag.StringVar(&password, "password", "password", "密码")
+	flag.StringVar(&storage, "storage", "false", "存储")
 	flag.Parse()
 
 	klog.Infoln("开始集群认证")
@@ -54,7 +55,15 @@ func main() {
 	_, err = cluster.Client.Clientset.CoreV1().Namespaces().Get(context.Background(), "istio-system",
 		metav1.GetOptions{})
 	if err != nil {
-		panic(fmt.Errorf("获取网格命名空间错误: %w", err))
+		klog.Errorln(fmt.Errorf("获取网格命名空间错误: %w", err).Error())
+		_, err = cluster.Client.Clientset.CoreV1().Namespaces().Create(context.Background(), &v1.Namespace{
+			ObjectMeta: metav1.ObjectMeta{
+				Name: "istio-system",
+			},
+		}, metav1.CreateOptions{})
+		if err != nil {
+			klog.Errorln(fmt.Errorf("创建网格命名空间错误: %w", err).Error())
+		}
 	}
 	// klog.Infoln("ns:", ns)
 
@@ -149,6 +158,13 @@ func main() {
 		panic(errors.New(fmt.Sprintf("网格版本错误: %s", v)))
 	}
 
+	klog.Infoln("开始设置存储")
+	output, err := utils.ExecWithNothing("scripts/ceph.sh")
+	if err != nil {
+		panic(fmt.Errorf("设置存储组件失败: %w", err))
+	}
+	klog.Infoln("设置存储组件成功:", output)
+
 	klog.Infoln("开始设置根域")
 	yaml := `
 apiVersion: v1
@@ -204,6 +220,18 @@ data:
 		}
 	}
 	klog.Infoln("部署应用完成")
+
+	klog.Infoln("开始按需设置存储")
+	if storage == "true" {
+		// 按需选择磁盘的情况在界面上设置
+	} else {
+		klog.Infoln("并未设置存储")
+	}
+	klog.Infoln("设置存储结束")
+
+
+	klog.Infoln("开始设置访问路由")
+	klog.Infoln("设置访问路由结束")
 
 	klog.Infoln("开始提供服务")
 	gin.SetMode(gin.ReleaseMode)

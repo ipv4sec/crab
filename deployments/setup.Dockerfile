@@ -16,6 +16,7 @@ FROM centos:7 as prod
 
 
 WORKDIR /app
+ADD assets/bin/kubectl /usr/local/bin/kubectl
 ADD assets/bin/istioctl /usr/local/bin/istioctl
 
 ADD assets/istio/operator.yaml assets/istio/operator.yaml
