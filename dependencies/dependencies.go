@@ -1,19 +1,21 @@
 package dependencies
 
 type Dependency struct {
-	Instanceid string              `json:"instanceid"`
-	Name       string              `json:"name"`
-	Location   string              `json:"location"`
-	Version    string              `json:"version"`
-	Uses       map[string][]string `json:"uses"`
+	Instanceid   string              `json:"instanceid"`
+	Name         string              `json:"name"`
+	Location     string              `json:"location"`
+	Version      string              `json:"version"`
+	Uses         map[string][]string `json:"uses"`
+	EntryService string              `json:"entryservice"`
 }
 
 type DependencyVela struct {
-	Instanceid string              `json:"instanceid"`
-	Name       string              `json:"name"`
-	Location   string              `json:"location"`
-	Version    string              `json:"version"`
-	Resource   []DependencyUseItem `json:"resource"`
+	Instanceid   string              `json:"instanceid"`
+	Name         string              `json:"name"`
+	Location     string              `json:"location"`
+	Version      string              `json:"version"`
+	EntryService string              `json:"entryservice"`
+	Resource     []DependencyUseItem `json:"resource"`
 }
 
 //解析后的依赖use
