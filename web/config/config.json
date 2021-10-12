@@ -1,0 +1,6 @@
+{
+  "webConfig": {
+   "port": 80,
+   "requestDomain": "http://api.island-system.svc.cluster.local"
+  }
+}
