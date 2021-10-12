@@ -1,0 +1,84 @@
+apiVersion: ami.globalsphare.com/v1alpha1
+kind: Application
+metadata:
+  name: demo-app-name-1
+  annotations:
+    version: v0.0.1
+    description: 样例应用
+    keywords:
+      - 样例应用
+    author: zhangsan@huanqiu.com
+    maintainers:
+      - name: zhangsan
+        email: foo@gmail.com
+        web: https://blog.com
+    repositories: [ ]
+    bugs: https://bugs.demo-app-name-1.com
+    licenses:
+      - type: LGPL
+        url: https://license.spec.com
+spec:
+  components:
+    - name: component-name-1
+      type: webservice
+      properties:
+        image: foo.com/foo/foo1:0.0.1
+        port: 8080
+        cmd: [ "/bin/sleep", "3650d" ]
+        cpu: "100m"
+        traits: ["ingress"]
+    - name: component-name-2
+      type: worker
+      properties:
+        image: foo.com/foo/foo2:0.0.1
+        port: 8080
+        cmd: [ "/bin/sleep", "3650d" ]
+        cpu: "100m"
+  exports:
+    /resource1:
+      - create
+      - read
+      - update
+    /resource2:
+      - create
+      - delete
+  dependencies:
+    - name: demo-app1
+      version: ">=0.0.2"
+      location: user-defined(https://www.foo.com)
+      uses:
+        /resource1:
+          - create
+          - read
+          - update
+        /resource2:
+          - create
+          - delete
+  userconfigs:
+    "$schema": http://json-schema.org/draft-07/schema#
+    "$id": http://example.com/product.schema.json
+    title: Product
+    description: A product from Acme's catalog
+    type: object
+    properties:
+      param1:
+        type: integer
+      param2:
+        type: string
+      param3:
+        type: object
+        properties:
+          param3_1:
+            type: number
+          param3_2:
+            type: number
+        required:
+          - param3_1
+      param4:
+        type: array
+        items:
+          type: string
+        minItems: 1
+        uniqueItems: true
+    required:
+      - param2

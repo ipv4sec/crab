@@ -3,20 +3,21 @@ package app
 import "time"
 
 type App struct {
-	ID            string `gorm:"primaryKey" json:"-"`
-	Name          string `json:"name"`
-	Version       string `json:"version"`
-	Status        int    `json:"status"` // 0 正在部署中 1 部署完成 2 卸载中 3 卸载完成
-	Namespace     string `json:"namespace"`
-	Manifest      string `json:"manifest"`
-	Dependencies  string `json:"dependencies"`
-	Parameters    string `json:"parameters"`
-	Configuration string
+	ID           string   `gorm:"primaryKey" json:"-"`
+	Name         string `json:"name"`
+	Version      string `json:"version"`
+	Status       int    `json:"status"` // 0 正在部署中 1 部署完成 2 卸载中 3 卸载完成
+	Namespace    string `json:"namespace"`
+	Manifest     string `json:"manifest"`
+	Dependencies string `json:"dependencies"`
+	Parameters   string `json:"parameters"`
+	Deployed     string `json:"deployed"`
+	Config       string
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 
-	Deployment string `gorm:"column:deployment"`
+	Deployment     string `gorm:"column:k8s_yaml_str"`
 }
 
 func (App) TableName() string {
@@ -24,9 +25,10 @@ func (App) TableName() string {
 }
 
 type Manifest struct {
-	Name                 string                 `json:"name"`
-	Version              string                 `json:"version"`
-	Services             map[string]interface{} `json:"services"`
-	Dependencies         interface{}
-	RuntimeConfiguration interface{} `json:"userconfig"`
+	Name       string                 `json:"name"`
+	Version    string                 `json:"version"`
+	Services   map[string]interface{} `json:"services"`
+	Dependencies interface{}
+	UserConfig interface{}            `json:"userconfig"`
 }
+
