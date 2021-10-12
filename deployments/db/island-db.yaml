@@ -1,0 +1,112 @@
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: island-db-user
+  namespace: island-system
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: island-db-user-building
+  namespace: island-system
+subjects:
+  - kind: ServiceAccount
+    name: island-db-user
+    apiGroup: ""
+    namespace: island-system
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin
+  apiGroup: rbac.authorization.k8s.io
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: island-db
+  namespace: island-system
+  labels:
+    app: island
+    component: db
+spec:
+  type: ClusterIP
+  ports:
+    - name: port
+      port: 3306
+      targetPort: 3306
+  selector:
+    app: island
+    component: db
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: island-db
+  namespace: island-system
+  labels:
+    app: island
+    component: db
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: island-db
+      labels:
+        app: island
+        component: db
+    spec:
+      containers:
+        - name: island-db
+          image: harbor1.zlibs.com/dockerhub/mysql:5.7
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: "123456"
+          volumeMounts:
+            - mountPath: /docker-entrypoint-initdb.d/
+              name: conf
+      volumes:
+        - name: conf
+          configMap:
+            name: island-db
+      restartPolicy: Always
+      serviceAccountName: island-db-user
+  selector:
+    matchLabels:
+      app: island
+      component: db
+---
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: island-db
+  namespace: island-system
+data:
+  init.sql: |
+    CREATE DATABASE island_console;
+    USE island_console;
+    CREATE TABLE app (
+      `id` VARCHAR(8) primary key,
+      `name` VARCHAR(128) not null default "",
+      `version` VARCHAR(128) not null default "",
+      `status` int(12) NOT NULL DEFAULT '0',
+      `deploy` text not null,
+      `manifest` text not null,
+      `k8s_yaml_str` mediumtext not null,
+      `userconfig` text not null,
+      `dependences` text not null,
+      `ctime` datetime not null
+    )ENGINE=Innodb DEFAULT CHARSET=utf8;
+    CREATE TABLE `t_status` (
+      `id` int(12) NOT NULL AUTO_INCREMENT COMMENT '自增主键',
+      `name` varchar(255) COLLATE utf8mb4_bin NOT NULL COMMENT '命名空间',
+      `component` varchar(255) COLLATE utf8mb4_bin NOT NULL COMMENT '组件',
+      `status` int(12) NOT NULL COMMENT '状态',
+      `create_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+      `update_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+      PRIMARY KEY (`id`),
+      UNIQUE KEY `uniq_idx` (`name`,`component`)
+    ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;

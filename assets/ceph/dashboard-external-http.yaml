@@ -1,0 +1,38 @@
+
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: ceph-dashboard
+  namespace: rook-ceph
+spec:
+  hosts:
+    - "ceph-dashboard.svc.cluster.local"
+  gateways:
+    - ceph-dashboard
+  http:
+    - match:
+        - uri:
+            prefix: /
+      route:
+        - destination:
+            port:
+              number: 7000
+            host: rook-ceph-mgr-dashboard
+---
+
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: ceph-dashboard
+  namespace: rook-ceph
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - "ceph-dashboard.svc.cluster.local"
+
