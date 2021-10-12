@@ -4,10 +4,10 @@ import (
 	"bytes"
 	"context"
 	"crab/cluster"
+	"crab/provider"
 	"crab/utils"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/gojek/heimdall/v7/httpclient"
 	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -43,9 +43,7 @@ type Param struct {
 	Volume   string `json:"volume"`
 }
 
-var (
-	HTTPClient = httpclient.NewClient(httpclient.WithHTTPTimeout(time.Second * 30))
-)
+
 
 func fetchStorageStatus() int {
 	gvr := schema.GroupVersionResource{
@@ -224,7 +222,7 @@ func PostStorageHandlerFunc(c *gin.Context) {
 					klog.Errorln("序列化参数错误", err.Error())
 					continue
 				}
-				res, err := HTTPClient.Post(fmt.Sprintf("http://%s:3000/disk", cm.Value[j]),
+				res, err := provider.HTTPClient.Post(fmt.Sprintf("http://%s:3000/disk", cm.Value[j]),
 					bytes.NewBuffer(s), nil)
 				if err != nil {
 					klog.Errorln("发送格式化请求错误", err.Error())

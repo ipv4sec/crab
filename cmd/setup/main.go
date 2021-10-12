@@ -162,8 +162,8 @@ func main() {
 	}
 
 	klog.Infoln("开始设置存储")
-	executer := exec.CommandExecutor{}
-	output, err := executer.ExecuteCommandWithCombinedOutput("scripts/ceph.sh")
+	executor := exec.CommandExecutor{}
+	output, err := executor.ExecuteCommandWithCombinedOutput("scripts/ceph.sh")
 	if err != nil {
 		panic(fmt.Errorf("设置存储组件失败: %w", err))
 	}
@@ -245,9 +245,7 @@ data:
 	{
 		userGroup.GET("/:username", user.GetUserHandlerFunc)
 	}
-
-	// todo 测试
-	// todo 统一接口返回
+	// TODO 统一接口返回
 
 	clusterGroup := r.Group("/cluster")
 	{
