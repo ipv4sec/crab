@@ -1,0 +1,18 @@
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+metadata:
+  namespace: istio-system
+  name: istio-control-plane
+spec:
+  components:
+    egressGateways:
+      - enabled: true
+        name: istio-egressgateway
+  hub: harbor1.zlibs.com/istio
+  meshConfig:
+    accessLogFile: /dev/stdout
+    outboundTrafficPolicy:
+      #      mode: ALLOW_ANY
+      mode: REGISTRY_ONLY
+  profile: default
+  tag: 1.9.2

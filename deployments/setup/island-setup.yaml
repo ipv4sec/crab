@@ -1,0 +1,67 @@
+---
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: island-setup-user
+  namespace: island-system
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: island-setup-user-building
+  namespace: island-system
+subjects:
+  - kind: ServiceAccount
+    name: island-setup-user
+    apiGroup: ""
+    namespace: island-system
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin
+  apiGroup: rbac.authorization.k8s.io
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: island-setup
+  namespace: island-system
+  labels:
+    app: island
+    component: setup
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: island-setup
+      labels:
+        app: island
+        component: setup
+    spec:
+      containers:
+        - name: island-setup
+          image: harbor1.zlibs.com/island/island-setup:alpha
+          imagePullPolicy: Always
+      restartPolicy: Always
+      serviceAccountName: island-setup-user
+  selector:
+    matchLabels:
+      app: island
+      component: setup
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: island-setup
+spec:
+  selector:
+    app: island
+    component: setup
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000
+---
