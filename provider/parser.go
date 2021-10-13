@@ -8,16 +8,16 @@ import (
 	"io/ioutil"
 )
 
-func Yaml(manifest, uid, config string, dependencies []Dependency) (string, error) {
+func Yaml(manifest, uuid string, config interface{}, dependencies []Dependency) (string, error) {
 
 	requestByte, err := json.Marshal(struct {
 		Manifest string `json:"content"`
-		UID string `json:"instanceid"`
-		Configuration string `json:"userconfig"`
+		UUID string `json:"instanceid"`
+		Configuration interface{} `json:"userconfig"`
 		Dependencies []Dependency `json:"dependencies"`
 	}{
 		Manifest: manifest,
-		UID: uid,
+		UUID: uuid,
 		Configuration: config,
 		Dependencies: dependencies,
 	})

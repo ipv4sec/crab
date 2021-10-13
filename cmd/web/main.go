@@ -5,6 +5,7 @@ import (
 	"crab/cluster"
 	"crab/config"
 	"crab/db"
+	"crab/status"
 	"flag"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -36,6 +37,17 @@ func main() {
 	err = db.Init(&cfg.Mysql)
 	if err != nil {
 		panic(err)
+	}
+
+	if false {
+		err = db.Client.AutoMigrate(&status.Status{})
+		if err != nil {
+			panic(err)
+		}
+		err = db.Client.AutoMigrate(&app.App{})
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	klog.Infoln("开始集群认证")

@@ -2,11 +2,7 @@ package manifest
 
 import "crab/dependencies"
 
-type VelaYaml struct {
-	Name     string                 `yaml:"name"`
-	Services map[string]interface{} `yaml:"services"`
-}
-type ManifestServiceOrigin struct {
+type Manifest struct {
 	ApiVersion string `yaml:"apiVersion" json:"apiVersion"`
 	Kind       string `yaml:"kind" json:"kind"`
 	Metadata   struct {
@@ -17,6 +13,12 @@ type ManifestServiceOrigin struct {
 		Components []Component `yaml:"components" json:"components"`
 	} `yaml:"spec" json:"spec"`
 }
+
+type VelaYaml struct {
+	Name     string                 `yaml:"name"`
+	Services map[string]interface{} `yaml:"services"`
+}
+
 type Component struct {
 	Name       string `yaml:"name" json:"name"`
 	Type       string `yaml:"type" json:"type"`

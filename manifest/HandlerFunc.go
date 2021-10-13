@@ -147,7 +147,7 @@ func (svc redisVela) workload() string {
 //由manifest.yaml生成vale.yaml
 func GenValeYaml(instanceId, str, dependencies, userconfig string) (VelaYaml, error) {
 	var err error
-	manifestServiceOrigin := ManifestServiceOrigin{}
+	manifestServiceOrigin := Manifest{}
 	err = yaml.Unmarshal([]byte(str), &manifestServiceOrigin)
 	if err != nil {
 		klog.Errorln(err.Error())
@@ -578,7 +578,7 @@ func dependendService(instanceId string, dependencyVelas []dependency.Dependency
 				klog.Errorln(err.Error())
 				return dependenceAuthorization, externalService, configmap, err
 			}
-			manifestServiceOrigin := ManifestServiceOrigin{}
+			manifestServiceOrigin := Manifest{}
 			err = yaml.Unmarshal([]byte(appInfo.Manifest), &manifestServiceOrigin)
 			if err != nil {
 				klog.Errorln(err.Error())

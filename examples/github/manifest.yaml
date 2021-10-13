@@ -1,0 +1,27 @@
+name: github
+version: 1.0.0
+
+services:
+  ha:
+    workload: webservice
+    image: harbor1.zlibs.com/island/island-nginx:1.21
+    traits: ["ingress"]
+    configs:
+    - path: /tmp
+      subPath: 1.txt
+      data:
+        - name: 1.txt
+          value: "111"
+    - path: /tmp
+      subPath: 2.txt
+      data:
+        - name: 1.txt
+          value: "111"
+        - name: 2.txt
+          value: "222"
+    - path: /usr/local/ha/
+      data:
+        - name: 1.txt
+          value: "111"
+        - name: 2.txt
+          value: "222"
