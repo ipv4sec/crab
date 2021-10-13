@@ -1,0 +1,27 @@
+apiVersion: ami.globalsphare.com/v1alpha1
+kind: Application
+metadata:
+  name: app1
+  annotations:
+    author: test
+spec:
+  components:
+    - name: app-webservice
+      type: webservice
+      properties:
+        image: harbor1.zlibs.com/island/island-console:0.1.0
+        port: 8080
+        cmd: [ "/bin/sleep", "3650d" ]
+        cpu: "100m"
+      traits:
+        - type: ingress
+    - name: app-mysql
+      type: mysql
+      properties:
+        init: |
+          CREATE DATABASE riki;
+        rootpwd: root
+        storage:
+          capacity: 1Gi
+    - name: app-redis
+      type: redis

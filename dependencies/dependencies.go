@@ -1,5 +1,11 @@
 package dependencies
 
+import (
+	"errors"
+	"fmt"
+	"k8s.io/klog/v2"
+)
+
 type Dependency struct {
 	Instanceid   string              `json:"instanceid"`
 	Name         string              `json:"name"`
@@ -39,10 +45,32 @@ type ServiceEntry struct {
 }
 
 //解析use
-func ApiParse(uses map[string][]string) []DependencyUseItem {
+func ApiParse(uses map[string][]string) ([]DependencyUseItem, error) {
+	var err error
 	rtn := make([]DependencyUseItem, 0)
 	for k, v := range uses {
-		rtn = append(rtn, DependencyUseItem{k, v})
+		count :=0
+		actions :=make([]string, 0)
+		for _, option := range v {
+			if option == "create" {
+				actions = append(actions, "POST")
+			}else if option == "read" {
+				actions = append(actions, "GET", "HEAD", "OPTIONS")
+			}else if option == "update" {
+				actions = append(actions, "PUT", "PATCH")
+			}else if option == "delete" {
+				actions = append(actions, "DELETE")
+			}else{
+				return rtn, errors.New(fmt.Sprintf("依赖资源的操作类型(%s)不存在\n", option))
+			}
+			count++
+		}
+		if count == 0 {
+			return rtn, errors.New("依赖资源的操作类型不能为空")
+		}
+		rtn = append(rtn, DependencyUseItem{k, actions})
+		klog.Errorln(k)
 	}
-	return rtn
+
+	return rtn,err
 }
