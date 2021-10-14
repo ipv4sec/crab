@@ -27,6 +27,7 @@ type Pagination struct {
 
 type Instance struct {
 	*App
+	UUID   string `json:"instance_id"`
 	Status string `json:"status"`
 	Entry  string `json:"entry"`
 }
@@ -76,6 +77,7 @@ func GetAppHandlerFunc(c *gin.Context) {
 			App:    &apps[i],
 			Status: "未部署",
 			Entry:  endpoints[apps[i].Name+"-http"],
+			UUID:   apps[i].UUID,
 		}
 		if apps[i].Status == 1 {
 			ins.Status = "正在部署中"
@@ -91,7 +93,7 @@ func GetAppHandlerFunc(c *gin.Context) {
 		}
 		vals = append(vals, ins)
 	}
-	c.JSON(200, utils.SuccessResponse(Pagination{
+	c.JSON(200, utils.RowResponse(Pagination{
 		Total: len(apps),
 		Rows:  vals,
 	}))
@@ -99,24 +101,24 @@ func GetAppHandlerFunc(c *gin.Context) {
 func PostAppHandlerFunc(c *gin.Context) {
 	file, err := c.FormFile("file")
 	if err != nil {
-		c.JSON(200, utils.ErrorResponse(10086, "接收文件错误"))
+		c.JSON(200, utils.RowResponse(map[string]string{"error":"接收文件错误"}))
 		return
 	}
 	currentTimestamp := time.Now().Unix()
 	err = c.SaveUploadedFile(file, fmt.Sprintf("/tmp/%v.zip", currentTimestamp))
 	if err != nil {
-		c.JSON(200, utils.ErrorResponse(10086, "保存文件错误"))
+		c.JSON(200, utils.RowResponse(map[string]string{"error":"保存文件错误"}))
 		return
 	}
 	err = utils.UnZip(fmt.Sprintf("/tmp/%v", currentTimestamp), fmt.Sprintf("/tmp/%v.zip", currentTimestamp))
 	if err != nil {
-		c.JSON(200, utils.ErrorResponse(10086, "解压文件错误"))
+		c.JSON(200, utils.RowResponse(map[string]string{"error":"解压文件错误"}))
 		return
 	}
 
 	bytes, err := ioutil.ReadFile(fmt.Sprintf("/tmp/%v/manifest.yaml", currentTimestamp))
 	if err != nil {
-		c.JSON(200, utils.ErrorResponse(10086, "读取描述文件错误"))
+		c.JSON(200, utils.RowResponse(map[string]string{"error":"读取描述文件错误"}))
 		return
 	}
 
@@ -124,7 +126,7 @@ func PostAppHandlerFunc(c *gin.Context) {
 	err = yaml.Unmarshal(bytes, &manifest)
 	if err != nil {
 		klog.Errorln("解析描述文件错误:", err.Error())
-		c.JSON(200, utils.ErrorResponse(10086, "解析描述文件错误"))
+		c.JSON(200, utils.RowResponse(map[string]string{"error":"解析描述文件错误"}))
 		return
 	}
 	app := App{
@@ -136,7 +138,7 @@ func PostAppHandlerFunc(c *gin.Context) {
 	}
 	err = db.Client.Create(&app).Error
 	if err != nil {
-		c.JSON(200, utils.ErrorResponse(10086, "数据库保存错误"))
+		c.JSON(200, utils.RowResponse(map[string]string{"error":"数据库保存错误"}))
 		return
 	}
 	var dependencies map[string]interface{}
@@ -184,15 +186,19 @@ func PostAppHandlerFunc(c *gin.Context) {
 }
 func PutAppHandlerFunc(c *gin.Context) {
 	// 运行或者卸载
-	var param struct {
-		Status         int         `json:"status"`
-		ID             string      `json:"instanceid"`
-		Configurations interface{} `json:"userconfig"`
-	}
-	err := c.ShouldBindJSON(&param)
+	status, err := strconv.Atoi(c.PostForm("status"))
 	if err != nil {
 		c.JSON(200, utils.ErrorResponse(10086, "参数错误"))
 		return
+	}
+	param := struct {
+		Status         int         `json:"status"`
+		ID             string      `json:"instanceid"`
+		Configurations interface{} `json:"userconfig"`
+	}{
+		Status: status,
+		ID: c.PostForm("instanceid"),
+		Configurations: c.PostForm("userconfig"),
 	}
 	var app App
 	err = db.Client.Where("uuid = ?", param.ID).Find(&app).Error
@@ -235,7 +241,15 @@ func PutAppHandlerFunc(c *gin.Context) {
 
 	// 运行
 	if param.Status == 1 {
-		yaml, err := provider.Yaml(app.Manifest, app.UUID, param.Configurations, nil)
+		island, err := cluster.Client.Clientset.CoreV1().ConfigMaps("island-system").
+			Get(context.Background(), "island-info", metav1.GetOptions{})
+		if err != nil {
+			klog.Errorln("获取根域失败", err.Error())
+			c.JSON(200, utils.ErrorResponse(10086, "获取根域失败"))
+			return
+		}
+		v, _ := island.Data["root-domain"]
+		yaml, err := provider.Yaml(app.Manifest, app.UUID, v, param.Configurations, nil)
 		if err != nil {
 			klog.Errorln("连接到翻译器错误:", err.Error())
 			c.JSON(200, utils.ErrorResponse(10086, "连接到翻译器错误"))

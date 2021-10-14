@@ -60,13 +60,13 @@ func main() {
 	klog.Infoln("开始提供服务")
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
-	r.Use(gin.Recovery())
-	routers := r.Group("/api/app")
+	r.Use(gin.Recovery(), gin.Logger())
+	routers := r.Group("/api")
 	{
-		routers.GET("/", app.GetAppHandlerFunc)
-		routers.PUT("/", app.PutAppHandlerFunc)
-		routers.POST("/", app.PostAppHandlerFunc)
-		routers.DELETE("/", app.DeleteAppHandlerFunc)
+		routers.GET("/app", app.GetAppHandlerFunc)
+		routers.PUT("/app", app.PutAppHandlerFunc)
+		routers.POST("/app", app.PostAppHandlerFunc)
+		routers.DELETE("/app", app.DeleteAppHandlerFunc)
 	}
 	err = r.Run("0.0.0.0:3000")
 	if err != nil {

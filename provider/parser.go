@@ -8,27 +8,26 @@ import (
 	"io/ioutil"
 )
 
-func Yaml(manifest, uuid string, config interface{}, dependencies []Dependency) (string, error) {
-	if true {
-		return "", nil
-	}
+func Yaml(manifest, uuid, domain string, config interface{}, dependencies []Dependency) (string, error) {
 
 	requestByte, err := json.Marshal(struct {
 		Manifest string `json:"content"`
 		UUID string `json:"instanceid"`
 		Configuration interface{} `json:"userconfig"`
 		Dependencies []Dependency `json:"dependencies"`
+		Domain string `json:"root-domain"`
 	}{
 		Manifest: manifest,
 		UUID: uuid,
 		Configuration: config,
 		Dependencies: dependencies,
+		Domain: domain,
 	})
 	if err != nil {
 		return "", fmt.Errorf("序列化错误: %w", err)
 	}
 
-	res, err := HTTPClient.Post("http://crab:5000/", bytes.NewReader(requestByte), nil)
+	res, err := HTTPClient.Post("http://island-parser", bytes.NewReader(requestByte), nil)
 	if err != nil {
 		return "", fmt.Errorf("请求翻译器错误: %w", err)
 	}
