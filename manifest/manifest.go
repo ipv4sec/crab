@@ -24,11 +24,6 @@ type ManifestServiceOrigin struct {
 	} `yaml:"spec" json:"spec"`
 }
 
-type VelaYaml struct {
-	Name     string                 `yaml:"name"`
-	Services map[string]interface{} `yaml:"services"`
-}
-
 type Component struct {
 	Name       string `yaml:"name" json:"name"`
 	Type       string `yaml:"type" json:"type"`

@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crab
+  labels:
+    app: crab
+  namespace: island-system
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: crab
+      labels:
+        app: crab
+    spec:
+      containers:
+        - name: crab
+          image: nginx:1.21
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - mountPath: /etc/nginx/conf.d/
+              name: conf
+      restartPolicy: Always
+      volumes:
+        - name: conf
+          configMap:
+            name: crab
+
+
+  selector:
+    matchLabels:
+      app: crab
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: crab
+  namespace: island-system
+data:
+  default.conf: |
+    server {
+            listen 80;
+
+            location /api {
+                rewrite ^/api$    /  last;
+                rewrite ^/api(.*) $1 break;
+                proxy_pass http://island-setup;
+                proxy_http_version 1.1;
+            }
+            location / {
+                proxy_pass http://island-web;
+                proxy_http_version 1.1;
+            }
+            error_page   500 502 503 504  /50x.html;
+            location = /50x.html {
+                root   /usr/share/nginx/html;
+            }
+        }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: crab
+spec:
+  selector:
+    app: crab
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80

@@ -191,14 +191,20 @@ func PutAppHandlerFunc(c *gin.Context) {
 		c.JSON(200, utils.ErrorResponse(10086, "参数错误"))
 		return
 	}
+	uuid := c.PostForm("instanceid")
+	if uuid == "" {
+		c.JSON(200, utils.ErrorResponse(10086, "参数错误"))
+		return
+	}
+	configuration := c.PostForm("userconfig")
 	param := struct {
 		Status         int         `json:"status"`
 		ID             string      `json:"instanceid"`
 		Configurations interface{} `json:"userconfig"`
 	}{
 		Status: status,
-		ID: c.PostForm("instanceid"),
-		Configurations: c.PostForm("userconfig"),
+		ID: uuid,
+		Configurations: configuration,
 	}
 	var app App
 	err = db.Client.Where("uuid = ?", param.ID).Find(&app).Error
