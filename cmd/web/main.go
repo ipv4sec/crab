@@ -61,7 +61,7 @@ func main() {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
 	r.Use(gin.Recovery())
-	routers := r.Group("/app")
+	routers := r.Group("/api/app")
 	{
 		routers.GET("/", app.GetAppHandlerFunc)
 		routers.PUT("/", app.PutAppHandlerFunc)
