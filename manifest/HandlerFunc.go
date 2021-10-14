@@ -1,10 +1,7 @@
 package manifest
 
 import (
-	"crab/app"
-	"crab/db"
 	dependency "crab/dependencies"
-	"crab/system"
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
@@ -12,7 +9,6 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/yaml.v2"
-	"gorm.io/gorm"
 	"io/ioutil"
 	"k8s.io/klog/v2"
 	"math/rand"
@@ -25,13 +21,28 @@ import (
 	"strings"
 )
 
+type contextObj struct {
+	AppName       string      `json:"appName"`
+	ComponentName string      `json:"componentName"`
+}
+type manifestParam struct {
+	AppName   string `json:"appName"`
+	Namespace string `json:"namespace"`
+}
+var cmdResult struct {
+	Parameter map[string]interface{}            `json:"parameter"`
+	Outputs   map[string]map[string]interface{} `json:"outputs"`
+}
+
 func PostManifestHandlerFunc(c *gin.Context) {
 	var err error
 	content := c.PostForm("content")
 	instanceId := c.PostForm("instanceid")
 	userconfig := c.DefaultPostForm("userconfig", "{}")
 	dependencies := c.DefaultPostForm("dependencies", "[]")
-	if content == "" || instanceId == "" {
+	rootDomain := c.DefaultPostForm("root-domain", "")
+
+	if content == "" || instanceId == "" || rootDomain == "" {
 		returnData := struct {
 			Code   int    `json:"code"`
 			Result string `json:"result"`
@@ -43,7 +54,7 @@ func PostManifestHandlerFunc(c *gin.Context) {
 		return
 	}
 	//生成vale.yaml文件
-	vale, err := GenValeYaml(instanceId, content, dependencies, userconfig)
+	vale, err := GenValeYaml(instanceId, content, dependencies, userconfig, rootDomain)
 	if err != nil {
 		klog.Errorln(err.Error())
 		return
@@ -64,117 +75,30 @@ func PostManifestHandlerFunc(c *gin.Context) {
 	}
 	c.JSON(200, returnData)
 }
-func PutManifestHandlerFunc(c *gin.Context) {
-}
-
-var workloadTypes = []string{"webservice", "worker", "redis", "mysql"}
-
-//workload_vela
-type webserviceVela struct {
-	Workload      string                     `json:"workload"`
-	Image         string                     `json:"image"`
-	Configs       []ConfigItem               `json:"configs"`
-	Init          string                     `json:"init"`
-	After         string                     `json:"after"`
-	Port          int                        `json:"port,omitempty"`
-	Cmd           []string                   `json:"cmd"`
-	Args          []string                   `json:"args,omitempty"`
-	Env           []EnvItem                  `json:"env"`
-	Traits        []string                   `json:"traits"`
-	Authorization []dependency.Authorization `json:"authorization"`
-	Serviceentry  []dependency.ServiceEntry  `json:"serviceentry"`
-	Namespace     string                     `json:"namespace"`
-	Type          string                     `json:"type"`
-	Entry         Entry                      `json:"entry"`
-}
-
-//workload worker
-type workerVela struct {
-	Workload      string                     `json:"workload"`
-	Image         string                     `json:"image"`
-	Cmd           []string                   `json:"cmd"`
-	Args          []string                   `json:"args,omitempty"`
-	Env           []EnvItem                  `json:"env"`
-	After         string                     `json:"after"`
-	Init          string                     `json:"init"`
-	Configs       []ConfigItem               `json:"configs"`
-	Storage       Storage                    `json:"storage"`
-	Authorization []dependency.Authorization `json:"authorization"`
-	Serviceentry  []dependency.ServiceEntry  `json:"serviceentry"`
-	Namespace     string                     `json:"namespace"`
-	Type          string                     `json:"type"`
-	Entry         Entry                      `json:"entry"`
-}
-
-//workload redis
-type redisVela struct {
-	Workload      string                     `json:"workload"`
-	After         string                     `json:"after"`
-	Authorization []dependency.Authorization `json:"authorization"`
-	Serviceentry  []dependency.ServiceEntry  `json:"serviceentry"`
-	Namespace     string                     `json:"namespace"`
-	Type          string                     `json:"type"`
-	Entry         Entry                      `json:"entry"`
-}
-
-//workload mysql
-type mysqlVela struct {
-	Workload      string                     `json:"workload"`
-	Rootpwd       string                     `json:"rootpwd"`
-	Storage       Storage                    `json:"storage"`
-	Init          string                     `json:"init,omitempty"`
-	After         string                     `json:"after"`
-	Authorization []dependency.Authorization `json:"authorization"`
-	Serviceentry  []dependency.ServiceEntry  `json:"serviceentry"`
-	Namespace     string                     `json:"namespace"`
-	Type          string                     `json:"type"`
-	Entry         Entry                      `json:"entry"`
-}
-
-func (svc webserviceVela) workload() string {
-	return svc.Workload
-}
-func (svc workerVela) workload() string {
-	return svc.Workload
-}
-func (svc mysqlVela) workload() string {
-	return svc.Workload
-}
-func (svc redisVela) workload() string {
-	return svc.Workload
-}
 
 //由manifest.yaml生成vale.yaml
-func GenValeYaml(instanceId, str, dependencies, userconfig string) (VelaYaml, error) {
+func GenValeYaml(instanceId, str, dependencies, userconfig,rootDomain string) (VelaYaml, error) {
+	var vela = VelaYaml{"", Metadata{}, make(map[string]interface{}, 0)}
 	var err error
-	manifestServiceOrigin := Manifest{}
+
+	manifestServiceOrigin := ManifestServiceOrigin{}
 	err = yaml.Unmarshal([]byte(str), &manifestServiceOrigin)
 	if err != nil {
 		klog.Errorln(err.Error())
-		return VelaYaml{}, nil
+		return vela, nil
 	}
-	vela := VelaYaml{"", make(map[string]interface{}, 0)}
 	vela.Name = manifestServiceOrigin.Metadata.Name
 
-	//parseAnnotations(manifestServiceOrigin.Metadata.Annotations)
-	//aa, err := json.Marshal(annotations)
-	//if err != nil {
-	//	klog.Errorln(err.Error())
-	//	return velaYaml{}, nil
-	//}
-
-	//组件
+	//components
 	if len(manifestServiceOrigin.Spec.Components) == 0 {
 		klog.Errorln("组件不能为空")
-		return VelaYaml{}, errors.New("组件不能为空")
+		return vela, errors.New("组件不能为空")
 	}
 
 	//有ingress的组件
 	serviceEntryName := entryService(manifestServiceOrigin.Spec.Components)
-	klog.Infoln("ingress ", serviceEntryName)
 
-	//vela格式
-	authorizationData, serviceEntryData, configmapData, err := parseDependencies(instanceId, dependencies)
+	authorizationData, serviceEntryData, configmapData, err := parseDependencies(dependencies)
 	if err != nil {
 		klog.Errorln(err.Error())
 		return VelaYaml{}, err
@@ -190,23 +114,13 @@ func GenValeYaml(instanceId, str, dependencies, userconfig string) (VelaYaml, er
 		)
 	}
 
-	//根域
-	rootDomain, err := system.GetDomain()
-	if err != nil {
-		klog.Errorln(err.Error())
-		return VelaYaml{}, err
-	}
-	klog.Infoln("GetDomain", rootDomain)
-
 	//configmap
 	configItemData := make([]ConfigItemDataItem, 0)
 	for k, v := range configmapData {
 		configItemData = append(configItemData, ConfigItemDataItem{Name: fmt.Sprintf("%s.host", k), Value: v})
 	}
 	//添加应用时填写的运行时配置
-	if userconfig != "" {
-		configItemData = append(configItemData, ConfigItemDataItem{Name: "userconfig", Value: userconfig})
-	}
+	configItemData = append(configItemData, ConfigItemDataItem{Name: "userconfig", Value: userconfig})
 
 	for _, svc := range manifestServiceOrigin.Spec.Components {
 		service := serviceVela(svc, instanceId, authorizationData, serviceEntryData, configItemData, rootDomain, serviceEntryName)
@@ -218,180 +132,34 @@ func GenValeYaml(instanceId, str, dependencies, userconfig string) (VelaYaml, er
 
 //由vale.yaml生成k8s
 func GenK8sYaml(instanceid string, vela VelaYaml) (string, error) {
-	var err error
-	var finalYaml string
-
-	//数据库中查找数据
-	appInfo := app.App{}
-	err = db.Client.Where("id = ?", instanceid).First(&appInfo).Error
-	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			klog.Errorln("err")
-			klog.Errorln("Error: Dependence app not exist. instanceid=" + instanceid)
-			return "", errors.New("Error: Dependence app not exist. instanceid=" + instanceid)
-		}
-		klog.Errorln(err.Error())
-		return "", errors.New("查询数据库错误")
-	}
-	manifestName := vela.Name
-	manifest := make(map[string]struct {
-		AppName   string `json:"appName"`
-		Namespace string `json:"namespace"`
-	}, 0)
-	manifest["manifest"] = struct {
-		AppName   string `json:"appName"`
-		Namespace string `json:"namespace"`
-	}{
-		manifestName,
-		instanceid,
-	}
-	manifestStr, err := json.Marshal(manifest)
-	if err != nil {
-		klog.Errorln("manifestStr json.Marshal 失败")
-		return "", errors.New("manifestStr json.Marshal 失败")
-	}
-	//生成兜底规则
-	manifestCue, err := template("manifest")
-
-	manifestContent := `
-parameter:%s
-%s
-`
-	manifestContent = fmt.Sprintf(manifestContent, manifestStr, manifestCue)
-	fileName := RandomString(manifestContent)
-	path := fmt.Sprintf("/tmp/%s.cue", fileName)
-	//path = "tmp/cue/manifest.cue"
-	err = ioutil.WriteFile(path, []byte(manifestContent), 0644)
+	//manifest
+	manifestK8s, err := GenManifestK8s(instanceid, vela)
 	if err != nil {
 		klog.Errorln(err.Error())
 		return "", err
 	}
-	command := fmt.Sprintf("/usr/local/bin/cue export -f %s", path)
-	//command = fmt.Sprintf("cue export -f %s", path)
-	cmd := exec.Command("bash", "-c", command)
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		klog.Errorln("执行命令错误", err.Error())
-	}
-	//klog.Errorln(string(output))
-	var out struct {
-		Parameter map[string]interface{}            `json:"parameter"`
-		Outputs   map[string]map[string]interface{} `json:"outputs"`
-	}
-	err = json.Unmarshal(output, &out)
-	if err != nil {
-		klog.Errorln(err.Error())
-		return "", err
-	}
-	k8sYaml := ""
-	for _, output := range out.Outputs {
-		str, err := yaml.Marshal(output)
-		if err != nil {
-			klog.Errorln(err.Error())
-			return "", err
-		}
-		k8sYaml += fmt.Sprintf("---\n#manifest\n%s", str)
-	}
-	//service
-	for k, v := range vela.Services {
-		type contextObj struct {
-			AppName       string `json:"appName"`
-			ComponentName string `json:"componentName"`
-		}
-		ctxObj := make(map[string]contextObj, 0)
-		ctxObj["context"] = contextObj{manifestName, k}
-		if err != nil {
-			klog.Errorln(err.Error())
-			return "", err
-		}
-		finnnalCueFileContent := `
-%s
-parameter:%s
-%s
-`
-		ctxObjData, err := json.Marshal(ctxObj)
-		if err != nil {
-			klog.Errorln("ctxObj json.Marshal 失败")
-			return "", errors.New("ctxObj json.Marshal 失败")
-		}
-
-		serviceItem, err := json.Marshal(v)
-		if err != nil {
-			klog.Errorln("vela.Services json.Marshal 失败")
-			return "", errors.New("vela.Services json.Marshal 失败")
-		}
-		workload := ""
-		if svc, ok := v.(webserviceVela); ok {
-			workload = svc.Workload
-		} else if svc, ok := v.(workerVela); ok {
-			workload = svc.Workload
-		} else if svc, ok := v.(mysqlVela); ok {
-			workload = svc.Workload
-		} else if svc, ok := v.(redisVela); ok {
-			workload = svc.Workload
-		} else {
-			klog.Errorln("未知1类型的workload")
-			return "", errors.New("未知类型的workload")
-		}
-		template, err := template(workload)
-		if err != nil {
-			klog.Errorln(err.Error())
-			return "", err
-		}
-		content := fmt.Sprintf(finnnalCueFileContent, ctxObjData, serviceItem, template)
-		fileName = RandomString(content)
-		path := fmt.Sprintf("/tmp/%s.cue", fileName)
-		//path = "tmp/cue/" + k + ".cue"
-		err = ioutil.WriteFile(path, []byte(content), 0644)
-		if err != nil {
-			klog.Errorln(err.Error())
-			return "", err
-		}
-		command = fmt.Sprintf("/usr/local/bin/cue export -f %s", path)
-		//command = fmt.Sprintf("cue export -f %s", path)
-		cmd = exec.Command("bash", "-c", command)
-		output, err = cmd.CombinedOutput()
-		if err != nil {
-			klog.Errorln("执行命令错误", err.Error())
-			return "", err
-		}
-		err = json.Unmarshal(output, &out)
-		if err != nil {
-			klog.Errorln(err.Error())
-			return "", err
-		}
-		for _, out := range out.Outputs {
-			str, err := yaml.Marshal(out)
-			if err != nil {
-				klog.Errorln(err.Error())
-				return "", err
-			}
-			k8sYaml += fmt.Sprintf("\n---\n#%s\n%s", k, str)
-		}
-	}
-	k8s := `
+	//components
+	ns := `
 apiVersion: v1
 kind: Namespace
 metadata:
- name: %s
- labels:
-   istio-injection: enabled
+  name: %s
+  labels:
+    istio-injection: enabled
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
- name: %s
- namespace: %s
-%s
+  name: %s
+  namespace: %s
 `
-	finalYaml = fmt.Sprintf(k8s, instanceid, vela.Name, instanceid, k8sYaml)
-	//err = ioutil.WriteFile("tmp/k8s.yaml", []byte(finalYaml), 0644)
-	//if err != nil {
-	//	klog.Errorln("k8s写入文件失败")
-	//	return "", errors.New("k8s写入文件失败")
-	//}
-	//klog.Errorln("k8s写入文件成功")
-	return finalYaml, nil
+	ns = fmt.Sprintf(ns, instanceid, vela.Name, instanceid)
+	componentK8s, err := GenComponentsK8s(vela)
+	if err != nil{
+		klog.Errorln(err)
+		return "", err
+	}
+	return ns + manifestK8s + componentK8s, nil
 }
 
 //获取cue模板
@@ -441,7 +209,7 @@ func RandomString(str string) string {
 //生成kubevela格式的service
 func serviceVela(svc Component, instanceid string, authorization []dependency.Authorization, serviceentry []dependency.ServiceEntry, configItemData []ConfigItemDataItem, rootDomain string, serviceEntryName string) interface{} {
 	if svc.Type == "webservice" {
-		service := webserviceVela{
+		service := WebserviceVela{
 			Workload:      svc.Type,
 			Type:          svc.Type,
 			Image:         svc.Properties.Image,
@@ -452,7 +220,7 @@ func serviceVela(svc Component, instanceid string, authorization []dependency.Au
 			Cmd:           svc.Properties.Cmd,
 			Args:          svc.Properties.Args,
 			Env:           make([]EnvItem, 0),
-			Traits:        svc.Properties.Traits,
+			Traits:        svc.Traits,
 			Authorization: authorization,
 			Serviceentry:  serviceentry,
 			Namespace:     instanceid,
@@ -474,7 +242,7 @@ func serviceVela(svc Component, instanceid string, authorization []dependency.Au
 		}
 		return service
 	} else if svc.Type == "worker" {
-		service := workerVela{
+		service := WorkerVela{
 			Workload:      svc.Type,
 			Type:          svc.Type,
 			Image:         svc.Properties.Image,
@@ -505,7 +273,7 @@ func serviceVela(svc Component, instanceid string, authorization []dependency.Au
 		}
 		return service
 	} else if svc.Type == "mysql" {
-		service := mysqlVela{
+		service := MysqlVela{
 			Workload:      svc.Type,
 			Type:          svc.Type,
 			Rootpwd:       svc.Properties.Rootpwd,
@@ -518,7 +286,7 @@ func serviceVela(svc Component, instanceid string, authorization []dependency.Au
 		}
 		return service
 	} else if svc.Type == "redis" {
-		service := redisVela{
+		service := RedisVela{
 			Workload:      svc.Type,
 			Type:          svc.Type,
 			After:         svc.Properties.After,
@@ -532,7 +300,7 @@ func serviceVela(svc Component, instanceid string, authorization []dependency.Au
 }
 
 //处理依赖
-func parseDependencies(instanceId, str string) ([]dependency.Authorization, []dependency.ServiceEntry, map[string]string, error) {
+func parseDependencies(str string) ([]dependency.Authorization, []dependency.ServiceEntry, map[string]string, error) {
 	var err error
 	authorization := make([]dependency.Authorization, 0)
 	serviceEntry := make([]dependency.ServiceEntry, 0)
@@ -551,11 +319,12 @@ func parseDependencies(instanceId, str string) ([]dependency.Authorization, []de
 			v.Name,
 			v.Location,
 			v.Version,
+			v.EntryService,
 			dependency.ApiParse(v.Uses),
 		})
 	}
 
-	authorization, serviceEntry, configmap, err = dependendService(instanceId, dependencyVelas)
+	authorization, serviceEntry, configmap, err = dependendService(dependencyVelas)
 	if err != nil {
 		klog.Errorln(err.Error())
 		return authorization, serviceEntry, configmap, err
@@ -564,7 +333,7 @@ func parseDependencies(instanceId, str string) ([]dependency.Authorization, []de
 }
 
 //依赖的服务,授权
-func dependendService(instanceId string, dependencyVelas []dependency.DependencyVela) ([]dependency.Authorization, []dependency.ServiceEntry, map[string]string, error) {
+func dependendService(dependencyVelas []dependency.DependencyVela) ([]dependency.Authorization, []dependency.ServiceEntry, map[string]string, error) {
 	dependenceAuthorization := make([]dependency.Authorization, 0)
 	//外部服务调用
 	externalService := make([]dependency.ServiceEntry, 0)
@@ -573,22 +342,10 @@ func dependendService(instanceId string, dependencyVelas []dependency.Dependency
 
 	for _, v := range dependencyVelas {
 		if v.Instanceid != "" { //有Instanceid，说明是内部服务
-			appInfo, err := appInfo(v.Instanceid)
-			if err != nil {
-				klog.Errorln(err.Error())
-				return dependenceAuthorization, externalService, configmap, err
-			}
-			manifestServiceOrigin := Manifest{}
-			err = yaml.Unmarshal([]byte(appInfo.Manifest), &manifestServiceOrigin)
-			if err != nil {
-				klog.Errorln(err.Error())
-				return dependenceAuthorization, externalService, configmap, err
-			}
-			entryService := entryService(manifestServiceOrigin.Spec.Components)
 			dependenceAuthorization = append(dependenceAuthorization, dependency.Authorization{
-				v.Instanceid, entryService, v.Resource,
+				v.Instanceid, v.EntryService, v.Resource,
 			})
-			configmap[appInfo.Name] = fmt.Sprintf("%s.%s.svc.cluster.local.", entryService, v.Instanceid)
+			configmap[v.Name] = fmt.Sprintf("%s.%s.svc.cluster.local.", v.EntryService, v.Instanceid)
 		} else {
 			if v.Location == "" {
 				klog.Errorln("Error: location is empty")
@@ -637,29 +394,11 @@ func dependendService(instanceId string, dependencyVelas []dependency.Dependency
 	return dependenceAuthorization, externalService, configmap, nil
 }
 
-//获取app信息
-func appInfo(id string) (app.App, error) {
-	var err error
-	app := app.App{}
-	err = db.Client.Where("id = ?", id).First(&app).Error
-	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			klog.Errorln("err")
-			klog.Errorln("Error: Dependence app not exist. instanceid=" + id)
-			return app, errors.New("Error: Dependence app not exist. instanceid=" + id)
-		}
-		klog.Errorln(err.Error())
-		return app, errors.New("查询数据库错误")
-	}
-	return app, nil
-}
-
 //返回traits中包含ingress的服务名称
 func entryService(components []Component) string {
 	for _, svc := range components {
-		klog.Errorln(svc.Properties.Traits)
-		for _, v := range svc.Properties.Traits {
-			if v == "ingress" {
+		for _, v := range svc.Traits {
+			if v.Ttype == "ingress" {
 				return svc.Name
 			}
 		}
@@ -679,4 +418,129 @@ func inExCheck(location string) string {
 	} else {
 		return "external"
 	}
+}
+
+func GenManifestK8s(instanceid string, vela VelaYaml) (string, error) {
+	manifest := make(map[string]manifestParam, 0)
+	manifest["manifest"] = manifestParam{
+		vela.Name,
+		instanceid,
+	}
+	manifestStr, err := json.Marshal(manifest)
+	if err != nil {
+		klog.Errorln("manifestStr json.Marshal 失败")
+		return "", errors.New("manifestStr json.Marshal 失败")
+	}
+	//获取cue模板
+	manifestCue, err := template("manifest")
+	manifestContent := `
+parameter:%s
+%s
+`
+	manifestContent = fmt.Sprintf(manifestContent, manifestStr, manifestCue)
+	fileName := RandomString(manifestContent)
+	path := fmt.Sprintf("/tmp/%s.cue", fileName)
+	err = ioutil.WriteFile(path, []byte(manifestContent), 0644)
+	if err != nil {
+		klog.Errorln(err.Error())
+		return "", err
+	}
+	command := fmt.Sprintf("/usr/local/bin/cue export -f %s", path)
+	cmd := exec.Command("bash", "-c", command)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		klog.Errorln("执行命令错误", err.Error())
+	}
+	var out struct {
+		Parameter map[string]interface{}            `json:"parameter"`
+		Outputs   map[string]map[string]interface{} `json:"outputs"`
+	}
+	err = json.Unmarshal(output, &out)
+	if err != nil {
+		klog.Errorln(err.Error())
+		return "", err
+	}
+	k8sYaml := ""
+	for _, output := range out.Outputs {
+		str, err := yaml.Marshal(output)
+		if err != nil {
+			klog.Errorln(err.Error())
+			return "", err
+		}
+		k8sYaml += fmt.Sprintf("---\n#manifest\n%s", str)
+	}
+	return k8sYaml, nil
+}
+
+func GenComponentsK8s(vela VelaYaml) (string, error) {
+	k8sYaml := ""
+	for k, v := range vela.Services {
+		ctxObj := make(map[string]contextObj, 0)
+		ctxObj["context"] = contextObj{
+			vela.Name,
+			k,
+		}
+		finnnalCueFileContent := `
+%s
+parameter:%s
+%s
+`
+		ctxObjData, err := json.Marshal(ctxObj)
+		if err != nil {
+			klog.Errorln("ctxObj json.Marshal 失败")
+			return "", errors.New("ctxObj json.Marshal 失败")
+		}
+		serviceItem, err := json.Marshal(v)
+		if err != nil {
+			klog.Errorln("vela.Services json.Marshal 失败")
+			return "", errors.New("vela.Services json.Marshal 失败")
+		}
+		workload := ""
+		if svc, ok := v.(WebserviceVela); ok {
+			workload = svc.Workload
+		} else if svc, ok := v.(WorkerVela); ok {
+			workload = svc.Workload
+		} else if svc, ok := v.(MysqlVela); ok {
+			workload = svc.Workload
+		} else if svc, ok := v.(RedisVela); ok {
+			workload = svc.Workload
+		} else {
+			klog.Errorln("未知类型的workload")
+			return "", errors.New("未知类型的workload")
+		}
+		template, err := template(workload)
+		if err != nil {
+			klog.Errorln(err.Error())
+			return "", err
+		}
+		content := fmt.Sprintf(finnnalCueFileContent, ctxObjData, serviceItem, template)
+		fileName := RandomString(content)
+		path := fmt.Sprintf("/tmp/%s.cue", fileName)
+		err = ioutil.WriteFile(path, []byte(content), 0644)
+		if err != nil {
+			klog.Errorln(err.Error())
+			return "", err
+		}
+		command := fmt.Sprintf("/usr/local/bin/cue export -f %s", path)
+		cmd := exec.Command("bash", "-c", command)
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			klog.Errorln("执行命令错误", err.Error())
+			return "", err
+		}
+		err = json.Unmarshal(output, &cmdResult)
+		if err != nil {
+			klog.Errorln(err.Error())
+			return "", err
+		}
+		for _, out := range cmdResult.Outputs {
+			str, err := yaml.Marshal(out)
+			if err != nil {
+				klog.Errorln(err.Error())
+				return "", err
+			}
+			k8sYaml += fmt.Sprintf("\n---\n#%s\n%s", k, str)
+		}
+	}
+	return k8sYaml, nil
 }
