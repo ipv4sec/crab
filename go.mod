@@ -3,6 +3,7 @@ module crab
 go 1.16
 
 require (
+	github.com/blang/semver/v4 v4.0.0
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/gin-gonic/gin v1.7.4
 	github.com/gojek/heimdall/v7 v7.0.2

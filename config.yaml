@@ -1,6 +1,6 @@
 
 mysql:
-  host: island-db
+  host: 119.254.147.216
   port: 3306
   username: root
   password: 123456

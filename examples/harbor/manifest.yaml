@@ -1,0 +1,39 @@
+name: harbor
+version: 2.0.0
+
+services:
+  cache:
+    workload: redis
+  db:
+    workload: mysql
+    rootpwd: "123456"
+    storage:
+      capacity: 1Gi
+    init: "CREATE DATABASE island;"
+    after: cache
+  api:
+    workload: webservice
+    image: harbor1.zlibs.com/island/island-nginx:1.21
+    traits: ["ingress"]
+    after: db
+    configs:
+      - path: /tmp
+        subPath: 1.txt
+        data:
+          - name: 1.txt
+            value: "111"
+
+dependencies:
+  - name: github
+    version: ">=0.0.1"
+    location: https://www.github.com
+    use:
+      - [CRUD, /*]
+
+userconfig:
+  type: object
+  properties:
+    param:
+      type: string
+  required:
+    - param

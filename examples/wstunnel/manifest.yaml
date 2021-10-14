@@ -1,0 +1,28 @@
+name: wstunnel
+version: 0.1.0
+
+services:
+  ha:
+    workload: webservice
+    image: harbor1.zlibs.com/island/island-wstunnel:0.1.0
+    traits: ["ingress"]
+    configs:
+      - path: /app
+        subPath: robots.txt
+        data:
+          - name: robots.txt
+            value: |
+              User-agent: *
+              Disallow: *
+
+dependencies:
+  - name: vscode
+    version: ">=0.0.1"
+    location: https://update.code.visualstudio.com
+    use:
+      - [CRUD, /*]
+  - name: gitlab
+    version: ">=0.0.1"
+    location: user-defined(https://gitlab.huanqiu-ltd.com)
+    use:
+      - [ CRUD, /* ]

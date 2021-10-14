@@ -5,6 +5,10 @@ type Reply struct {
 	Result interface{} `json:"result"`
 }
 
+func RowResponse(data interface{}) interface{} {
+	return data
+}
+
 func SuccessResponse(data interface{}) *Reply {
 	return &Reply{
 		Code: 0,

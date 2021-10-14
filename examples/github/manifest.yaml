@@ -1,0 +1,14 @@
+apiVersion: ami.globalsphare.com/v1alpha1
+kind: Application
+metadata:
+  name: github
+  annotations:
+    version: 1.0.0
+spec:
+  components:
+    - name: ha
+      type: webservice
+      properties:
+        image: harbor1.zlibs.com/island/island-nginx:1.21
+      traits:
+        - type: ingress
