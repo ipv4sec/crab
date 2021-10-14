@@ -4,7 +4,7 @@ import "time"
 
 type App struct {
 	ID           int64 `gorm:"primaryKey" json:"-"`
-	UUID         string `json:"namespace"`
+	UUID         string `json:"uuid"`
 	Status       int    `json:"status"` // TODO 0 正在部署中 1 部署完成 2 卸载中 3 卸载完成
 
 	Name         string `json:"name"`
@@ -14,7 +14,7 @@ type App struct {
 	//Dependencies string `json:"dependencies"`
 	//Parameters   string `json:"parameters"`
 	//Config       string
-	Deployment     string `gorm:"column:deployment"`
+	Deployment     string `gorm:"column:deployment" json:"deployment"`
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`

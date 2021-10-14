@@ -1,7 +1,5 @@
 package v1alpha1
 
-import "encoding/json"
-
 type Manifest struct {
 	ApiVersion string `yaml:"apiVersion" json:"apiVersion"`
 	Kind       string `yaml:"kind" json:"kind"`
@@ -13,7 +11,7 @@ type Manifest struct {
 		Exports map[string][]string
 		Dependencies []Dependency
 		Configurations interface{} `yaml:"userconfigs" json:"userconfigs"`
-		Components []json.RawMessage `json:"components"`
+		Components [] map[string]interface{} `json:"components"`
 	} `yaml:"spec" json:"spec"`
 }
 

@@ -28,7 +28,7 @@ type Pagination struct {
 type Instance struct {
 	*App
 	Status string `json:"status"`
-	Entry string `json:"entry"`
+	Entry  string `json:"entry"`
 }
 
 func GetAppHandlerFunc(c *gin.Context) {
@@ -58,9 +58,9 @@ func GetAppHandlerFunc(c *gin.Context) {
 	if err != nil {
 		klog.Errorln("获取路由资源错误", err.Error())
 	}
-	endpoints := map[string]string{"":"未设置域名"}
+	endpoints := map[string]string{"": "未设置域名"}
 	for i := 0; i < len(gws.Items); i++ {
-		servers :=  gws.Items[i].Object["spec"].(map[string]interface{})["servers"].([]interface{})
+		servers := gws.Items[i].Object["spec"].(map[string]interface{})["servers"].([]interface{})
 		if len(servers) == 0 {
 			continue
 		}
@@ -75,7 +75,7 @@ func GetAppHandlerFunc(c *gin.Context) {
 		ins := Instance{
 			App:    &apps[i],
 			Status: "未部署",
-			Entry: endpoints[apps[i].Name+"-http"],
+			Entry:  endpoints[apps[i].Name+"-http"],
 		}
 		if apps[i].Status == 1 {
 			ins.Status = "正在部署中"
@@ -123,17 +123,18 @@ func PostAppHandlerFunc(c *gin.Context) {
 	var manifest v1alpha1.Manifest
 	err = yaml.Unmarshal(bytes, &manifest)
 	if err != nil {
+		klog.Errorln("解析描述文件错误:", err.Error())
 		c.JSON(200, utils.ErrorResponse(10086, "解析描述文件错误"))
 		return
 	}
 	app := App{
-		Name:         manifest.Metadata.Name,
-		Version:      manifest.Metadata.Annotations.Version,
-		Status:       0,
-		UUID:    fmt.Sprintf("INS-%v", time.Now().Unix()),
-		Manifest:     string(bytes),
+		Name:     manifest.Metadata.Name,
+		Version:  manifest.Metadata.Annotations.Version,
+		Status:   0,
+		UUID:     fmt.Sprintf("INS%v", time.Now().Unix()),
+		Manifest: string(bytes),
 	}
-	err = db.Client.Save(app).Error
+	err = db.Client.Create(&app).Error
 	if err != nil {
 		c.JSON(200, utils.ErrorResponse(10086, "数据库保存错误"))
 		return
@@ -141,8 +142,8 @@ func PostAppHandlerFunc(c *gin.Context) {
 	var dependencies map[string]interface{}
 	for i := 0; i < len(manifest.Spec.Dependencies); i++ {
 		d := Dependency{
-			Instances: []struct{
-				ID string `json:"instanceid"`
+			Instances: []struct {
+				ID      string `json:"instanceid"`
 				Version string `json:"version"`
 			}{},
 		}
@@ -162,7 +163,7 @@ func PostAppHandlerFunc(c *gin.Context) {
 				ra, err := semver.ParseRange(manifest.Spec.Dependencies[i].Version)
 				if ra(v) {
 					d.Instances = append(d.Instances, struct {
-						ID string `json:"instanceid"`
+						ID      string `json:"instanceid"`
 						Version string `json:"version"`
 					}{ID: apps[j].UUID, Version: apps[j].Version})
 				}
@@ -172,9 +173,9 @@ func PostAppHandlerFunc(c *gin.Context) {
 	}
 
 	c.JSON(200, utils.RowResponse(struct {
-		Dependencies map[string]interface{} `json:"dependencies"`
-		ID string `json:"instanceid"`
-		Configurations interface{} `json:"userconfigs"`
+		Dependencies   map[string]interface{} `json:"dependencies,omitempty" `
+		ID             string                 `json:"instanceid"`
+		Configurations interface{}            `json:"userconfigs,omitempty"`
 	}{
 		Dependencies:   dependencies,
 		ID:             app.UUID,
@@ -183,9 +184,9 @@ func PostAppHandlerFunc(c *gin.Context) {
 }
 func PutAppHandlerFunc(c *gin.Context) {
 	// 运行或者卸载
-	var param struct{
-		Status int `json:"status"`
-		ID string `json:"instanceid"`
+	var param struct {
+		Status         int         `json:"status"`
+		ID             string      `json:"instanceid"`
 		Configurations interface{} `json:"userconfig"`
 	}
 	err := c.ShouldBindJSON(&param)
@@ -194,7 +195,7 @@ func PutAppHandlerFunc(c *gin.Context) {
 		return
 	}
 	var app App
-	err = db.Client.Where("namespace = ?", param.ID).Find(&app).Error
+	err = db.Client.Where("uuid = ?", param.ID).Find(&app).Error
 	if err != nil {
 		klog.Errorln("数据库查询错误:", err.Error())
 		c.JSON(200, utils.ErrorResponse(10086, "该实例不存在"))
@@ -260,11 +261,11 @@ func PutAppHandlerFunc(c *gin.Context) {
 
 func DeleteAppHandlerFunc(c *gin.Context) {
 	id := c.Query("instanceid")
-	if id != "" {
+	if id == "" {
 		c.JSON(200, utils.ErrorResponse(10086, "参数错误"))
 		return
 	}
-	err := db.Client.Model(&App{}).Where("instance_id = ?", id).Delete(App{}).Error
+	err := db.Client.Model(&App{}).Where("uuid = ?", id).Delete(App{}).Error
 	if err != nil {
 		klog.Errorln("删除实例错误:", err.Error())
 		c.JSON(200, utils.ErrorResponse(10086, "删除实例错误"))

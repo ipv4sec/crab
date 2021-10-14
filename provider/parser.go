@@ -9,6 +9,9 @@ import (
 )
 
 func Yaml(manifest, uuid string, config interface{}, dependencies []Dependency) (string, error) {
+	if true {
+		return "", nil
+	}
 
 	requestByte, err := json.Marshal(struct {
 		Manifest string `json:"content"`
