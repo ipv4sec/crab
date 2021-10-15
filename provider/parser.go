@@ -6,28 +6,30 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"k8s.io/klog/v2"
+	"mime/multipart"
 )
 
 func Yaml(manifest, uuid, domain string, config interface{}, dependencies []Dependency) (string, error) {
+	v, err := json.Marshal(dependencies)
+	if err != nil {
+		return "", fmt.Errorf("序列化参数错误:%w", err)
+	}
 
-	requestByte, err := json.Marshal(struct {
-		Manifest string `json:"content"`
-		UUID string `json:"instanceid"`
-		Configuration interface{} `json:"userconfig"`
-		Dependencies []Dependency `json:"dependencies"`
-		Domain string `json:"root-domain"`
-	}{
-		Manifest: manifest,
-		UUID: uuid,
-		Configuration: config,
-		Dependencies: dependencies,
-		Domain: domain,
-	})
+	requestByte := new(bytes.Buffer)
+	w := multipart.NewWriter(requestByte)
+	_ = w.WriteField("content", manifest)
+	_ = w.WriteField("instanceid", uuid)
+	_ = w.WriteField("userconfig", fmt.Sprintf("%v", config))
+	_ = w.WriteField("dependencies", string(v))
+	_ = w.WriteField("root-domain", domain)
+	_ = w.Close()
+
 	if err != nil {
 		return "", fmt.Errorf("序列化错误: %w", err)
 	}
-
-	res, err := HTTPClient.Post("http://island-parser", bytes.NewReader(requestByte), nil)
+	klog.Infoln("请求参数为:", requestByte.String())
+	res, err := HTTPClient.Post("http://island-parser", requestByte,nil)
 	if err != nil {
 		return "", fmt.Errorf("请求翻译器错误: %w", err)
 	}

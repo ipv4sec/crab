@@ -27,8 +27,9 @@ ADD assets/ceph/ assets/ceph/
 ADD assets/island/ assets/island/
 
 ADD scripts/ceph.sh scripts/ceph.sh
-
+ADD scripts/istio.sh scripts/istio.sh
 RUN chmod +x scripts/ceph.sh
+RUN chmod +x scripts/istio.sh
 
 COPY --from=build /app/crab .
 

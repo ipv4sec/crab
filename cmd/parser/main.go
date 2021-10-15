@@ -9,8 +9,6 @@ import (
 func main() {
 	var err error
 	r := gin.Default()
-
-	//parse manifest.yaml to k8s.yaml
 	r.POST("/", manifest.PostManifestHandlerFunc)
 
 	err = r.Run(":3000")

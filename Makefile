@@ -15,3 +15,8 @@ web:
 	docker build -f deployments/web.Dockerfile -t harbor1.zlibs.com/island/island-web:alpha .
 	docker push harbor1.zlibs.com/island/island-web:alpha
 
+.PHONY: ui
+ui:
+	docker build -f deployments/ui.Dockerfile -t harbor1.zlibs.com/island/island-ui:alpha web
+	docker push harbor1.zlibs.com/island/island-ui:alpha
+

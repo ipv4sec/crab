@@ -27,7 +27,7 @@ type Pagination struct {
 
 type Instance struct {
 	*App
-	UUID   string `json:"instance_id"`
+	UUID   string `json:"id"`
 	Status string `json:"status"`
 	Entry  string `json:"entry"`
 }
@@ -191,14 +191,20 @@ func PutAppHandlerFunc(c *gin.Context) {
 		c.JSON(200, utils.ErrorResponse(10086, "参数错误"))
 		return
 	}
+	uuid := c.PostForm("instanceid")
+	if uuid == "" {
+		c.JSON(200, utils.ErrorResponse(10086, "参数错误"))
+		return
+	}
+	configuration := c.PostForm("userconfig")
 	param := struct {
 		Status         int         `json:"status"`
 		ID             string      `json:"instanceid"`
 		Configurations interface{} `json:"userconfig"`
 	}{
 		Status: status,
-		ID: c.PostForm("instanceid"),
-		Configurations: c.PostForm("userconfig"),
+		ID: uuid,
+		Configurations: configuration,
 	}
 	var app App
 	err = db.Client.Where("uuid = ?", param.ID).Find(&app).Error
@@ -220,8 +226,6 @@ func PutAppHandlerFunc(c *gin.Context) {
 		output, err := executor.ExecuteCommandWithCombinedOutput("bash", "-c", command)
 		if err != nil {
 			klog.Errorln("执行命令错误", err.Error())
-			c.JSON(200, utils.ErrorResponse(10086, "执行命令错误"))
-			return
 		}
 		err = db.Client.Model(App{}).Where(
 			"id = ?", app.ID).Update("status", 4).Error
@@ -230,7 +234,7 @@ func PutAppHandlerFunc(c *gin.Context) {
 			c.JSON(200, utils.ErrorResponse(10086, "更新状态错误"))
 			return
 		}
-		klog.Infoln("执行命令成功:", output)
+		klog.Infoln("执行命令结果:", output)
 		c.JSON(200, utils.RowResponse(struct {
 			Result string `json:"result"`
 		}{
