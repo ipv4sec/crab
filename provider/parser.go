@@ -10,24 +10,21 @@ import (
 	"mime/multipart"
 )
 
-func Yaml(manifest, uuid, domain string, config interface{}, dependencies []Dependency) (string, error) {
-	v, err := json.Marshal(dependencies)
-	if err != nil {
-		return "", fmt.Errorf("序列化参数错误:%w", err)
-	}
+func Yaml(manifest, uuid, domain string, config interface{}, dependencies string) (string, error) {
+	//v, err := json.Marshal(dependencies)
+	//if err != nil {
+	//	return "", fmt.Errorf("序列化参数错误:%w", err)
+	//}
 
 	requestByte := new(bytes.Buffer)
 	w := multipart.NewWriter(requestByte)
 	_ = w.WriteField("content", manifest)
 	_ = w.WriteField("instanceid", uuid)
 	_ = w.WriteField("userconfig", fmt.Sprintf("%v", config))
-	_ = w.WriteField("dependencies", string(v))
+	_ = w.WriteField("dependencies", dependencies)
 	_ = w.WriteField("root-domain", domain)
 	_ = w.Close()
 
-	if err != nil {
-		return "", fmt.Errorf("序列化错误: %w", err)
-	}
 	klog.Infoln("请求参数为:", requestByte.String())
 	res, err := HTTPClient.Post("http://island-parser", requestByte, map[string][]string{
 		"Content-Type": []string{w.FormDataContentType()},

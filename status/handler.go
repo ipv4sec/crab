@@ -60,12 +60,12 @@ func PostStatusHandlerFunc(c *gin.Context) {
 
 	// 增加修改App的状态
 	var total int64
-	err = db.Client.Model(&Status{}).Where("status =1 AND name = ?", param.Name).Count(&total).Error
+	err = db.Client.Model(&Status{}).Where("status =1 AND uuid = ?", param.Name).Count(&total).Error
 	if err != nil {
 		klog.Errorln("数据库查询错误:", err.Error())
 	}
 	var a app.App
-	err = db.Client.First(&a, "namespace = ?", param.Name).Error
+	err = db.Client.First(&a, "uuid = ?", param.Name).Error
 	if err != nil {
 		klog.Errorln("数据库查询错误:", err.Error())
 	}
@@ -75,7 +75,7 @@ func PostStatusHandlerFunc(c *gin.Context) {
 		klog.Errorln("序列化描述文件错误:", err.Error())
 	}
 	if int64(len(manifest.Spec.Components)) == total && total != 0 {
-		err = db.Client.Model(&app.App{}).Where("status =1 AND id = ?", param.Name).Update("status", 2).Error
+		err = db.Client.Model(&app.App{}).Where("status =1 AND uuid = ?", param.Name).Update("status", 2).Error
 		if err != nil {
 			klog.Errorln("数据库更新错误:", err.Error())
 		}

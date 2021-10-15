@@ -213,10 +213,12 @@ func PutAppHandlerFunc(c *gin.Context) {
 		Status         int         `json:"status"`
 		ID             string      `json:"instanceid"`
 		Configurations interface{} `json:"userconfig"`
+		Dependencies string `json:"dependencies"`
 	}{
 		Status: status,
 		ID: uuid,
 		Configurations: configuration,
+		Dependencies: c.PostForm("dependencies"),
 	}
 	var app App
 	err = db.Client.Where("uuid = ?", param.ID).Find(&app).Error
@@ -265,7 +267,8 @@ func PutAppHandlerFunc(c *gin.Context) {
 			return
 		}
 		v, _ := island.Data["root-domain"]
-		yaml, err := provider.Yaml(app.Manifest, app.UUID, v, param.Configurations, nil)
+		// TODO
+		yaml, err := provider.Yaml(app.Manifest, app.UUID, v, param.Configurations, param.Dependencies)
 		if err != nil {
 			klog.Errorln("连接到翻译器错误:", err.Error())
 			c.JSON(200, utils.ErrorResponse(10086, "连接到翻译器错误"))
@@ -277,7 +280,7 @@ func PutAppHandlerFunc(c *gin.Context) {
 			c.JSON(200, utils.ErrorResponse(10086, "执行命令错误"))
 			return
 		}
-		err = db.Client.Model(App{}).Where("id = ?", app.ID).Update("status", 1).Error
+		err = db.Client.Model(App{}).Where("id = ?", app.ID).Updates(map[string]interface{}{"status": 1, "deployment": yaml}).Error
 		if err != nil {
 			klog.Errorln("数据库更新错误:", err.Error())
 			c.JSON(200, utils.ErrorResponse(10086, "更新状态错误"))
