@@ -30,6 +30,8 @@ func main() {
 	flag.StringVar(&password, "password", "password", "密码")
 	flag.Parse()
 
+	executor := exec.CommandExecutor{}
+
 	klog.Infoln("开始集群认证")
 	err = cluster.Init()
 	if err != nil {
@@ -86,6 +88,11 @@ func main() {
 		}
 	}
 	if n ==0 {
+		output, err := executor.ExecuteCommandWithCombinedOutput("scripts/istio.sh")
+		if err != nil {
+			panic(fmt.Errorf("初始化网格失败: %w", err))
+		}
+		klog.Infoln("初始化网格: ", output)
 		yaml, err := ioutil.ReadFile("assets/istio/operator.yaml")
 		if err != nil {
 			panic(fmt.Errorf("读取yaml错误: %w", err))
@@ -161,7 +168,6 @@ func main() {
 	}
 
 	klog.Infoln("开始设置存储")
-	executor := exec.CommandExecutor{}
 	output, err := executor.ExecuteCommandWithCombinedOutput("scripts/ceph.sh")
 	if err != nil {
 		panic(fmt.Errorf("设置存储组件失败: %w", err))
