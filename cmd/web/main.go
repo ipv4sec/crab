@@ -5,7 +5,9 @@ import (
 	"crab/cluster"
 	"crab/config"
 	"crab/db"
+	d "crab/domain"
 	"crab/status"
+	"crab/storage"
 	"crab/user"
 	"flag"
 	"fmt"
@@ -68,6 +70,15 @@ func main() {
 		routers.PUT("/app", app.PutAppHandlerFunc)
 		routers.POST("/app", app.PostAppHandlerFunc)
 		routers.DELETE("/app", app.DeleteAppHandlerFunc)
+	}
+
+	clusterGroup := routers.Group("/cluster")
+	{
+		clusterGroup.GET("/addrs", storage.GetAddrsHandlerFunc)
+		clusterGroup.GET("/domain", d.GetDomainHandlerFunc)
+		clusterGroup.PUT("/domain", d.PutDomainHandlerFunc)
+		clusterGroup.GET("/storage", storage.GetStorageHandlerFunc)
+		clusterGroup.POST("/storage", storage.PostStorageHandlerFunc)
 	}
 	err = r.Run("0.0.0.0:3000")
 	if err != nil {

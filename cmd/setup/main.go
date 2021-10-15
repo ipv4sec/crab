@@ -4,14 +4,10 @@ import (
 	"bytes"
 	"context"
 	"crab/cluster"
-	d "crab/domain"
 	"crab/exec"
-	"crab/storage"
 	"crab/utils"
 	"errors"
-	"flag"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"io/ioutil"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -19,17 +15,13 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/remotecommand"
 	"k8s.io/klog/v2"
+	"os"
 	"strings"
 	"time"
 )
 
 func main() {
 	var err error
-	var domain, password string
-	flag.StringVar(&domain, "domain", "example.com", "根域")
-	flag.StringVar(&password, "password", "password", "密码")
-	flag.Parse()
-
 	executor := exec.CommandExecutor{}
 
 	klog.Infoln("开始集群认证")
@@ -190,7 +182,7 @@ metadata:
 data:
   root-domain: %s
 `
-	err = cluster.Client.Apply(context.Background(), []byte(fmt.Sprintf(yaml, domain)))
+	err = cluster.Client.Apply(context.Background(), []byte(fmt.Sprintf(yaml, os.Getenv("ISLAND_DOMAIN"))))
 	if err != nil {
 		klog.Errorln("设置根域失败: ", err.Error())
 	}
@@ -204,7 +196,7 @@ data:
 				Name: "island-administrator",
 			},
 			Data: map[string]string{
-				"root": password,
+				"root": os.Getenv("ISLAND_PASSWORD"),
 			},
 		}, metav1.CreateOptions{})
 	if err != nil {
@@ -212,6 +204,7 @@ data:
 	}
 	klog.Infoln("设置密码完成")
 
+	// TODO
 	klog.Infoln("开始部署应用")
 	files, err := ioutil.ReadDir("assets/island/")
 	if err != nil {
@@ -237,21 +230,5 @@ data:
 	//	klog.Infoln("并未设置存储")
 	//}
 	klog.Infoln("设置存储结束")
-
-	klog.Infoln("开始提供服务")
-	// TODO
-	gin.SetMode(gin.ReleaseMode)
-	routers := gin.Default()
-	clusterGroup := routers.Group("/cluster")
-	{
-		clusterGroup.GET("/addrs", storage.GetAddrsHandlerFunc)
-		clusterGroup.GET("/domain", d.GetDomainHandlerFunc)
-		clusterGroup.PUT("/domain", d.PutDomainHandlerFunc)
-		clusterGroup.GET("/storage", storage.GetStorageHandlerFunc)
-		clusterGroup.POST("/storage", storage.PostStorageHandlerFunc)
-	}
-	err = routers.Run("0.0.0.0:3000")
-	if err != nil {
-		panic(fmt.Errorf("监听端口失败: %w", err))
-	}
+	klog.Info("结束退出程序")
 }
