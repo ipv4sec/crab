@@ -76,7 +76,7 @@ func GetAppHandlerFunc(c *gin.Context) {
 		ins := Instance{
 			App:    &apps[i],
 			Status: "未部署",
-			Entry:  endpoints[apps[i].Name+"-http"],
+			Entry:  endpoints[apps[i].UUID+"-http"],
 			UUID:   apps[i].UUID,
 		}
 		if apps[i].Status == 1 {
@@ -141,7 +141,9 @@ func PostAppHandlerFunc(c *gin.Context) {
 		c.JSON(200, utils.RowResponse(map[string]string{"error":"数据库保存错误"}))
 		return
 	}
-	var dependencies map[string]interface{}
+
+	klog.Info("此实例的依赖:", manifest.Spec.Dependencies)
+	dependencies := map[string]interface{}{}
 	for i := 0; i < len(manifest.Spec.Dependencies); i++ {
 		d := Dependency{
 			Instances: []struct {
@@ -178,7 +180,7 @@ func PostAppHandlerFunc(c *gin.Context) {
 		c.JSON(200, utils.RowResponse(struct {
 			Dependencies   struct{} `json:"dependencies" `
 			ID             string                 `json:"instanceid"`
-			Configurations struct{}            `json:"userconfigs"`
+			Configurations struct{}            `json:"userconfig"`
 		}{
 			Dependencies: struct{}{},
 			ID:             app.UUID,
@@ -188,7 +190,7 @@ func PostAppHandlerFunc(c *gin.Context) {
 		c.JSON(200, utils.RowResponse(struct {
 			Dependencies   map[string]interface{} `json:"dependencies" `
 			ID             string                 `json:"instanceid"`
-			Configurations struct{}            `json:"userconfigs"`
+			Configurations struct{}            `json:"userconfig"`
 		}{
 			Dependencies: dependencies,
 			ID:             app.UUID,
@@ -280,7 +282,8 @@ func PutAppHandlerFunc(c *gin.Context) {
 			c.JSON(200, utils.ErrorResponse(10086, "执行命令错误"))
 			return
 		}
-		err = db.Client.Model(App{}).Where("id = ?", app.ID).Updates(map[string]interface{}{"status": 1, "deployment": yaml}).Error
+		err = db.Client.Model(App{}).Where("id = ?", app.ID).Updates(map[string]interface{}{
+			"status": 1, "deployment": yaml}).Error
 		if err != nil {
 			klog.Errorln("数据库更新错误:", err.Error())
 			c.JSON(200, utils.ErrorResponse(10086, "更新状态错误"))

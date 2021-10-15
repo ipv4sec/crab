@@ -9,8 +9,9 @@ type Manifest struct {
 	} `yaml:"metadata" json:"metadata"`
 	Spec struct {
 		Exports map[string][]string
-		Dependencies []Dependency
+		Dependencies []Dependency `yaml:"dependencies" json:"dependencies"`
 		Configurations struct{} `yaml:"userconfigs" json:"userconfigs"`
+		// TODO
 		Components [] map[string]interface{} `json:"components"`
 	} `yaml:"spec" json:"spec"`
 }
