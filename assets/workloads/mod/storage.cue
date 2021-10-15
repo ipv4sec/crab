@@ -2,13 +2,13 @@ import "mod/context"
 
 parameter: {
 	storage?: {
-		capacity: string | *"1Gi"
+		capacity: string
 		path:     string
 	}
 }
 
 if parameter.storage != _|_ {
-  if parameter.storage.capacity != _|_ {
+  if parameter.storage.capacity != ""  {
     outputs: {
       "storage": {
         apiVersion: "v1"

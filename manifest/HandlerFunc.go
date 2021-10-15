@@ -76,7 +76,11 @@ func PostManifestHandlerFunc(c *gin.Context) {
 		c.JSON(200, returnData)
 		return
 	}
-	ioutil.WriteFile("tmp/k8s.yaml", []byte(k8s), 0644)
+	//err = ioutil.WriteFile("tmp/k8s.yaml", []byte(k8s), 0644)
+	//if err != nil {
+	//	klog.Infoln(err)
+	//	return
+	//}
 	returnData := struct {
 		Code   int    `json:"code"`
 		Result string `json:"result"`
@@ -249,8 +253,6 @@ func serviceVela(svc Component, instanceid string, authorization []dependency.Au
 		}
 		return service
 	} else if svc.Type == "worker" {
-		fmt.Println("------------")
-		fmt.Printf("%+v\n", svc)
 		service := WorkerVela{
 			Workload:      svc.Type,
 			Type:          svc.Type,

@@ -25,11 +25,6 @@ type ManifestServiceOrigin struct {
 	} `yaml:"spec" json:"spec"`
 }
 
-type VelaYaml struct {
-	Name     string                 `yaml:"name"`
-	Services map[string]interface{} `yaml:"services"`
-}
-
 type Component struct {
 	Name       string `yaml:"name" json:"name"`
 	Type       string `yaml:"type" json:"type"`
@@ -126,7 +121,7 @@ type WorkerVela struct {
 	After         string                       `json:"after,omitempty"`
 	Init          string                       `json:"init,omitempty"`
 	Configs       []ConfigItem                 `json:"configs,omitempty"`
-	Storage       Storage                      `json:"storage,omitempty"`
+	Storage       Storage                      `json:"storage"`
 	Authorization []dependencies.Authorization `json:"authorization,omitempty"`
 	Serviceentry  []dependencies.ServiceEntry  `json:"serviceentry,omitempty"`
 	Namespace     string                       `json:"namespace"`
