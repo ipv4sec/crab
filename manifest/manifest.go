@@ -35,7 +35,7 @@ type Component struct {
 		Args          []string                     `yaml:"args" json:"args"`
 		Cpu           string                       `yaml:"cpu" json:"cpu"`
 		Init          string                       `yaml:"init" json:"init"`
-		Configs 	[]ConfigItem	`yaml:"configs" json:"configs"`
+		Configs       []ConfigItem                 `yaml:"configs" json:"configs"`
 		After         string                       `yaml:"after" json:"after"`
 		Rootpwd       string                       `yaml:"rootpwd" json:"rootpwd"`
 		Storage       Storage                      `yaml:"storage" json:"storage"`
@@ -98,7 +98,7 @@ type Storage struct {
 type WebserviceVela struct {
 	Workload      string                       `json:"workload"`
 	Image         string                       `json:"image"`
-	Configs       []ConfigItem                 `json:"configs,omitempty"`
+	Configs       []ConfigItem                 `json:"configs"`
 	Init          string                       `json:"init,omitempty"`
 	After         string                       `json:"after,omitempty"`
 	Port          int                          `json:"port,omitempty"`
@@ -122,8 +122,8 @@ type WorkerVela struct {
 	Env           []EnvItem                    `json:"env,omitempty"`
 	After         string                       `json:"after,omitempty"`
 	Init          string                       `json:"init,omitempty"`
-	Configs       []ConfigItem                 `json:"configs,omitempty"`
-	Storage       Storage                      `json:"storage"`
+	Configs       []ConfigItem                 `json:"configs"`
+	Storage       Storage                      `json:"storage,omitempty"`
 	Authorization []dependencies.Authorization `json:"authorization,omitempty"`
 	Serviceentry  []dependencies.ServiceEntry  `json:"serviceentry,omitempty"`
 	Namespace     string                       `json:"namespace"`

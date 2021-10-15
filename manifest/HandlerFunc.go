@@ -60,7 +60,7 @@ func PostManifestHandlerFunc(c *gin.Context) {
 		return
 	}
 	//str,err := json.Marshal(vale)
-	//ioutil.WriteFile("tmp/vela.json", str, 0644)
+	//ioutil.WriteFile("../vela.json", str, 0644)
 
 	//生成k8s.yaml文件
 	k8s, err := GenK8sYaml(instanceId, vale)
@@ -73,7 +73,7 @@ func PostManifestHandlerFunc(c *gin.Context) {
 		c.JSON(200, returnData)
 		return
 	}
-	//err = ioutil.WriteFile("tmp/k8s.yaml", []byte(k8s), 0644)
+	//err = ioutil.WriteFile("../k8s.yaml", []byte(k8s), 0644)
 	//if err != nil {
 	//	klog.Infoln(err)
 	//	return
