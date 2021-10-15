@@ -133,7 +133,7 @@ func PostAppHandlerFunc(c *gin.Context) {
 		Name:     manifest.Metadata.Name,
 		Version:  manifest.Metadata.Annotations.Version,
 		Status:   0,
-		UUID:     fmt.Sprintf("INS%v", time.Now().Unix()),
+		UUID:     fmt.Sprintf("ins%v", time.Now().Unix()),
 		Manifest: string(bytes),
 	}
 	err = db.Client.Create(&app).Error
