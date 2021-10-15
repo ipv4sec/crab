@@ -60,7 +60,7 @@ func PostStatusHandlerFunc(c *gin.Context) {
 
 	// 增加修改App的状态
 	var total int64
-	err = db.Client.Model(&Status{}).Where("status =1 AND uuid = ?", param.Name).Count(&total).Error
+	err = db.Client.Model(&Status{}).Where("status =1 AND name = ?", param.Name).Count(&total).Error
 	if err != nil {
 		klog.Errorln("数据库查询错误:", err.Error())
 	}

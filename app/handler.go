@@ -252,7 +252,7 @@ func PutAppHandlerFunc(c *gin.Context) {
 		c.JSON(200, utils.RowResponse(struct {
 			Result string `json:"result"`
 		}{
-			Result: "卸载完成",
+			Result: "卸载中",
 		}))
 		return
 	}
