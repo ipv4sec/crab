@@ -21,6 +21,7 @@ func Yaml(manifest, uuid, domain string, config interface{}, dependencies string
 	_ = w.WriteField("content", manifest)
 	_ = w.WriteField("instanceid", uuid)
 	_ = w.WriteField("userconfig", fmt.Sprintf("%v", config))
+	// TODO
 	_ = w.WriteField("dependencies", dependencies)
 	_ = w.WriteField("root-domain", domain)
 	_ = w.Close()

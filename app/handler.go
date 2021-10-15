@@ -69,7 +69,8 @@ func GetAppHandlerFunc(c *gin.Context) {
 		if len(hosts) == 0 {
 			continue
 		}
-		endpoints[gws.Items[i].Object["metadata"].(map[string]interface{})["name"].(string)] = hosts[0].(string)
+		endpoints[gws.Items[i].Object["metadata"].(map[string]interface{})["name"].(string)] =
+			"http://" + hosts[0].(string)
 	}
 	vals := []Instance{}
 	for i := 0; i < len(apps); i++ {
@@ -211,16 +212,18 @@ func PutAppHandlerFunc(c *gin.Context) {
 		return
 	}
 	configuration := c.PostForm("userconfig")
+	dependencies := c.PostForm("dependencies")
 	param := struct {
 		Status         int         `json:"status"`
 		ID             string      `json:"instanceid"`
 		Configurations interface{} `json:"userconfig"`
 		Dependencies string `json:"dependencies"`
+		// TODO
 	}{
 		Status: status,
 		ID: uuid,
 		Configurations: configuration,
-		Dependencies: c.PostForm("dependencies"),
+		Dependencies: dependencies,
 	}
 	var app App
 	err = db.Client.Where("uuid = ?", param.ID).Find(&app).Error
@@ -269,6 +272,7 @@ func PutAppHandlerFunc(c *gin.Context) {
 			return
 		}
 		v, _ := island.Data["root-domain"]
+
 		// TODO
 		yaml, err := provider.Yaml(app.Manifest, app.UUID, v, param.Configurations, param.Dependencies)
 		if err != nil {

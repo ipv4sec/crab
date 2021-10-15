@@ -53,27 +53,37 @@ POST / HTTP/1.1
 |---|---|---|---|---|
 |content|文件内容|string|无|是|
 |instanceid|实例id|string|无|是|
-|userconfig|运行时配置|json字符串|"{}"|否|
-|dependencies|实例依赖|json字符串|"[]"|否|
+|userconfig|运行时配置|object|{}|否|
+|dependencies|实例依赖|dependency数组|[]|否|
 |root-domain|根域|string|无|是|
 
-`dependencies[*].instanceid` 内部服务实例id，为string类型，选择内部服务时必填
-`dependencies[*].location` 使用方式，为string类型，选择外部服务时必填
-`dependencies[*].version` 版本号, string类型，必填
-`dependencies[*].uses` 使用的资源和权限， 数组类型，必填
-`dependencies[*].entryservice` 服务暴露的组件的名称，string类型，选择内部服务时必填
-`dependencies[*].name` 依赖服务的名称，string类型，必填
+dependency.instanceid 内部服务实例id，为string类型，选择内部服务时必填
+
+dependency.location string类型，选择外部服务时必填
+dependency.version 版本号, string类型，必填
+dependency.uses  使用的资源和权限， map[string] []string类型，必填
+dependency.entryservice 服务暴露的组件的名称，string类型，选择内部服务时必填
+dependency.name 依赖服务的名称，string类型，必填
 
 请求参数示例
 
 * userconfig
 ```
-"{\"username\":\"admin\",\"password\":\"admin\"}"
+{"username":"admin","password":"admin"}
 ```
 
 * dependencies
 ```
-"[{\"instanceid\":\"frwugxqd\",\"location\":\"https://gitlab.com\",\"version\":\"0.1.0\",\"uses\":{\"/resource1\":[\"create\",\"get\",\"update\",\"delete\"],\"/resource2\":[\"get\"]},\"entryservice\":\"i1\",\"name\":\"app-demo\"}]"
+[{
+    "instanceid": "frwugxqd",
+    "location": "https://gitlab.com",
+    "version": "0.1.0",
+    "uses":{
+        "resource1":["create","get","update","delete"]
+    },
+    "entryservice":"i1",
+    "name":"app-demo"
+}]
 ```
 
 ### 返回值
