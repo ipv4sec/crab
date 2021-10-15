@@ -178,8 +178,7 @@ func template(workloadType string) (string, error) {
 	var err error
 	templatePath := fmt.Sprintf("assets/workloads/%s.cue", workloadType)
 	path, _ := filepath.Abs(templatePath)
-	if ! FileExist(path) {
-		klog.Errorln(err.Error())
+	if !FileExist(path) {
 		return "", errors.New(fmt.Sprintf("文件：%s 不存在", path))
 	}
 	t, err := ioutil.ReadFile(templatePath)

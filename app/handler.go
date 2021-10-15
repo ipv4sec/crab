@@ -174,15 +174,27 @@ func PostAppHandlerFunc(c *gin.Context) {
 		dependencies[manifest.Spec.Dependencies[i].Name] = d
 	}
 
-	c.JSON(200, utils.RowResponse(struct {
-		Dependencies   map[string]interface{} `json:"dependencies,omitempty" `
-		ID             string                 `json:"instanceid"`
-		Configurations interface{}            `json:"userconfigs,omitempty"`
-	}{
-		Dependencies:   dependencies,
-		ID:             app.UUID,
-		Configurations: manifest.Spec.Configurations,
-	}))
+	if len(dependencies) == 0 {
+		c.JSON(200, utils.RowResponse(struct {
+			Dependencies   struct{} `json:"dependencies" `
+			ID             string                 `json:"instanceid"`
+			Configurations struct{}            `json:"userconfigs"`
+		}{
+			Dependencies: struct{}{},
+			ID:             app.UUID,
+			Configurations: manifest.Spec.Configurations,
+		}))
+	} else {
+		c.JSON(200, utils.RowResponse(struct {
+			Dependencies   map[string]interface{} `json:"dependencies" `
+			ID             string                 `json:"instanceid"`
+			Configurations struct{}            `json:"userconfigs"`
+		}{
+			Dependencies: dependencies,
+			ID:             app.UUID,
+			Configurations: manifest.Spec.Configurations,
+		}))
+	}
 }
 func PutAppHandlerFunc(c *gin.Context) {
 	// 运行或者卸载

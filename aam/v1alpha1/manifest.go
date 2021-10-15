@@ -10,7 +10,7 @@ type Manifest struct {
 	Spec struct {
 		Exports map[string][]string
 		Dependencies []Dependency
-		Configurations interface{} `yaml:"userconfigs" json:"userconfigs"`
+		Configurations struct{} `yaml:"userconfigs" json:"userconfigs"`
 		Components [] map[string]interface{} `json:"components"`
 	} `yaml:"spec" json:"spec"`
 }
