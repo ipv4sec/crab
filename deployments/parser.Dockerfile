@@ -18,6 +18,8 @@ WORKDIR /app
 ADD assets/bin/cue /usr/local/bin/cue
 RUN chmod +x /usr/local/bin/cue
 
+ADD assets/workloads/ assets/workloads/
+
 COPY --from=build /app/parser .
 
 CMD ["./parser"]

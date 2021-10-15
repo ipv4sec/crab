@@ -1,0 +1,46 @@
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: island-status
+  namespace: island-system
+  labels:
+    app: island
+    component: status
+spec:
+  type: ClusterIP
+  ports:
+    - name: port
+      port: 80
+      targetPort: 3000
+  selector:
+    app: island
+    component: status
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: island-status
+  namespace: island-system
+  labels:
+    app: island
+    component: status
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: island-status
+      labels:
+        app: island
+        component: status
+    spec:
+      containers:
+        - name: island-status
+          image: harbor1.zlibs.com/island/island-status:alpha
+          imagePullPolicy: Always
+      restartPolicy: Always
+      serviceAccountName: crab
+  selector:
+    matchLabels:
+      app: island
+      component: status

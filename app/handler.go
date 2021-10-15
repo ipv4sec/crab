@@ -133,7 +133,7 @@ func PostAppHandlerFunc(c *gin.Context) {
 		Name:     manifest.Metadata.Name,
 		Version:  manifest.Metadata.Annotations.Version,
 		Status:   0,
-		UUID:     fmt.Sprintf("INS%v", time.Now().Unix()),
+		UUID:     fmt.Sprintf("ins%v", time.Now().Unix()),
 		Manifest: string(bytes),
 	}
 	err = db.Client.Create(&app).Error
@@ -174,15 +174,27 @@ func PostAppHandlerFunc(c *gin.Context) {
 		dependencies[manifest.Spec.Dependencies[i].Name] = d
 	}
 
-	c.JSON(200, utils.RowResponse(struct {
-		Dependencies   map[string]interface{} `json:"dependencies,omitempty" `
-		ID             string                 `json:"instanceid"`
-		Configurations interface{}            `json:"userconfigs,omitempty"`
-	}{
-		Dependencies:   dependencies,
-		ID:             app.UUID,
-		Configurations: manifest.Spec.Configurations,
-	}))
+	if len(dependencies) == 0 {
+		c.JSON(200, utils.RowResponse(struct {
+			Dependencies   struct{} `json:"dependencies" `
+			ID             string                 `json:"instanceid"`
+			Configurations struct{}            `json:"userconfigs"`
+		}{
+			Dependencies: struct{}{},
+			ID:             app.UUID,
+			Configurations: manifest.Spec.Configurations,
+		}))
+	} else {
+		c.JSON(200, utils.RowResponse(struct {
+			Dependencies   map[string]interface{} `json:"dependencies" `
+			ID             string                 `json:"instanceid"`
+			Configurations struct{}            `json:"userconfigs"`
+		}{
+			Dependencies: dependencies,
+			ID:             app.UUID,
+			Configurations: manifest.Spec.Configurations,
+		}))
+	}
 }
 func PutAppHandlerFunc(c *gin.Context) {
 	// 运行或者卸载
@@ -201,10 +213,12 @@ func PutAppHandlerFunc(c *gin.Context) {
 		Status         int         `json:"status"`
 		ID             string      `json:"instanceid"`
 		Configurations interface{} `json:"userconfig"`
+		Dependencies string `json:"dependencies"`
 	}{
 		Status: status,
 		ID: uuid,
 		Configurations: configuration,
+		Dependencies: c.PostForm("dependencies"),
 	}
 	var app App
 	err = db.Client.Where("uuid = ?", param.ID).Find(&app).Error
@@ -238,7 +252,7 @@ func PutAppHandlerFunc(c *gin.Context) {
 		c.JSON(200, utils.RowResponse(struct {
 			Result string `json:"result"`
 		}{
-			Result: "卸载完成",
+			Result: "卸载中",
 		}))
 		return
 	}
@@ -253,7 +267,8 @@ func PutAppHandlerFunc(c *gin.Context) {
 			return
 		}
 		v, _ := island.Data["root-domain"]
-		yaml, err := provider.Yaml(app.Manifest, app.UUID, v, param.Configurations, nil)
+		// TODO
+		yaml, err := provider.Yaml(app.Manifest, app.UUID, v, param.Configurations, param.Dependencies)
 		if err != nil {
 			klog.Errorln("连接到翻译器错误:", err.Error())
 			c.JSON(200, utils.ErrorResponse(10086, "连接到翻译器错误"))
@@ -265,7 +280,7 @@ func PutAppHandlerFunc(c *gin.Context) {
 			c.JSON(200, utils.ErrorResponse(10086, "执行命令错误"))
 			return
 		}
-		err = db.Client.Model(App{}).Where("id = ?", app.ID).Update("status", 1).Error
+		err = db.Client.Model(App{}).Where("id = ?", app.ID).Updates(map[string]interface{}{"status": 1, "deployment": yaml}).Error
 		if err != nil {
 			klog.Errorln("数据库更新错误:", err.Error())
 			c.JSON(200, utils.ErrorResponse(10086, "更新状态错误"))
