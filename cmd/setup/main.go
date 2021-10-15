@@ -232,15 +232,10 @@ data:
 	//}
 	klog.Infoln("设置存储结束")
 
-
-	klog.Infoln("开始设置访问路由")
-	klog.Infoln("设置访问路由结束")
-
 	klog.Infoln("开始提供服务")
+	// TODO
 	gin.SetMode(gin.ReleaseMode)
 	routers := gin.Default()
-
-
 	clusterGroup := routers.Group("/cluster")
 	{
 		clusterGroup.GET("/addrs", storage.GetAddrsHandlerFunc)
