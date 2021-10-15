@@ -6,15 +6,9 @@ import (
 	"k8s.io/klog/v2"
 )
 
-func main(){
+func main() {
 	var err error
 	r := gin.Default()
-
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
 
 	//parse manifest.yaml to k8s.yaml
 	r.POST("/", manifest.PostManifestHandlerFunc)

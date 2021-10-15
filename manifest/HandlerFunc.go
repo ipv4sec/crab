@@ -22,18 +22,19 @@ import (
 )
 
 type contextObj struct {
-	AppName       string      `json:"appName"`
-	ComponentName string      `json:"componentName"`
+	AppName       string `json:"appName"`
+	ComponentName string `json:"componentName"`
 }
+
 type manifestParam struct {
 	AppName   string `json:"appName"`
 	Namespace string `json:"namespace"`
 }
-var cmdResult struct {
-	Parameter map[string]interface{}            `json:"parameter"`
-	Outputs   map[string]map[string]interface{} `json:"outputs"`
-}
 
+type result struct {
+	Code   int    `json:"code"`
+	Result string `json:"result"`
+}
 func PostManifestHandlerFunc(c *gin.Context) {
 	var err error
 	content := c.PostForm("content")
@@ -43,10 +44,7 @@ func PostManifestHandlerFunc(c *gin.Context) {
 	rootDomain := c.DefaultPostForm("root-domain", "")
 
 	if content == "" || instanceId == "" || rootDomain == "" {
-		returnData := struct {
-			Code   int    `json:"code"`
-			Result string `json:"result"`
-		}{
+		returnData := result{
 			10101,
 			"缺少参数",
 		}
@@ -56,16 +54,33 @@ func PostManifestHandlerFunc(c *gin.Context) {
 	//生成vale.yaml文件
 	vale, err := GenValeYaml(instanceId, content, dependencies, userconfig, rootDomain)
 	if err != nil {
+		returnData := result{
+			10101,
+			err.Error(),
+		}
 		klog.Errorln(err.Error())
+		c.JSON(200, returnData)
 		return
 	}
+	//str,err := json.Marshal(vale)
+	//ioutil.WriteFile("tmp/vela.json", str, 0644)
 
 	//生成k8s.yaml文件
 	k8s, err := GenK8sYaml(instanceId, vale)
 	if err != nil {
+		returnData := result{
+			10101,
+			err.Error(),
+		}
 		klog.Errorln(err.Error())
+		c.JSON(200, returnData)
 		return
 	}
+	//err = ioutil.WriteFile("tmp/k8s.yaml", []byte(k8s), 0644)
+	//if err != nil {
+	//	klog.Infoln(err)
+	//	return
+	//}
 	returnData := struct {
 		Code   int    `json:"code"`
 		Result string `json:"result"`
@@ -77,21 +92,18 @@ func PostManifestHandlerFunc(c *gin.Context) {
 }
 
 //由manifest.yaml生成vale.yaml
-func GenValeYaml(instanceId, str, dependencies, userconfig,rootDomain string) (VelaYaml, error) {
-	var vela = VelaYaml{"", Metadata{}, make(map[string]interface{}, 0)}
+func GenValeYaml(instanceId, str, dependencies, userconfig, rootDomain string) (VelaYaml, error) {
+	var vela = VelaYaml{"", make(map[string]interface{}, 0)}
 	var err error
 
 	manifestServiceOrigin := ManifestServiceOrigin{}
 	err = yaml.Unmarshal([]byte(str), &manifestServiceOrigin)
 	if err != nil {
-		klog.Errorln(err.Error())
-		return vela, nil
+		return vela, errors.New("文件解析失败")
 	}
 	vela.Name = manifestServiceOrigin.Metadata.Name
-
 	//components
 	if len(manifestServiceOrigin.Spec.Components) == 0 {
-		klog.Errorln("组件不能为空")
 		return vela, errors.New("组件不能为空")
 	}
 
@@ -100,8 +112,7 @@ func GenValeYaml(instanceId, str, dependencies, userconfig,rootDomain string) (V
 
 	authorizationData, serviceEntryData, configmapData, err := parseDependencies(dependencies)
 	if err != nil {
-		klog.Errorln(err.Error())
-		return VelaYaml{}, err
+		return vela, err
 	}
 
 	//为每个 service 创建一个 authorization，授权当前应用下的其他服务有访问的权限
@@ -155,7 +166,7 @@ metadata:
 `
 	ns = fmt.Sprintf(ns, instanceid, vela.Name, instanceid)
 	componentK8s, err := GenComponentsK8s(vela)
-	if err != nil{
+	if err != nil {
 		klog.Errorln(err)
 		return "", err
 	}
@@ -191,9 +202,9 @@ func template(workloadType string) (string, error) {
 			content = strings.ReplaceAll(content, v[0], includeMod)
 		}
 	}
-	//ioutil.WriteFile("2.cue", []byte(content),0644)
 	return content, nil
 }
+
 func FileExist(path string) bool {
 	_, err := os.Lstat(path)
 	return !os.IsNotExist(err)
@@ -308,19 +319,23 @@ func parseDependencies(str string) ([]dependency.Authorization, []dependency.Ser
 	configmap := make(map[string]string, 0)
 	err = json.Unmarshal([]byte(str), &dependencies)
 	if err != nil {
-		klog.Errorln("依赖解析错误")
-		return authorization, serviceEntry, configmap, errors.New("依赖解析错误")
+		klog.Errorln("依赖解析失败")
+		return authorization, serviceEntry, configmap, errors.New("依赖解析失败")
 	}
 	//解析uses
 	dependencyVelas := make([]dependency.DependencyVela, 0)
 	for _, v := range dependencies {
+		resource,err := dependency.ApiParse(v.Uses)
+		if err != nil {
+			return authorization, serviceEntry, configmap, err
+		}
 		dependencyVelas = append(dependencyVelas, dependency.DependencyVela{
 			v.Instanceid,
 			v.Name,
 			v.Location,
 			v.Version,
 			v.EntryService,
-			dependency.ApiParse(v.Uses),
+			resource,
 		})
 	}
 
@@ -334,36 +349,41 @@ func parseDependencies(str string) ([]dependency.Authorization, []dependency.Ser
 
 //依赖的服务,授权
 func dependendService(dependencyVelas []dependency.DependencyVela) ([]dependency.Authorization, []dependency.ServiceEntry, map[string]string, error) {
-	dependenceAuthorization := make([]dependency.Authorization, 0)
+	auth := make([]dependency.Authorization, 0)
 	//外部服务调用
-	externalService := make([]dependency.ServiceEntry, 0)
+	svcEntry := make([]dependency.ServiceEntry, 0)
 	//运行时配置
-	configmap := make(map[string]string, 0)
+	cm := make(map[string]string, 0)
 
 	for _, v := range dependencyVelas {
 		if v.Instanceid != "" { //有Instanceid，说明是内部服务
-			dependenceAuthorization = append(dependenceAuthorization, dependency.Authorization{
+			auth = append(auth, dependency.Authorization{
 				v.Instanceid, v.EntryService, v.Resource,
 			})
-			configmap[v.Name] = fmt.Sprintf("%s.%s.svc.cluster.local.", v.EntryService, v.Instanceid)
+			cm[v.Name] = fmt.Sprintf("%s.%s.svc.cluster.local.", v.EntryService, v.Instanceid)
 		} else {
 			if v.Location == "" {
-				klog.Errorln("Error: location is empty")
-				return dependenceAuthorization, externalService, configmap, errors.New("location is empty")
+				klog.Errorln("location is empty")
+				return auth, svcEntry, cm, errors.New("location is empty")
 			}
-			if inExCheck(v.Location) == "internal" {
+			serviceType, err := inExCheck(v.Location)
+			if err != nil {
+				klog.Errorln(err.Error())
+				return auth, svcEntry, cm, err
+			}
+			if serviceType == "internal" {
 				u, err := url.Parse(v.Location)
 				if err != nil {
 					klog.Errorln(err.Error())
-					return dependenceAuthorization, externalService, configmap, err
+					return auth, svcEntry, cm, err
 				}
 				arr := strings.Split(u.Host, ".")
-				dependenceAuthorization = append(dependenceAuthorization, dependency.Authorization{arr[0], arr[1], v.Resource})
+				auth = append(auth, dependency.Authorization{arr[0], arr[1], v.Resource})
 			} else {
 				arr, err := url.ParseRequestURI(v.Location)
 				if err != nil {
 					klog.Errorln(err.Error())
-					return dependenceAuthorization, externalService, configmap, err
+					return auth, svcEntry, cm, err
 				}
 				var protocol string
 				if arr.Scheme == "https" {
@@ -371,27 +391,27 @@ func dependendService(dependencyVelas []dependency.DependencyVela) ([]dependency
 				} else if arr.Scheme == "http" {
 					protocol = "http"
 				} else {
-					klog.Errorln("Error: protocol of the location is not http or https.")
-					return dependenceAuthorization, externalService, configmap, errors.New("protocol of the location is not http or https.")
+					klog.Errorln("protocol of the location is not http or https.")
+					return auth, svcEntry, cm, errors.New("protocol of the location is not http or https.")
 				}
-				arr2 := strings.Split(arr.Host, ":")
+				hostArr := strings.Split(arr.Host, ":")
 				var port int
-				if len(arr2) == 1 {
+				if len(hostArr) == 1 {
 					port = 80
 				} else {
-					port, err = strconv.Atoi(arr2[1])
+					port, err = strconv.Atoi(hostArr[1])
 					if err != nil {
 						klog.Errorln("转int失败")
-						return dependenceAuthorization, externalService, configmap, errors.New("转int失败")
+						return auth, svcEntry, cm, errors.New("转int失败")
 					}
 				}
-				externalService = append(externalService,
+				svcEntry = append(svcEntry,
 					dependency.ServiceEntry{arr.Host, port, protocol},
 				)
 			}
 		}
 	}
-	return dependenceAuthorization, externalService, configmap, nil
+	return auth, svcEntry, cm, nil
 }
 
 //返回traits中包含ingress的服务名称
@@ -407,17 +427,17 @@ func entryService(components []Component) string {
 }
 
 //是不是内部服务
-func inExCheck(location string) string {
+func inExCheck(location string) (string, error) {
 	u, err := url.Parse(location)
 	if err != nil {
-		panic(err)
+		klog.Errorln(err.Error())
+		return "", err
 	}
 	arr := strings.Split(u.Host, ".")
 	if arr[len(arr)-1] == "local" {
-		return "internal"
-	} else {
-		return "external"
+		return "internal", nil
 	}
+	return "external", nil
 }
 
 func GenManifestK8s(instanceid string, vela VelaYaml) (string, error) {
@@ -433,10 +453,7 @@ func GenManifestK8s(instanceid string, vela VelaYaml) (string, error) {
 	}
 	//获取cue模板
 	manifestCue, err := template("manifest")
-	manifestContent := `
-parameter:%s
-%s
-`
+	manifestContent := "\nparameter:%s\n%s"
 	manifestContent = fmt.Sprintf(manifestContent, manifestStr, manifestCue)
 	fileName := RandomString(manifestContent)
 	path := fmt.Sprintf("/tmp/%s.cue", fileName)
@@ -480,20 +497,16 @@ func GenComponentsK8s(vela VelaYaml) (string, error) {
 			vela.Name,
 			k,
 		}
-		finnnalCueFileContent := `
-%s
-parameter:%s
-%s
-`
+		finnnalCueFileContent := "%s\nparameter:%s\n%s"
 		ctxObjData, err := json.Marshal(ctxObj)
 		if err != nil {
-			klog.Errorln("ctxObj json.Marshal 失败")
-			return "", errors.New("ctxObj json.Marshal 失败")
+			klog.Errorln("ctxObj 序列化失败")
+			return "", errors.New("ctxObj 序列化失败")
 		}
 		serviceItem, err := json.Marshal(v)
 		if err != nil {
-			klog.Errorln("vela.Services json.Marshal 失败")
-			return "", errors.New("vela.Services json.Marshal 失败")
+			klog.Errorln("vela.Services 序列化失败")
+			return "", errors.New("vela.Services 序列化失败")
 		}
 		workload := ""
 		if svc, ok := v.(WebserviceVela); ok {
@@ -527,6 +540,10 @@ parameter:%s
 		if err != nil {
 			klog.Errorln("执行命令错误", err.Error())
 			return "", err
+		}
+		var cmdResult struct {
+			Parameter map[string]interface{}            `json:"parameter"`
+			Outputs   map[string]map[string]interface{} `json:"outputs"`
 		}
 		err = json.Unmarshal(output, &cmdResult)
 		if err != nil {
