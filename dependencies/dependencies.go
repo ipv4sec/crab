@@ -3,7 +3,6 @@ package dependencies
 import (
 	"errors"
 	"fmt"
-	"k8s.io/klog/v2"
 )
 
 type Dependency struct {
@@ -49,8 +48,8 @@ func ApiParse(uses map[string][]string) ([]DependencyUseItem, error) {
 	var err error
 	rtn := make([]DependencyUseItem, 0)
 	for k, v := range uses {
-		count :=0
-		actions :=make([]string, 0)
+		count := 0
+		actions := make([]string, 0)
 		for _, option := range v {
 			if option == "create" {
 				actions = append(actions, "POST")
@@ -69,8 +68,6 @@ func ApiParse(uses map[string][]string) ([]DependencyUseItem, error) {
 			return rtn, errors.New("依赖资源的操作类型不能为空")
 		}
 		rtn = append(rtn, DependencyUseItem{k, actions})
-		klog.Errorln(k)
 	}
-
 	return rtn,err
 }
