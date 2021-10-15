@@ -69,14 +69,15 @@ func GetAppHandlerFunc(c *gin.Context) {
 		if len(hosts) == 0 {
 			continue
 		}
-		endpoints[gws.Items[i].Object["metadata"].(map[string]interface{})["name"].(string)] = hosts[0].(string)
+		endpoints[gws.Items[i].Object["metadata"].(map[string]interface{})["name"].(string)] =
+			"http://" + hosts[0].(string)
 	}
 	vals := []Instance{}
 	for i := 0; i < len(apps); i++ {
 		ins := Instance{
 			App:    &apps[i],
 			Status: "未部署",
-			Entry:  endpoints[apps[i].Name+"-http"],
+			Entry:  endpoints[apps[i].UUID+"-http"],
 			UUID:   apps[i].UUID,
 		}
 		if apps[i].Status == 1 {
@@ -141,7 +142,9 @@ func PostAppHandlerFunc(c *gin.Context) {
 		c.JSON(200, utils.RowResponse(map[string]string{"error":"数据库保存错误"}))
 		return
 	}
-	var dependencies map[string]interface{}
+
+	klog.Info("此实例的依赖:", manifest.Spec.Dependencies)
+	dependencies := map[string]interface{}{}
 	for i := 0; i < len(manifest.Spec.Dependencies); i++ {
 		d := Dependency{
 			Instances: []struct {
@@ -178,7 +181,7 @@ func PostAppHandlerFunc(c *gin.Context) {
 		c.JSON(200, utils.RowResponse(struct {
 			Dependencies   struct{} `json:"dependencies" `
 			ID             string                 `json:"instanceid"`
-			Configurations struct{}            `json:"userconfigs"`
+			Configurations struct{}            `json:"userconfig"`
 		}{
 			Dependencies: struct{}{},
 			ID:             app.UUID,
@@ -188,7 +191,7 @@ func PostAppHandlerFunc(c *gin.Context) {
 		c.JSON(200, utils.RowResponse(struct {
 			Dependencies   map[string]interface{} `json:"dependencies" `
 			ID             string                 `json:"instanceid"`
-			Configurations struct{}            `json:"userconfigs"`
+			Configurations struct{}            `json:"userconfig"`
 		}{
 			Dependencies: dependencies,
 			ID:             app.UUID,
@@ -209,16 +212,18 @@ func PutAppHandlerFunc(c *gin.Context) {
 		return
 	}
 	configuration := c.PostForm("userconfig")
+	dependencies := c.PostForm("dependencies")
 	param := struct {
 		Status         int         `json:"status"`
 		ID             string      `json:"instanceid"`
 		Configurations interface{} `json:"userconfig"`
 		Dependencies string `json:"dependencies"`
+		// TODO
 	}{
 		Status: status,
 		ID: uuid,
 		Configurations: configuration,
-		Dependencies: c.PostForm("dependencies"),
+		Dependencies: dependencies,
 	}
 	var app App
 	err = db.Client.Where("uuid = ?", param.ID).Find(&app).Error
@@ -267,6 +272,7 @@ func PutAppHandlerFunc(c *gin.Context) {
 			return
 		}
 		v, _ := island.Data["root-domain"]
+
 		// TODO
 		yaml, err := provider.Yaml(app.Manifest, app.UUID, v, param.Configurations, param.Dependencies)
 		if err != nil {
@@ -280,7 +286,8 @@ func PutAppHandlerFunc(c *gin.Context) {
 			c.JSON(200, utils.ErrorResponse(10086, "执行命令错误"))
 			return
 		}
-		err = db.Client.Model(App{}).Where("id = ?", app.ID).Updates(map[string]interface{}{"status": 1, "deployment": yaml}).Error
+		err = db.Client.Model(App{}).Where("id = ?", app.ID).Updates(map[string]interface{}{
+			"status": 1, "deployment": yaml}).Error
 		if err != nil {
 			klog.Errorln("数据库更新错误:", err.Error())
 			c.JSON(200, utils.ErrorResponse(10086, "更新状态错误"))

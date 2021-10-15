@@ -35,8 +35,12 @@ spec:
     - name: github
       version: ">=0.0.1"
       location: https://www.github.com
-      use:
-        - [CRUD, /*]
+      uses:
+        /*:
+          - create
+          - read
+          - update
+          - delete
 
   userconfig:
     type: object

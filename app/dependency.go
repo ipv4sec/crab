@@ -15,10 +15,10 @@ type Dependency struct {
 	Instances     []struct{
 		ID string `json:"instanceid"`
 		Version string `json:"version"`
-	}
-	Configuration interface{}
-	Link          string
-	Type          DependencyType
+	} `json:"instances"`
+	Configuration struct{} `json:"userconfig"`
+	Link          string `json:"location"`
+	Type          DependencyType `json:"type"`
 }
 
 func Link(value string) (DependencyType, string) {
