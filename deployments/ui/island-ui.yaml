@@ -53,6 +53,6 @@ data:
     {
         "webConfig": {
             "port": 80,
-            "requestDomain": "http://crab"
+            "requestDomain": "http://island-web"
         }
     }

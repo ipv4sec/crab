@@ -7,7 +7,6 @@ import (
 	d "crab/domain"
 	"crab/exec"
 	"crab/storage"
-	"crab/user"
 	"crab/utils"
 	"errors"
 	"flag"
@@ -239,15 +238,10 @@ data:
 
 	klog.Infoln("开始提供服务")
 	gin.SetMode(gin.ReleaseMode)
-	r := gin.New()
-	r.Use(gin.Recovery())
-	userGroup := r.Group("/user")
-	{
-		userGroup.GET("/:username", user.GetUserHandlerFunc)
-	}
-	// TODO 统一接口返回
+	routers := gin.Default()
 
-	clusterGroup := r.Group("/cluster")
+
+	clusterGroup := routers.Group("/cluster")
 	{
 		clusterGroup.GET("/addrs", storage.GetAddrsHandlerFunc)
 		clusterGroup.GET("/domain", d.GetDomainHandlerFunc)
@@ -255,7 +249,7 @@ data:
 		clusterGroup.GET("/storage", storage.GetStorageHandlerFunc)
 		clusterGroup.POST("/storage", storage.PostStorageHandlerFunc)
 	}
-	err = r.Run("0.0.0.0:3000")
+	err = routers.Run("0.0.0.0:3000")
 	if err != nil {
 		panic(fmt.Errorf("监听端口失败: %w", err))
 	}
