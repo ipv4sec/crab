@@ -35,6 +35,7 @@ type Component struct {
 		Args          []string                     `yaml:"args" json:"args"`
 		Cpu           string                       `yaml:"cpu" json:"cpu"`
 		Init          string                       `yaml:"init" json:"init"`
+		Configs 	[]ConfigItem	`yaml:"configs" json:"configs"`
 		After         string                       `yaml:"after" json:"after"`
 		Rootpwd       string                       `yaml:"rootpwd" json:"rootpwd"`
 		Storage       Storage                      `yaml:"storage" json:"storage"`
@@ -42,6 +43,7 @@ type Component struct {
 		Serviceentry  []dependencies.ServiceEntry  `yaml:"serviceentry" json:"serviceentry"`
 		Entry         Entry                        `yaml:"entry" json:"entry"`
 	} `yaml:"properties" json:"properties"`
+
 	Traits []Trait `yaml:"traits" json:"traits"`
 }
 type Trait struct {

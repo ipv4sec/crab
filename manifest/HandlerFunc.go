@@ -2,6 +2,7 @@ package manifest
 
 import (
 	dependency "crab/dependencies"
+	"crab/utils"
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
@@ -44,11 +45,7 @@ func PostManifestHandlerFunc(c *gin.Context) {
 	rootDomain := c.DefaultPostForm("root-domain", "")
 
 	if content == "" || instanceId == "" || rootDomain == "" {
-		returnData := result{
-			10101,
-			"缺少参数",
-		}
-		c.JSON(200, returnData)
+		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequestParam, "参数错误"))
 		return
 	}
 	//生成vale.yaml文件
@@ -58,8 +55,8 @@ func PostManifestHandlerFunc(c *gin.Context) {
 			10101,
 			err.Error(),
 		}
-		klog.Errorln(err.Error())
 		c.JSON(200, returnData)
+
 		return
 	}
 	//str,err := json.Marshal(vale)
@@ -102,12 +99,13 @@ func GenValeYaml(instanceId, str, dependencies, userconfig, rootDomain string) (
 		return vela, errors.New("文件解析失败")
 	}
 	vela.Name = manifestServiceOrigin.Metadata.Name
+
 	//components
 	if len(manifestServiceOrigin.Spec.Components) == 0 {
 		return vela, errors.New("组件不能为空")
 	}
 
-	//有ingress的组件
+	//traits:ingress的组件
 	serviceEntryName := entryService(manifestServiceOrigin.Spec.Components)
 
 	authorizationData, serviceEntryData, configmapData, err := parseDependencies(dependencies)
@@ -179,7 +177,6 @@ func template(workloadType string) (string, error) {
 	templatePath := fmt.Sprintf("assets/workloads/%s.cue", workloadType)
 	path, _ := filepath.Abs(templatePath)
 	if ! FileExist(path) {
-		klog.Errorln(err.Error())
 		return "", errors.New(fmt.Sprintf("文件：%s 不存在", path))
 	}
 	t, err := ioutil.ReadFile(templatePath)
@@ -224,7 +221,7 @@ func serviceVela(svc Component, instanceid string, authorization []dependency.Au
 			Workload:      svc.Type,
 			Type:          svc.Type,
 			Image:         svc.Properties.Image,
-			Configs:       make([]ConfigItem, 0),
+			Configs: 	   append(svc.Properties.Configs, ConfigItem{"/etc/configs", "", configItemData}),
 			Init:          svc.Properties.Init,
 			After:         svc.Properties.After,
 			Port:          0,
@@ -237,7 +234,6 @@ func serviceVela(svc Component, instanceid string, authorization []dependency.Au
 			Namespace:     instanceid,
 			Entry:         Entry{},
 		}
-		service.Configs = append(service.Configs, ConfigItem{"/etc/configs", "", configItemData})
 		if serviceEntryName == svc.Name {
 			path := make([]string, 0)
 			path = append(path, "/*")
@@ -262,13 +258,13 @@ func serviceVela(svc Component, instanceid string, authorization []dependency.Au
 			Env:           make([]EnvItem, 0),
 			After:         svc.Properties.After,
 			Init:          svc.Properties.Init,
-			Configs:       make([]ConfigItem, 0),
+			Configs:       append(svc.Properties.Configs, ConfigItem{"/etc/configs", "", configItemData}),
 			Storage:       svc.Properties.Storage,
 			Authorization: authorization,
 			Serviceentry:  serviceentry,
 			Namespace:     instanceid,
 		}
-		service.Configs = append(service.Configs, ConfigItem{"/etc/configs", "", configItemData})
+		//service.Configs = append(service.Configs?, ConfigItem{"/etc/configs", "", configItemData})
 		if serviceEntryName == svc.Name {
 			path := make([]string, 0)
 			path = append(path, "/*")
@@ -341,7 +337,6 @@ func parseDependencies(str string) ([]dependency.Authorization, []dependency.Ser
 
 	authorization, serviceEntry, configmap, err = dependendService(dependencyVelas)
 	if err != nil {
-		klog.Errorln(err.Error())
 		return authorization, serviceEntry, configmap, err
 	}
 	return authorization, serviceEntry, configmap, err
@@ -356,25 +351,22 @@ func dependendService(dependencyVelas []dependency.DependencyVela) ([]dependency
 	cm := make(map[string]string, 0)
 
 	for _, v := range dependencyVelas {
-		if v.Instanceid != "" { //有Instanceid，说明是内部服务
+		if v.Instanceid != "" {
 			auth = append(auth, dependency.Authorization{
 				v.Instanceid, v.EntryService, v.Resource,
 			})
 			cm[v.Name] = fmt.Sprintf("%s.%s.svc.cluster.local.", v.EntryService, v.Instanceid)
 		} else {
 			if v.Location == "" {
-				klog.Errorln("location is empty")
-				return auth, svcEntry, cm, errors.New("location is empty")
+				return auth, svcEntry, cm, errors.New("")
 			}
 			serviceType, err := inExCheck(v.Location)
 			if err != nil {
-				klog.Errorln(err.Error())
 				return auth, svcEntry, cm, err
 			}
 			if serviceType == "internal" {
 				u, err := url.Parse(v.Location)
 				if err != nil {
-					klog.Errorln(err.Error())
 					return auth, svcEntry, cm, err
 				}
 				arr := strings.Split(u.Host, ".")
@@ -414,7 +406,7 @@ func dependendService(dependencyVelas []dependency.DependencyVela) ([]dependency
 	return auth, svcEntry, cm, nil
 }
 
-//返回traits中包含ingress的服务名称
+//traits中包含ingress的组件名称
 func entryService(components []Component) string {
 	for _, svc := range components {
 		for _, v := range svc.Traits {
@@ -430,7 +422,6 @@ func entryService(components []Component) string {
 func inExCheck(location string) (string, error) {
 	u, err := url.Parse(location)
 	if err != nil {
-		klog.Errorln(err.Error())
 		return "", err
 	}
 	arr := strings.Split(u.Host, ".")
