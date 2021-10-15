@@ -6,7 +6,7 @@ import (
 	"k8s.io/klog/v2"
 )
 
-func main(){
+func main() {
 	var err error
 	r := gin.Default()
 	r.POST("/", manifest.PostManifestHandlerFunc)

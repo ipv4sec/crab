@@ -182,7 +182,7 @@ outputs: "\(context.componentName)-viewer": {
 				to: [
 					{
 						operation: {
-							methods: ["GET", "POST", "DELETE", "PUT"]
+							methods: ["GET", "POST", "DELETE", "PUT","HEAD", "OPTIONS","PATCH"]
 						}
 					},
 				]
