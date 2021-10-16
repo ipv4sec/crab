@@ -36,34 +36,52 @@ type result struct {
 	Code   int    `json:"code"`
 	Result string `json:"result"`
 }
+
+type Params struct {
+	Content string 	`json:"content"`
+	Instanceid string `json:"instanceid"`
+	Userconfig map[string]string `json:"userconfig"`
+	Dependencies []dependency.Dependency `json:"dependencies"`
+	RootDomain string `json:"root-domain"`
+}
+
 func PostManifestHandlerFunc(c *gin.Context) {
 	var err error
-	content := c.PostForm("content")
-	instanceId := c.PostForm("instanceid")
-	userconfig := c.DefaultPostForm("userconfig", "{}")
-	dependencies := c.DefaultPostForm("dependencies", "[]")
-	rootDomain := c.DefaultPostForm("root-domain", "")
-
-	if content == "" || instanceId == "" || rootDomain == "" {
+	p := Params{}
+	err = c.BindJSON(&p)
+	if err != nil {
+		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequestParam, "参数格式错误"))
+		return
+	}
+	if p.Content == "" || p.Instanceid == "" || p.RootDomain == "" {
 		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequestParam, "参数错误"))
 		return
 	}
+	userconfigStr, err := json.Marshal(p.Userconfig)
+	if err != nil {
+		c.JSON(200, result{10101,"序列化失败"})
+		return
+	}
+
 	//生成vale.yaml文件
-	vale, err := GenValeYaml(instanceId, content, dependencies, userconfig, rootDomain)
+	vale, err := GenValeYaml(p.Instanceid, p.Content, string(userconfigStr), p.RootDomain, p.Dependencies)
 	if err != nil {
 		returnData := result{
 			10101,
 			err.Error(),
 		}
 		c.JSON(200, returnData)
-
 		return
 	}
 	//str,err := json.Marshal(vale)
+	//if err != nil {
+	//	klog.Errorln(err)
+	//	return
+	//}
 	//ioutil.WriteFile("tmp/vela.json", str, 0644)
 
 	//生成k8s.yaml文件
-	k8s, err := GenK8sYaml(instanceId, vale)
+	k8s, err := GenK8sYaml(p.Instanceid, vale)
 	if err != nil {
 		returnData := result{
 			10101,
@@ -73,7 +91,7 @@ func PostManifestHandlerFunc(c *gin.Context) {
 		c.JSON(200, returnData)
 		return
 	}
-	//err = ioutil.WriteFile("tmp/k8s.yaml", []byte(k8s), 0644)
+	//err = ioutil.WriteFile("k8s.yaml", []byte(k8s), 0644)
 	//if err != nil {
 	//	klog.Infoln(err)
 	//	return
@@ -89,14 +107,24 @@ func PostManifestHandlerFunc(c *gin.Context) {
 }
 
 //由manifest.yaml生成vale.yaml
-func GenValeYaml(instanceId, str, dependencies, userconfig, rootDomain string) (VelaYaml, error) {
+func GenValeYaml(instanceId, content, userconfig, rootDomain string, dependencies []dependency.Dependency) (VelaYaml, error) {
 	var vela = VelaYaml{"", make(map[string]interface{}, 0)}
 	var err error
 
+	//str2 :=""
+	//arr := strings.Split(str,"\n")
+	//for k,v := range arr {
+	//	if k >1 {
+	//		len2 := len([]byte(v))
+	//		if len2 > 2{
+	//			str2 += fmt.Sprintf("%s\n",string([]byte(v)[2:len2]) )
+	//		}
+	//	}
+	//}
 	manifestServiceOrigin := ManifestServiceOrigin{}
-	err = yaml.Unmarshal([]byte(str), &manifestServiceOrigin)
+	err = yaml.Unmarshal([]byte(content), &manifestServiceOrigin)
 	if err != nil {
-		return vela, errors.New("文件解析失败")
+		return vela, err
 	}
 	vela.Name = manifestServiceOrigin.Metadata.Name
 
@@ -307,20 +335,23 @@ func serviceVela(svc Component, instanceid string, authorization []dependency.Au
 }
 
 //处理依赖
-func parseDependencies(str string) ([]dependency.Authorization, []dependency.ServiceEntry, map[string]string, error) {
+func parseDependencies(dependencies []dependency.Dependency) ([]dependency.Authorization, []dependency.ServiceEntry, map[string]string, error) {
 	var err error
 	authorization := make([]dependency.Authorization, 0)
 	serviceEntry := make([]dependency.ServiceEntry, 0)
-	dependencies := make([]dependency.Dependency, 0)
+	//dependencies := make([]dependency.Dependency, 0)
 	configmap := make(map[string]string, 0)
-	err = json.Unmarshal([]byte(str), &dependencies)
-	if err != nil {
-		klog.Errorln("依赖解析失败")
-		return authorization, serviceEntry, configmap, errors.New("依赖解析失败")
-	}
+	//err = json.Unmarshal([]byte(str), &dependencies)
+	//if err != nil {
+	//	klog.Errorln("依赖解析失败")
+	//	return authorization, serviceEntry, configmap, errors.New("依赖解析失败")
+	//}
 	//解析uses
 	dependencyVelas := make([]dependency.DependencyVela, 0)
 	for _, v := range dependencies {
+		if v.EntryService == "" {
+			return authorization, serviceEntry, configmap, errors.New("dependencies.entryService不能为空")
+		}
 		resource,err := dependency.ApiParse(v.Uses)
 		if err != nil {
 			return authorization, serviceEntry, configmap, err

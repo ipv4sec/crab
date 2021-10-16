@@ -1,14 +1,14 @@
 import "mod/context"
 
 parameter: {
-	storage?: {
-		capacity: string
-		path:     string
-	}
+  storage?: {
+    capacity: string
+    path:     string
+  }
 }
 
 if parameter.storage != _|_ {
-  if parameter.storage.capacity != ""  {
+  if len(parameter.storage.capacity) >0  {
     outputs: {
       "storage": {
         apiVersion: "v1"
@@ -26,5 +26,6 @@ if parameter.storage != _|_ {
         }
       }
     }
-	}
+  }
 }
+
