@@ -51,18 +51,18 @@ POST / HTTP/1.1
 ### 请求参数
 |名称|说明|类型|默认值|是否必填|
 |---|---|---|---|---|
-|content|文件内容|string|无|是|
-|instanceid|实例id|string|无|是|
-|userconfig|运行时配置|object|{}|否|
-|dependencies|实例依赖|dependency数组|[]|否|
-|root-domain|根域|string|无|是|
+|Content|文件内容|string|无|是|
+|InstanceId|实例id|string|无|是|
+|UserConfig|运行时配置|object|{}|否|
+|Dependencies|实例依赖|dependency数组|[]|否|
+|RootDomain|根域|string|无|是|
 
-dependency.instanceid 内部服务实例id，为string类型，选择内部服务时必填
-dependency.location string类型，选择外部服务时必填
-dependency.version 版本号, string类型，非必填
-dependency.uses  使用的资源和权限， map[string] []string类型，必填
-dependency.entryservice 服务暴露的组件的名称，string类型，选择内部服务时必填
-dependency.name 依赖服务的名称，string类型，必填
+Dependencies.InstanceId 内部服务实例id，为string类型，选择内部服务时必填
+Dependencies.Location string类型，选择外部服务时必填
+Dependencies.Version 版本号, string类型，非必填
+Dependencies.Uses  使用的资源和权限， map[string] []string类型，必填
+Dependencies.EntryService 服务暴露的组件的名称，string类型，选择内部服务时必填
+Dependencies.Name 依赖服务的名称，string类型，必填
 
 请求参数示例
 

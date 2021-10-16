@@ -38,11 +38,11 @@ type result struct {
 }
 
 type Params struct {
-	Content string 	`json:"content"`
-	Instanceid string `json:"instanceid"`
-	Userconfig map[string]string `json:"userconfig"`
-	Dependencies []dependency.Dependency `json:"dependencies"`
-	RootDomain string `json:"root-domain"`
+	Content string 	`json:"Content"`
+	Instanceid string `json:"InstanceId"`
+	Userconfig map[string]string `json:"UserConfig"`
+	Dependencies []dependency.Dependency `json:"Dependencies"`
+	RootDomain string `json:"RootDomain"`
 }
 
 func PostManifestHandlerFunc(c *gin.Context) {
@@ -91,11 +91,7 @@ func PostManifestHandlerFunc(c *gin.Context) {
 		c.JSON(200, returnData)
 		return
 	}
-	//err = ioutil.WriteFile("k8s.yaml", []byte(k8s), 0644)
-	//if err != nil {
-	//	klog.Infoln(err)
-	//	return
-	//}
+	//ioutil.WriteFile("tmp/k8s.yaml", []byte(k8s), 0644)
 	returnData := struct {
 		Code   int    `json:"code"`
 		Result string `json:"result"`
