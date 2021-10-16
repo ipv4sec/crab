@@ -10,12 +10,12 @@ import (
 	"k8s.io/klog/v2"
 )
 
-func Yaml(manifest, uuid, domain string, config struct{}, dependencies []dependency.Dependency) (string, error) {
+func Yaml(manifest, uuid, domain string, config interface{}, dependencies []dependency.Dependency) (string, error) {
 	v, err := json.Marshal(struct {
 		Manifest string `json:"content"`
 		UUID string `json:"instanceid"`
-		Configuration struct{} `json:"userconfig"`
-		Dependencies []dependency.Dependency
+		Configuration interface{} `json:"userconfig"`
+		Dependencies []dependency.Dependency `json:"dependencies"`
 		RootDomain string `json:"root-domain"`
 	}{
 		Manifest: manifest,

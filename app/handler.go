@@ -144,6 +144,7 @@ func PostAppHandlerFunc(c *gin.Context) {
 		return
 	}
 
+	klog.Info("此实例的配置:", manifest.Spec.Configurations)
 	klog.Info("此实例的依赖:", manifest.Spec.Dependencies)
 	dependencies := map[string]interface{}{}
 	for i := 0; i < len(manifest.Spec.Dependencies); i++ {
@@ -182,7 +183,7 @@ func PostAppHandlerFunc(c *gin.Context) {
 		c.JSON(200, utils.RowResponse(struct {
 			Dependencies   struct{} `json:"dependencies" `
 			ID             string                 `json:"instanceid"`
-			Configurations struct{}            `json:"userconfig"`
+			Configurations interface{}            `json:"userconfig"`
 		}{
 			Dependencies: struct{}{},
 			ID:             app.UUID,
@@ -192,7 +193,7 @@ func PostAppHandlerFunc(c *gin.Context) {
 		c.JSON(200, utils.RowResponse(struct {
 			Dependencies   map[string]interface{} `json:"dependencies" `
 			ID             string                 `json:"instanceid"`
-			Configurations struct{}            `json:"userconfig"`
+			Configurations interface{}           `json:"userconfig"`
 		}{
 			Dependencies: dependencies,
 			ID:             app.UUID,
@@ -204,7 +205,7 @@ func PutAppHandlerFunc(c *gin.Context) {
 	var param struct{
 		Status         int         `json:"status"`
 		ID             string      `json:"instanceid"`
-		Configurations struct{} `json:"userconfig"`
+		Configurations  interface{} `json:"userconfig"`
 		Dependencies []dependency.Dependency `json:"dependencies"`
 	}
 	err := c.ShouldBindJSON(&param)
