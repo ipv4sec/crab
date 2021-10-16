@@ -349,7 +349,7 @@ func parseDependencies(dependencies []dependency.Dependency) ([]dependency.Autho
 	//解析uses
 	dependencyVelas := make([]dependency.DependencyVela, 0)
 	for _, v := range dependencies {
-		if v.EntryService == "" {
+		if v.Instanceid != "" && v.EntryService == "" {
 			return authorization, serviceEntry, configmap, errors.New("dependencies.entryService不能为空")
 		}
 		resource,err := dependency.ApiParse(v.Uses)
