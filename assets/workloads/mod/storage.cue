@@ -1,10 +1,10 @@
 import "mod/context"
 
 parameter: {
-	storage?: {
-		capacity: string
-		path:     string
-	}
+  storage?: {
+    capacity: string
+    path:     string
+  }
 }
 
 if parameter.storage != _|_ {

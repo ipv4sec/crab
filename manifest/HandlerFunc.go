@@ -91,7 +91,7 @@ func PostManifestHandlerFunc(c *gin.Context) {
 		c.JSON(200, returnData)
 		return
 	}
-	//err = ioutil.WriteFile("tmp/k8s.yaml", []byte(k8s), 0644)
+	//err = ioutil.WriteFile("k8s.yaml", []byte(k8s), 0644)
 	//if err != nil {
 	//	klog.Infoln(err)
 	//	return

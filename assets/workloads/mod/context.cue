@@ -1,4 +1,4 @@
 context: {
-	appName:       string
-	componentName: string
+  appName:       string
+  componentName: string
 }
