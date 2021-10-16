@@ -1,27 +1,4 @@
 
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: island-discover-user
-  namespace: island-system
----
-
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: island-discover-user-building
-  namespace: island-system
-subjects:
-  - kind: ServiceAccount
-    name: island-discover-user
-    apiGroup: ""
-    namespace: island-system
-roleRef:
-  kind: ClusterRole
-  name: cluster-admin
-  apiGroup: rbac.authorization.k8s.io
----
-
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -58,7 +35,7 @@ spec:
                 fieldRef:
                   fieldPath: status.hostIP
       restartPolicy: Always
-      serviceAccountName: island-discover-user
+      serviceAccountName: crab
       volumes:
         - name: devices
           hostPath:
