@@ -6,12 +6,12 @@ import (
 )
 
 type Dependency struct {
-	Instanceid   string              `json:"instanceid"`
-	Name         string              `json:"name"`
-	Location     string              `json:"location"`
-	Version      string              `json:"version"`
-	Uses         map[string][]string `json:"uses"`
-	EntryService string              `json:"entryservice"`
+	Instanceid   string              `json:"InstanceId"`
+	Name         string              `json:"Name"`
+	Location     string              `json:"Location"`
+	Version      string              `json:"Version"`
+	Uses         map[string][]string `json:"Uses"`
+	EntryService string              `json:"EntryService"`
 }
 
 type DependencyVela struct {

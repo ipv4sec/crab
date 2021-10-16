@@ -113,11 +113,9 @@ outputs: "\(context.componentName)-statefulset":{
               name:      "island-info"
               mountPath: "/etc/island-info"
             },
-            if parameter.storage!= _|_ {
-              if len(parameter.storage.capacity) > 0 {
-                name:      "storage-\(context.componentName)"
-                mountPath: parameter.storage.path
-              },
+            if parameter.storage.capacity != _|_ {
+              name:      "storage-\(context.componentName)"
+              mountPath: parameter.storage.path
             }
           ]
         }, {
@@ -139,11 +137,9 @@ outputs: "\(context.componentName)-statefulset":{
           name: "island-info"
           configMap: name: "island-info"
         },
-        if parameter.storage!= _|_ {
-          if len(parameter.storage.capacity) > 0 {
-            name: "storage-\(context.componentName)"
-            persistentVolumeClaim: claimName: "storage-\(context.componentName)"
-          }
+        if parameter.storage.capacity!= _|_ {
+          name: "storage-\(context.componentName)"
+          persistentVolumeClaim: claimName: "storage-\(context.componentName)"
         }
       ]
     }
