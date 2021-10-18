@@ -38,11 +38,11 @@ type result struct {
 }
 
 type Params struct {
-	Content string 	`json:"content"`
-	Instanceid string `json:"instanceid"`
-	Userconfig map[string]string `json:"userconfig"`
-	Dependencies []dependency.Dependency `json:"dependencies"`
-	RootDomain string `json:"root-domain"`
+	Content string 	`json:"Content"`
+	Instanceid string `json:"InstanceId"`
+	Userconfig map[string]string `json:"UserConfig"`
+	Dependencies []dependency.Dependency `json:"Dependencies"`
+	RootDomain string `json:"RootDomain"`
 }
 
 func PostManifestHandlerFunc(c *gin.Context) {
@@ -91,11 +91,7 @@ func PostManifestHandlerFunc(c *gin.Context) {
 		c.JSON(200, returnData)
 		return
 	}
-	//err = ioutil.WriteFile("k8s.yaml", []byte(k8s), 0644)
-	//if err != nil {
-	//	klog.Infoln(err)
-	//	return
-	//}
+	//ioutil.WriteFile("tmp/k8s.yaml", []byte(k8s), 0644)
 	returnData := struct {
 		Code   int    `json:"code"`
 		Result string `json:"result"`
@@ -135,6 +131,9 @@ func GenValeYaml(instanceId, content, userconfig, rootDomain string, dependencie
 
 	//traits:ingress的组件
 	serviceEntryName := entryService(manifestServiceOrigin.Spec.Components)
+	if serviceEntryName == "" {
+		return vela, errors.New("应用不可访问, 缺少traits.ingress")
+	}
 
 	authorizationData, serviceEntryData, configmapData, err := parseDependencies(dependencies)
 	if err != nil {
@@ -349,7 +348,7 @@ func parseDependencies(dependencies []dependency.Dependency) ([]dependency.Autho
 	//解析uses
 	dependencyVelas := make([]dependency.DependencyVela, 0)
 	for _, v := range dependencies {
-		if v.EntryService == "" {
+		if v.Instanceid != "" && v.EntryService == "" {
 			return authorization, serviceEntry, configmap, errors.New("dependencies.entryService不能为空")
 		}
 		resource,err := dependency.ApiParse(v.Uses)
