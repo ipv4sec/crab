@@ -8,7 +8,7 @@ parameter: {
 }
 
 if parameter.storage != _|_ {
-  if len(parameter.storage.capacity) >0  {
+  if parameter.storage.capacity != ""  {
     outputs: {
       "storage": {
         apiVersion: "v1"

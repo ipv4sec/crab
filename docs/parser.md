@@ -58,32 +58,11 @@ POST / HTTP/1.1
 |RootDomain|根域|string|无|是|
 
 Dependencies.InstanceId 内部服务实例id，为string类型，选择内部服务时必填
-Dependencies.Location string类型，选择外部服务时必填
+Dependencies.Location string类型，必填
 Dependencies.Version 版本号, string类型，非必填
-Dependencies.Uses  使用的资源和权限， map[string] []string类型，必填
+Dependencies.Uses  使用的资源和权限， map[string] []string类型，非必填
 Dependencies.EntryService 服务暴露的组件的名称，string类型，选择内部服务时必填
 Dependencies.Name 依赖服务的名称，string类型，必填
-
-请求参数示例
-
-* userconfig
-```
-{"username":"admin","password":"admin"}
-```
-
-* dependencies
-```
-[{
-    "instanceid": "frwugxqd",
-    "location": "https://gitlab.com",
-    "version": "0.1.0",
-    "uses":{
-        "resource1":["create","read","update","delete"]
-    },
-    "entryservice":"i1",
-    "name":"app-demo"
-}]
-```
 
 ### 返回值
 ```
