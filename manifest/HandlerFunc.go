@@ -106,17 +106,6 @@ func PostManifestHandlerFunc(c *gin.Context) {
 func GenValeYaml(instanceId, content, userconfig, rootDomain string, dependencies []dependency.Dependency) (VelaYaml, error) {
 	var vela = VelaYaml{"", make(map[string]interface{}, 0)}
 	var err error
-
-	//str2 :=""
-	//arr := strings.Split(str,"\n")
-	//for k,v := range arr {
-	//	if k >1 {
-	//		len2 := len([]byte(v))
-	//		if len2 > 2{
-	//			str2 += fmt.Sprintf("%s\n",string([]byte(v)[2:len2]) )
-	//		}
-	//	}
-	//}
 	manifestServiceOrigin := ManifestServiceOrigin{}
 	err = yaml.Unmarshal([]byte(content), &manifestServiceOrigin)
 	if err != nil {
@@ -249,6 +238,7 @@ func serviceVela(svc Component, instanceid string, authorization []dependency.Au
 			Type:          svc.Type,
 			Image:         svc.Properties.Image,
 			Configs: 	   append(svc.Properties.Configs, ConfigItem{"/etc/configs", "", configItemData}),
+			Storage:       svc.Properties.Storage,
 			Init:          svc.Properties.Init,
 			After:         svc.Properties.After,
 			Port:          0,

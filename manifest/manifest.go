@@ -99,6 +99,7 @@ type WebserviceVela struct {
 	Workload      string                       `json:"workload"`
 	Image         string                       `json:"image"`
 	Configs       []ConfigItem                 `json:"configs"`
+	Storage       Storage                      `json:"storage"`
 	Init          string                       `json:"init,omitempty"`
 	After         string                       `json:"after,omitempty"`
 	Port          int                          `json:"port,omitempty"`
@@ -123,7 +124,7 @@ type WorkerVela struct {
 	After         string                       `json:"after,omitempty"`
 	Init          string                       `json:"init,omitempty"`
 	Configs       []ConfigItem                 `json:"configs"`
-	Storage       Storage                      `json:"storage,omitempty"`
+	Storage       Storage                      `json:"storage"`
 	Authorization []dependencies.Authorization `json:"authorization,omitempty"`
 	Serviceentry  []dependencies.ServiceEntry  `json:"serviceentry,omitempty"`
 	Namespace     string                       `json:"namespace"`
