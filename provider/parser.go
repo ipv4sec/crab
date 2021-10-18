@@ -12,11 +12,11 @@ import (
 
 func Yaml(manifest, uuid, domain string, config interface{}, dependencies []dependency.Dependency) (string, error) {
 	v, err := json.Marshal(struct {
-		Manifest string `json:"content"`
-		UUID string `json:"instanceid"`
-		Configuration interface{} `json:"userconfig"`
-		Dependencies []dependency.Dependency `json:"dependencies"`
-		RootDomain string `json:"root-domain"`
+		Manifest string `json:"Content"`
+		UUID string `json:"InstanceId"`
+		Configuration interface{} `json:"UserConfig"`
+		Dependencies []dependency.Dependency `json:"Dependencies"`
+		RootDomain string `json:"RootDomain"`
 	}{
 		Manifest: manifest,
 		UUID: uuid,
