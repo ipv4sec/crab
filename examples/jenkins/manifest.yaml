@@ -50,7 +50,7 @@ spec:
           - read
           - update
           - delete
-  userconfig:
+  userconfigs:
     type: object
     properties:
       param:

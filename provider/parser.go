@@ -2,34 +2,34 @@ package provider
 
 import (
 	"bytes"
+	dependency "crab/dependencies"
 	"crab/utils"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"k8s.io/klog/v2"
-	"mime/multipart"
 )
 
-func Yaml(manifest, uuid, domain string, config interface{}, dependencies string) (string, error) {
-	//v, err := json.Marshal(dependencies)
-	//if err != nil {
-	//	return "", fmt.Errorf("序列化参数错误:%w", err)
-	//}
-
-	requestByte := new(bytes.Buffer)
-	w := multipart.NewWriter(requestByte)
-	_ = w.WriteField("content", manifest)
-	_ = w.WriteField("instanceid", uuid)
-	_ = w.WriteField("userconfig", fmt.Sprintf("%v", config))
-	// TODO
-	_ = w.WriteField("dependencies", dependencies)
-	_ = w.WriteField("root-domain", domain)
-	_ = w.Close()
-
-	klog.Infoln("请求参数为:", requestByte.String())
-	res, err := HTTPClient.Post("http://island-parser", requestByte, map[string][]string{
-		"Content-Type": []string{w.FormDataContentType()},
+func Yaml(manifest, uuid, domain string, config interface{}, dependencies []dependency.Dependency) (string, error) {
+	v, err := json.Marshal(struct {
+		Manifest string `json:"Content"`
+		UUID string `json:"InstanceId"`
+		Configuration interface{} `json:"UserConfig"`
+		Dependencies []dependency.Dependency `json:"Dependencies"`
+		RootDomain string `json:"RootDomain"`
+	}{
+		Manifest: manifest,
+		UUID: uuid,
+		Configuration: config,
+		Dependencies: dependencies,
+		RootDomain: domain,
 	})
+	if err != nil {
+		return "", fmt.Errorf("序列化参数错误:%w", err)
+	}
+
+	klog.Infoln("请求参数为:", string(v))
+	res, err := HTTPClient.Post("http://island-parser", bytes.NewBuffer(v), nil)
 	if err != nil {
 		return "", fmt.Errorf("请求翻译器错误: %w", err)
 	}

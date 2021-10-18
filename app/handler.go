@@ -5,6 +5,7 @@ import (
 	"crab/aam/v1alpha1"
 	"crab/cluster"
 	"crab/db"
+	dependency "crab/dependencies"
 	"crab/exec"
 	"crab/provider"
 	"crab/utils"
@@ -143,6 +144,7 @@ func PostAppHandlerFunc(c *gin.Context) {
 		return
 	}
 
+	klog.Info("此实例的配置:", manifest.Spec.Configurations)
 	klog.Info("此实例的依赖:", manifest.Spec.Dependencies)
 	dependencies := map[string]interface{}{}
 	for i := 0; i < len(manifest.Spec.Dependencies); i++ {
@@ -181,7 +183,7 @@ func PostAppHandlerFunc(c *gin.Context) {
 		c.JSON(200, utils.RowResponse(struct {
 			Dependencies   struct{} `json:"dependencies" `
 			ID             string                 `json:"instanceid"`
-			Configurations struct{}            `json:"userconfig"`
+			Configurations interface{}            `json:"userconfig"`
 		}{
 			Dependencies: struct{}{},
 			ID:             app.UUID,
@@ -191,7 +193,7 @@ func PostAppHandlerFunc(c *gin.Context) {
 		c.JSON(200, utils.RowResponse(struct {
 			Dependencies   map[string]interface{} `json:"dependencies" `
 			ID             string                 `json:"instanceid"`
-			Configurations struct{}            `json:"userconfig"`
+			Configurations interface{}           `json:"userconfig"`
 		}{
 			Dependencies: dependencies,
 			ID:             app.UUID,
@@ -200,31 +202,21 @@ func PostAppHandlerFunc(c *gin.Context) {
 	}
 }
 func PutAppHandlerFunc(c *gin.Context) {
-	// 运行或者卸载
-	status, err := strconv.Atoi(c.PostForm("status"))
-	if err != nil {
-		c.JSON(200, utils.ErrorResponse(10086, "参数错误"))
-		return
-	}
-	uuid := c.PostForm("instanceid")
-	if uuid == "" {
-		c.JSON(200, utils.ErrorResponse(10086, "参数错误"))
-		return
-	}
-	configuration := c.PostForm("userconfig")
-	dependencies := c.PostForm("dependencies")
-	param := struct {
+	var param struct{
 		Status         int         `json:"status"`
 		ID             string      `json:"instanceid"`
-		Configurations interface{} `json:"userconfig"`
-		Dependencies string `json:"dependencies"`
-		// TODO
-	}{
-		Status: status,
-		ID: uuid,
-		Configurations: configuration,
-		Dependencies: dependencies,
+		Configurations  interface{} `json:"userconfig"`
+		Dependencies []dependency.Dependency `json:"dependencies"`
 	}
+	err := c.ShouldBindJSON(&param)
+	if err != nil {
+		klog.Errorln("参数错误", err.Error())
+		c.JSON(200, utils.ErrorResponse(10086, "参数错误"))
+	}
+	if param.ID == "" || param.Status == 0 {
+		c.JSON(200, utils.ErrorResponse(10086, "参数错误"))
+	}
+	// 运行或者卸载
 	var app App
 	err = db.Client.Where("uuid = ?", param.ID).Find(&app).Error
 	if err != nil {
