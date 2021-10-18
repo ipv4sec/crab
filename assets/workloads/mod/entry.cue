@@ -8,7 +8,7 @@ parameter: {
   }
 }
 
-if parameter["entry"]["host"] != _|_ {
+if parameter["entry"]["host"] != "" {
   outputs: "ingressgateway-http": {
     apiVersion: "networking.istio.io/v1alpha3"
     kind: "Gateway"

@@ -131,6 +131,9 @@ func GenValeYaml(instanceId, content, userconfig, rootDomain string, dependencie
 
 	//traits:ingress的组件
 	serviceEntryName := entryService(manifestServiceOrigin.Spec.Components)
+	if serviceEntryName == "" {
+		return vela, errors.New("应用不可访问, 缺少traits.ingress")
+	}
 
 	authorizationData, serviceEntryData, configmapData, err := parseDependencies(dependencies)
 	if err != nil {
