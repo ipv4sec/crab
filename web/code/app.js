@@ -19,7 +19,6 @@ app.use(express.static(path.join(__dirname, 'public'), {
     maxAge: 30 * 24 * 60 * 60 * 1000,
 }));
 
-// app.use('/global', globalApi)
 app.use('/manager', pageApi);
 app.use('/', page);
 

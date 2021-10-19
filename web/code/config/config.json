@@ -2,6 +2,6 @@
   "webConfig": {
     "port": 3333,
     "requestDomain_bak": "http://island-app-manager.develenv.com:32210",
-    "requestDomain": "http://119.254.147.216:30300"
+    "requestDomain": "http://119.254.147.216:30600"
   }
 }

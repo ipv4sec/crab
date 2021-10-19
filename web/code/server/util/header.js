@@ -2,7 +2,7 @@
  
 exports.getHeader = function (req) {
 
-    let requestId = req.get('X-Request-Id');
+    // let requestId = req.get('X-Request-Id');
     // let uid = req.get('C-Uid');
     // let name = req.get('C-Name');
     // let firstname = req.get('C-Firstname');
@@ -18,7 +18,7 @@ exports.getHeader = function (req) {
 
     let headers = {
         'Content-Type': 'application/json',
-        'X-Request-Id': requestId,
+        // 'X-Request-Id': requestId,
 
         // 'C-Uid': uid,
         // 'C-Name': name,

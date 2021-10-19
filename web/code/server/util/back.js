@@ -54,10 +54,7 @@ exports.getRes = function (pathName, header, callback, host='requestDomain', use
 };
 
 exports.post = function (pathName, data, header, callback, host='requestDomain', useRelativeHost) {
-    // console.log('atiPost header:', header);
     var options = {
-        // url: isStatic ? staticDomain + pathName : baseHost + pathName,
-        // url: config.webConfig[host] + pathName ,
         url: useRelativeHost ? pathName : config.webConfig[host] + pathName  ,
         method: 'POST',
         headers: header,
@@ -245,10 +242,10 @@ exports.put = function (pathName, data, header, callback, host='requestDomain', 
         url: useRelativeHost ? pathName : config.webConfig[host] + pathName  ,
         method: 'PUT',
         headers: header,
-        body: data,
+        body: JSON.stringify(data),
     };
 
-    // console.log('transform=url=',options.method, options.url)
+    // console.log('put==',options)
     request(options, function (error, response, body) {
      
         if (error) {

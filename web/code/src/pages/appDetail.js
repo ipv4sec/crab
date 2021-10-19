@@ -1,7 +1,6 @@
 import React from 'react'
 import {FlatButton, MenuItem, SelectField} from 'material-ui'
 import HelpTip from '../components/helptip/index'
-// import SVGComp from '../components/appdetail/svg'
 import Graph from '../components/appdetail/graph'
 import AppTree from '../components/appdetail/appTree'
 import axios from 'axios'
