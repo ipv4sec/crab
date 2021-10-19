@@ -329,8 +329,6 @@ export default class AppPage extends React.Component {
             headers: {'Content-Type': 'application/json'},
             data: selectData
         }).then((res) => {
-
-            console.log('res==',res)
             store.dispatch({
                 type: TYPE.SHOW_SNACKBAR,
                 val: {open: true, message: res.data.result}
@@ -464,8 +462,8 @@ export default class AppPage extends React.Component {
        
         return {
             instanceid: data.instanceid,
-            dependencies: JSON.stringify(selectData),
-            userconfig: JSON.stringify(appConfig.userconfig ? appConfig.userconfig : {})
+            dependencies: selectData,
+            userconfig: appConfig.userconfig ? appConfig.userconfig : {}
         }
     }
 
