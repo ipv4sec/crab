@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 func Contains(s []string, e string) bool {
@@ -38,6 +39,9 @@ func UnZip(dst, src string) error {
 		}
 	}
 	for _, file := range zr.File {
+		if strings.HasPrefix(file.Name, "__MACOSX") {
+			continue
+		}
 		path := filepath.Join(dst, file.Name)
 		if file.FileInfo().IsDir() {
 			if err := os.MkdirAll(path, file.Mode()); err != nil {

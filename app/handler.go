@@ -109,17 +109,18 @@ func PostAppHandlerFunc(c *gin.Context) {
 	currentTimestamp := time.Now().Unix()
 	err = c.SaveUploadedFile(file, fmt.Sprintf("/tmp/%v.zip", currentTimestamp))
 	if err != nil {
+		klog.Errorln("保存文件错误:", err.Error())
 		c.JSON(200, utils.RowResponse(map[string]string{"error":"保存文件错误"}))
 		return
 	}
 	err = utils.UnZip(fmt.Sprintf("/tmp/%v", currentTimestamp), fmt.Sprintf("/tmp/%v.zip", currentTimestamp))
 	if err != nil {
-		c.JSON(200, utils.RowResponse(map[string]string{"error":"解压文件错误"}))
-		return
+		klog.Errorln("解压文件错误:", err.Error())
 	}
 
 	bytes, err := ioutil.ReadFile(fmt.Sprintf("/tmp/%v/manifest.yaml", currentTimestamp))
 	if err != nil {
+		klog.Errorln("读取描述文件错误:", err.Error())
 		c.JSON(200, utils.RowResponse(map[string]string{"error":"读取描述文件错误"}))
 		return
 	}

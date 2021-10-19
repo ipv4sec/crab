@@ -73,6 +73,6 @@ Content-Type: application/json
 ```
 {
     "code": 0,
-    "result": "初始化存储成功, 等待内部操作完成"
+    "result": "正在安装中"
 }
 ```
