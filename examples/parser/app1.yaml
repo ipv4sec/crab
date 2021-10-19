@@ -1,0 +1,26 @@
+apiVersion: ami.globalsphare.com/v1alpha1
+kind: Application
+metadata:
+  name: app1
+  annotations:
+    author: test
+spec:
+  components:
+    - name: app-comp
+      type: webservice
+      properties:
+        image: harbor1.zlibs.com/island/island-console:0.1.0
+        port: 8080
+        cmd: [ "/bin/sleep", "3650d" ]
+        cpu: "100m"
+        configs:
+          - path: /etc
+            subPath: config.yml
+            data:
+              - name: config.yml
+                value: |-
+                  redis:
+                    host: "cache"
+                    port: "6379"
+      traits:
+        - type: ingress

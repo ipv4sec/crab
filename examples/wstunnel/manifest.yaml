@@ -1,0 +1,22 @@
+apiVersion: ami.globalsphare.com/v1alpha1
+kind: Application
+metadata:
+  name: wstunnel
+  annotations:
+    version: 0.1.0
+spec:
+  components:
+    - name: api
+      type: webservice
+      properties:
+        image: harbor1.zlibs.com/island/island-wstunnel:0.1.0
+        configs:
+          - path: /app
+            subPath: robots.txt
+            data:
+              - name: robots.txt
+                value: |
+                  User-agent: *
+                  Disallow: *
+      traits:
+        - type: ingress

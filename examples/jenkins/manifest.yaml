@@ -1,0 +1,59 @@
+apiVersion: ami.globalsphare.com/v1alpha1
+kind: Application
+metadata:
+  name: jenkins
+  annotations:
+    version: 3.0.0
+spec:
+  components:
+    - name: cache
+      type: redis
+    - name: db
+      type: mysql
+      properties:
+        rootpwd: "123456"
+        storage:
+          capacity: 1Gi
+        init: "CREATE DATABASE island;"
+        after: cache
+    - name: api
+      type: webservice
+      properties:
+        image: harbor1.zlibs.com/island/island-nginx:1.21
+        after: db
+        configs:
+          - path: /tmp
+            subPath: 1.txt
+            data:
+              - name: 1.txt
+                value: "111"
+      traits:
+        - type: ingress
+
+
+  dependencies:
+    - name: github
+      version: ">=0.5.1"
+      location: user-defined
+      uses:
+        /*:
+          - create
+          - read
+          - update
+          - delete
+    - name: harbor
+      version: ">=2.0.0"
+      location: user-defined(https://www.github.com)
+      uses:
+        /*:
+          - create
+          - read
+          - update
+          - delete
+  userconfigs:
+    type: object
+    properties:
+      param:
+        type: string
+    required:
+      - param

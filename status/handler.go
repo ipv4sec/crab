@@ -1,6 +1,7 @@
 package status
 
 import (
+	"crab/aam/v1alpha1"
 	"crab/app"
 	"crab/db"
 	"crab/utils"
@@ -64,17 +65,17 @@ func PostStatusHandlerFunc(c *gin.Context) {
 		klog.Errorln("数据库查询错误:", err.Error())
 	}
 	var a app.App
-	err = db.Client.First(&a, "id = ?", param.Name).Error
+	err = db.Client.First(&a, "uuid = ?", param.Name).Error
 	if err != nil {
 		klog.Errorln("数据库查询错误:", err.Error())
 	}
-	var manifest app.Manifest
+	var manifest v1alpha1.Manifest
 	err = yaml.Unmarshal([]byte(a.Manifest), &manifest)
 	if err != nil {
 		klog.Errorln("序列化描述文件错误:", err.Error())
 	}
-	if int64(len(manifest.Services)) == total && total != 0 {
-		err = db.Client.Model(&app.App{}).Where("status =1 AND id = ?", param.Name).Update("status", 2).Error
+	if int64(len(manifest.Spec.Components)) == total && total != 0 {
+		err = db.Client.Model(&app.App{}).Where("status =1 AND uuid = ?", param.Name).Update("status", 2).Error
 		if err != nil {
 			klog.Errorln("数据库更新错误:", err.Error())
 		}

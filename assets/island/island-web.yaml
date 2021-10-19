@@ -1,0 +1,44 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: island-web
+  namespace: island-system
+  labels:
+    app: island
+    component: web
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: island-web
+      labels:
+        app: island
+        component: web
+    spec:
+      containers:
+        - name: island-web
+          image: harbor1.zlibs.com/island/island-web:alpha
+          imagePullPolicy: Always
+      restartPolicy: Always
+      serviceAccountName: crab
+  selector:
+    matchLabels:
+      app: island
+      component: web
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: island-web
+  namespace: island-system
+spec:
+  selector:
+    app: island
+    component: web
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000

@@ -1,0 +1,44 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: island-parser
+  namespace: island-system
+  labels:
+    app: island
+    component: parser
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: island-parser
+      labels:
+        app: island
+        component: parser
+    spec:
+      containers:
+        - name: island-parser
+          image: harbor1.zlibs.com/island/island-parser:alpha
+          imagePullPolicy: Always
+      restartPolicy: Always
+      serviceAccountName: crab
+  selector:
+    matchLabels:
+      app: island
+      component: parser
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: island-parser
+  namespace: island-system
+spec:
+  selector:
+    app: island
+    component: parser
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000
+---

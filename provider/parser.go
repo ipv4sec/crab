@@ -2,30 +2,34 @@ package provider
 
 import (
 	"bytes"
+	dependency "crab/dependencies"
 	"crab/utils"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"k8s.io/klog/v2"
 )
 
-func Yaml(manifest, uid, config string, dependencies []Dependency) (string, error) {
-
-	requestByte, err := json.Marshal(struct {
-		Manifest string `json:"content"`
-		UID string `json:"instanceid"`
-		Configuration string `json:"userconfig"`
-		Dependencies []Dependency `json:"dependencies"`
+func Yaml(manifest, uuid, domain string, config interface{}, dependencies []dependency.Dependency) (string, error) {
+	v, err := json.Marshal(struct {
+		Manifest string `json:"Content"`
+		UUID string `json:"InstanceId"`
+		Configuration interface{} `json:"UserConfig"`
+		Dependencies []dependency.Dependency `json:"Dependencies"`
+		RootDomain string `json:"RootDomain"`
 	}{
 		Manifest: manifest,
-		UID: uid,
+		UUID: uuid,
 		Configuration: config,
 		Dependencies: dependencies,
+		RootDomain: domain,
 	})
 	if err != nil {
-		return "", fmt.Errorf("序列化错误: %w", err)
+		return "", fmt.Errorf("序列化参数错误:%w", err)
 	}
 
-	res, err := HTTPClient.Post("http://crab:5000/", bytes.NewReader(requestByte), nil)
+	klog.Infoln("请求参数为:", string(v))
+	res, err := HTTPClient.Post("http://island-parser", bytes.NewBuffer(v), nil)
 	if err != nil {
 		return "", fmt.Errorf("请求翻译器错误: %w", err)
 	}
@@ -33,10 +37,11 @@ func Yaml(manifest, uid, config string, dependencies []Dependency) (string, erro
 	if err != nil {
 		return "", fmt.Errorf("读取翻译器返回错误: %w", err)
 	}
+	klog.Info("读取翻译器返回:", string(bodyBytes))
 	var reply utils.Reply
 	err = json.Unmarshal(bodyBytes, &reply)
 	if err != nil {
-		return "", fmt.Errorf("TODO: %w", err)
+		return "", fmt.Errorf("翻译器返回序列化错误: %w", err)
 	}
 	if reply.Code != 0 {
 		return "", fmt.Errorf("翻译器返回错误: %v", reply.Result)

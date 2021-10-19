@@ -16,7 +16,7 @@
 
 .idea/
 assets/bin/
-
-
 web/code/node_modules
+
+*.zip
 *.DS_Store

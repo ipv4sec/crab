@@ -5,6 +5,10 @@ import (
 	"crab/cluster"
 	"crab/config"
 	"crab/db"
+	d "crab/domain"
+	"crab/status"
+	"crab/storage"
+	"crab/user"
 	"flag"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -38,6 +42,17 @@ func main() {
 		panic(err)
 	}
 
+	if false {
+		err = db.Client.AutoMigrate(&status.Status{})
+		if err != nil {
+			panic(err)
+		}
+		err = db.Client.AutoMigrate(&app.App{})
+		if err != nil {
+			panic(err)
+		}
+	}
+
 	klog.Infoln("开始集群认证")
 	err = cluster.Init()
 	if err != nil {
@@ -47,14 +62,23 @@ func main() {
 
 	klog.Infoln("开始提供服务")
 	gin.SetMode(gin.ReleaseMode)
-	r := gin.New()
-	r.Use(gin.Recovery())
-	routers := r.Group("/app")
+	r := gin.Default()
+	routers := r.Group("/api")
 	{
-		routers.GET("/", app.GetAppHandlerFunc)
-		routers.PUT("/", app.PutAppHandlerFunc)
-		routers.POST("/", app.PostAppHandlerFunc)
-		routers.DELETE("/", app.DeleteAppHandlerFunc)
+		routers.GET("/user/:username", user.GetUserHandlerFunc)
+		routers.GET("/app", app.GetAppHandlerFunc)
+		routers.PUT("/app", app.PutAppHandlerFunc)
+		routers.POST("/app", app.PostAppHandlerFunc)
+		routers.DELETE("/app", app.DeleteAppHandlerFunc)
+	}
+
+	clusterGroup := routers.Group("/cluster")
+	{
+		clusterGroup.GET("/addrs", storage.GetAddrsHandlerFunc)
+		clusterGroup.GET("/domain", d.GetDomainHandlerFunc)
+		clusterGroup.PUT("/domain", d.PutDomainHandlerFunc)
+		clusterGroup.GET("/storage", storage.GetStorageHandlerFunc)
+		clusterGroup.POST("/storage", storage.PostStorageHandlerFunc)
 	}
 	err = r.Run("0.0.0.0:3000")
 	if err != nil {

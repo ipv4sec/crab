@@ -4,15 +4,10 @@ import (
 	"bytes"
 	"context"
 	"crab/cluster"
-	d "crab/domain"
 	"crab/exec"
-	"crab/storage"
-	"crab/user"
 	"crab/utils"
 	"errors"
-	"flag"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"io/ioutil"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -20,16 +15,14 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/remotecommand"
 	"k8s.io/klog/v2"
+	"os"
 	"strings"
 	"time"
 )
 
 func main() {
 	var err error
-	var domain, password string
-	flag.StringVar(&domain, "domain", "example.com", "根域")
-	flag.StringVar(&password, "password", "password", "密码")
-	flag.Parse()
+	executor := exec.CommandExecutor{}
 
 	klog.Infoln("开始集群认证")
 	err = cluster.Init()
@@ -87,6 +80,11 @@ func main() {
 		}
 	}
 	if n ==0 {
+		output, err := executor.ExecuteCommandWithCombinedOutput("scripts/istio.sh")
+		if err != nil {
+			panic(fmt.Errorf("初始化网格失败: %w", err))
+		}
+		klog.Infoln("初始化网格: ", output)
 		yaml, err := ioutil.ReadFile("assets/istio/operator.yaml")
 		if err != nil {
 			panic(fmt.Errorf("读取yaml错误: %w", err))
@@ -162,7 +160,6 @@ func main() {
 	}
 
 	klog.Infoln("开始设置存储")
-	executor := exec.CommandExecutor{}
 	output, err := executor.ExecuteCommandWithCombinedOutput("scripts/ceph.sh")
 	if err != nil {
 		panic(fmt.Errorf("设置存储组件失败: %w", err))
@@ -185,7 +182,7 @@ metadata:
 data:
   root-domain: %s
 `
-	err = cluster.Client.Apply(context.Background(), []byte(fmt.Sprintf(yaml, domain)))
+	err = cluster.Client.Apply(context.Background(), []byte(fmt.Sprintf(yaml, os.Getenv("ISLAND_DOMAIN"))))
 	if err != nil {
 		klog.Errorln("设置根域失败: ", err.Error())
 	}
@@ -199,7 +196,7 @@ data:
 				Name: "island-administrator",
 			},
 			Data: map[string]string{
-				"root": password,
+				"root": os.Getenv("ISLAND_PASSWORD"),
 			},
 		}, metav1.CreateOptions{})
 	if err != nil {
@@ -207,6 +204,7 @@ data:
 	}
 	klog.Infoln("设置密码完成")
 
+	// TODO
 	klog.Infoln("开始部署应用")
 	files, err := ioutil.ReadDir("assets/island/")
 	if err != nil {
@@ -232,31 +230,5 @@ data:
 	//	klog.Infoln("并未设置存储")
 	//}
 	klog.Infoln("设置存储结束")
-
-
-	klog.Infoln("开始设置访问路由")
-	klog.Infoln("设置访问路由结束")
-
-	klog.Infoln("开始提供服务")
-	gin.SetMode(gin.ReleaseMode)
-	r := gin.New()
-	r.Use(gin.Recovery())
-	userGroup := r.Group("/user")
-	{
-		userGroup.GET("/:username", user.GetUserHandlerFunc)
-	}
-	// TODO 统一接口返回
-
-	clusterGroup := r.Group("/cluster")
-	{
-		clusterGroup.GET("/addrs", storage.GetAddrsHandlerFunc)
-		clusterGroup.GET("/domain", d.GetDomainHandlerFunc)
-		clusterGroup.PUT("/domain", d.PutDomainHandlerFunc)
-		clusterGroup.GET("/storage", storage.GetStorageHandlerFunc)
-		clusterGroup.POST("/storage", storage.PostStorageHandlerFunc)
-	}
-	err = r.Run("0.0.0.0:3000")
-	if err != nil {
-		panic(fmt.Errorf("监听端口失败: %w", err))
-	}
+	klog.Info("结束退出程序")
 }

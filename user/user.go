@@ -30,13 +30,13 @@ func GetUserHandlerFunc(c *gin.Context)  {
 	}
 	v, ok := administrators.Data[username]
 	if ok {
-		c.JSON(200, utils.SuccessResponse(User{
+		c.JSON(200, utils.RowResponse(User{
 			Username: username,
 			Password: v,
 		}))
 		return
 	}
-	c.JSON(200, utils.SuccessResponse(struct {
+	c.JSON(200, utils.RowResponse(struct {
 		Error string `json:"error"`
 	}{
 		Error: "该用户不存在",

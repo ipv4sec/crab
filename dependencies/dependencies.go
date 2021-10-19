@@ -1,19 +1,26 @@
 package dependencies
 
+import (
+	"errors"
+	"fmt"
+)
+
 type Dependency struct {
-	Instanceid string              `json:"instanceid"`
-	Name       string              `json:"name"`
-	Location   string              `json:"location"`
-	Version    string              `json:"version"`
-	Uses       map[string][]string `json:"uses"`
+	Instanceid   string              `json:"InstanceId"`
+	Name         string              `json:"Name"`
+	Location     string              `json:"Location"`
+	Version      string              `json:"Version"`
+	Uses         map[string][]string `json:"Uses"`
+	EntryService string              `json:"EntryService"`
 }
 
 type DependencyVela struct {
-	Instanceid string              `json:"instanceid"`
-	Name       string              `json:"name"`
-	Location   string              `json:"location"`
-	Version    string              `json:"version"`
-	Resource   []DependencyUseItem `json:"resource"`
+	Instanceid   string              `json:"instanceid"`
+	Name         string              `json:"name"`
+	Location     string              `json:"location"`
+	Version      string              `json:"version"`
+	EntryService string              `json:"entryservice"`
+	Resource     []DependencyUseItem `json:"resource"`
 }
 
 //解析后的依赖use
@@ -37,10 +44,30 @@ type ServiceEntry struct {
 }
 
 //解析use
-func ApiParse(uses map[string][]string) []DependencyUseItem {
+func ApiParse(uses map[string][]string) ([]DependencyUseItem, error) {
+	var err error
 	rtn := make([]DependencyUseItem, 0)
 	for k, v := range uses {
-		rtn = append(rtn, DependencyUseItem{k, v})
+		count := 0
+		actions := make([]string, 0)
+		for _, option := range v {
+			if option == "create" {
+				actions = append(actions, "POST")
+			}else if option == "read" {
+				actions = append(actions, "GET", "HEAD", "OPTIONS")
+			}else if option == "update" {
+				actions = append(actions, "PUT", "PATCH")
+			}else if option == "delete" {
+				actions = append(actions, "DELETE")
+			}else{
+				return rtn, errors.New(fmt.Sprintf("依赖资源的操作类型(%s)不存在\n", option))
+			}
+			count++
+		}
+		if count == 0 {
+			return rtn, errors.New("依赖资源的操作类型不能为空")
+		}
+		rtn = append(rtn, DependencyUseItem{k, actions})
 	}
-	return rtn
+	return rtn,err
 }
