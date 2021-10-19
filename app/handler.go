@@ -212,9 +212,11 @@ func PutAppHandlerFunc(c *gin.Context) {
 	if err != nil {
 		klog.Errorln("参数错误", err.Error())
 		c.JSON(200, utils.ErrorResponse(10086, "参数错误"))
+		return
 	}
 	if param.ID == "" || param.Status == 0 {
 		c.JSON(200, utils.ErrorResponse(10086, "参数错误"))
+		return
 	}
 	// 运行或者卸载
 	var app App
