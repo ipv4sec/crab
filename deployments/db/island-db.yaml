@@ -86,27 +86,25 @@ metadata:
   namespace: island-system
 data:
   init.sql: |
-    CREATE DATABASE island_console;
-    USE island_console;
-    CREATE TABLE app (
-      `id` VARCHAR(8) primary key,
-      `name` VARCHAR(128) not null default "",
-      `version` VARCHAR(128) not null default "",
-      `status` int(12) NOT NULL DEFAULT '0',
-      `deploy` text not null,
-      `manifest` text not null,
-      `k8s_yaml_str` mediumtext not null,
-      `userconfig` text not null,
-      `dependences` text not null,
-      `ctime` datetime not null
-    )ENGINE=Innodb DEFAULT CHARSET=utf8;
+    CREATE DATABASE crab;
+    USE crab;
+
+    CREATE TABLE `t_app` (
+    `id` bigint(20) NOT NULL AUTO_INCREMENT,
+    `uuid` varchar(128) COLLATE utf8mb4_bin DEFAULT NULL,
+    `status` int(12) DEFAULT NULL,
+    `name` varchar(128) COLLATE utf8mb4_bin DEFAULT NULL,
+    `version` varchar(128) COLLATE utf8mb4_bin DEFAULT NULL,
+    `manifest` longtext COLLATE utf8mb4_bin,
+    `deployment` longtext CHARACTER SET utf8mb4,
+    `created_at` datetime(3) DEFAULT NULL,
+    `updated_at` datetime(3) DEFAULT NULL,
+    PRIMARY KEY (`id`)
+    ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
     CREATE TABLE `t_status` (
-      `id` int(12) NOT NULL AUTO_INCREMENT COMMENT '自增主键',
-      `name` varchar(255) COLLATE utf8mb4_bin NOT NULL COMMENT '命名空间',
-      `component` varchar(255) COLLATE utf8mb4_bin NOT NULL COMMENT '组件',
-      `status` int(12) NOT NULL COMMENT '状态',
-      `create_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-      `update_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-      PRIMARY KEY (`id`),
-      UNIQUE KEY `uniq_idx` (`name`,`component`)
+    `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+    `name` longtext COLLATE utf8mb4_bin,
+    `component` longtext COLLATE utf8mb4_bin,
+    `status` bigint(20) DEFAULT NULL,
+    PRIMARY KEY (`id`)
     ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;

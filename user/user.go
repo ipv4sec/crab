@@ -28,17 +28,13 @@ func GetUserHandlerFunc(c *gin.Context)  {
 		c.JSON(200, utils.ErrorResponse(utils.ErrClusterGetConfigMap, "获取用户信息失败"))
 		return
 	}
-	v, ok := administrators.Data[username]
+	value, ok := administrators.Data[username]
 	if ok {
 		c.JSON(200, utils.RowResponse(User{
 			Username: username,
-			Password: v,
+			Password: value,
 		}))
 		return
 	}
-	c.JSON(200, utils.RowResponse(struct {
-		Error string `json:"error"`
-	}{
-		Error: "该用户不存在",
-	}))
+	c.JSON(200, utils.RowResponse(map[string]interface{}{"error":"该用户不存在"}))
 }
