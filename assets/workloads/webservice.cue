@@ -55,7 +55,7 @@ outputs: "\(context.componentName)-deployment":{
               name:  "init"
               image: "harbor1.zlibs.com/island/centos:7"
               command: ["/bin/sh"]
-              args: ["-c", "while true; do curl 'http://island-status.island-system/status/?name=\(parameter.namespace)&component=\(parameter.after)' | grep '\"result\":1'; if [ $? -ne 0 ]; then sleep 4s; continue; else break; fi; done"]
+              args: ["-c", "while true; do curl 'http://island-status.island-system/status/?id=\(parameter.namespace)&component=\(parameter.after)' | grep '\"result\":1'; if [ $? -ne 0 ]; then sleep 4s; continue; else break; fi; done"]
             },
           ]
         }
@@ -110,7 +110,7 @@ outputs: "\(context.componentName)-deployment":{
         }, {
           name:  "\(context.componentName)-sidecar"
           image: "harbor1.zlibs.com/island/centos:7"
-          command: ["/bin/sh", "-c", "while true; do curl -X POST http://island-status.island-system/status/ -H 'Content-Type: application/json' -d '{\"name\": \"\(parameter.namespace)\",\"component\": \"\(context.componentName)\"}'; sleep 30s; done;"]
+          command: ["/bin/sh", "-c", "while true; do curl -X POST http://island-status.island-system/status/ -H 'Content-Type: application/json' -d '{\"id\": \"\(parameter.namespace)\",\"component\": \"\(context.componentName)\"}'; sleep 30s; done;"]
         }]
 
       volumes: [

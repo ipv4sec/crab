@@ -5,7 +5,7 @@ import (
 	"crab/cluster"
 	"crab/config"
 	"crab/db"
-	d "crab/domain"
+	"crab/domain"
 	"crab/status"
 	"crab/storage"
 	"crab/user"
@@ -75,8 +75,8 @@ func main() {
 	clusterGroup := routers.Group("/cluster")
 	{
 		clusterGroup.GET("/addrs", storage.GetAddrsHandlerFunc)
-		clusterGroup.GET("/domain", d.GetDomainHandlerFunc)
-		clusterGroup.PUT("/domain", d.PutDomainHandlerFunc)
+		clusterGroup.GET("/domain", domain.GetDomainHandlerFunc)
+		clusterGroup.PUT("/domain", domain.PutDomainHandlerFunc)
 		clusterGroup.GET("/storage", storage.GetStorageHandlerFunc)
 		clusterGroup.POST("/storage", storage.PostStorageHandlerFunc)
 	}

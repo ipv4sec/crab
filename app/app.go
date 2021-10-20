@@ -3,17 +3,18 @@ package app
 import "time"
 
 type App struct {
-	ID           int64 `gorm:"primaryKey" json:"-"`
-	UUID         string `json:"uuid"`
-	Status       int    `json:"status"` // TODO 0 正在部署中 1 部署完成 2 卸载中 3 卸载完成
+	PK           int64 `gorm:"primaryKey" json:"-"`
+	ID         string `json:"id"`
+	Status       int    `json:"status"`
 
 	Name         string `json:"name"`
 	Version      string `json:"version"`
+	Configuration  string `json:"configuration"`
+	Dependencies string `json:"dependencies"`
+
 	Manifest     string `json:"manifest"`
 
-	//Dependencies string `json:"dependencies"`
-	//Parameters   string `json:"parameters"`
-	//Config       string
+	Parameters   string `json:"parameters"`
 	Deployment     string `gorm:"column:deployment" json:"deployment"`
 
 	CreatedAt time.Time `json:"created_at"`
@@ -23,5 +24,3 @@ type App struct {
 func (App) TableName() string {
 	return "t_app"
 }
-
-// TODO

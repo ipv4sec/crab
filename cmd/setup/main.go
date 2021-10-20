@@ -15,7 +15,6 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/remotecommand"
 	"k8s.io/klog/v2"
-	"os"
 	"strings"
 	"time"
 )
@@ -180,9 +179,9 @@ metadata:
   name: island-info
   namespace: island-system
 data:
-  root-domain: %s
+  root-domain: example.com
 `
-	err = cluster.Client.Apply(context.Background(), []byte(fmt.Sprintf(yaml, os.Getenv("ISLAND_DOMAIN"))))
+	err = cluster.Client.Apply(context.Background(), []byte(yaml))
 	if err != nil {
 		klog.Errorln("设置根域失败: ", err.Error())
 	}
@@ -195,9 +194,7 @@ data:
 			ObjectMeta: metav1.ObjectMeta{
 				Name: "island-administrator",
 			},
-			Data: map[string]string{
-				"root": os.Getenv("ISLAND_PASSWORD"),
-			},
+			Data: map[string]string{"root": "toor"},
 		}, metav1.CreateOptions{})
 	if err != nil {
 		klog.Errorln("设置密码失败: ", err.Error())
@@ -222,13 +219,5 @@ data:
 		}
 	}
 	klog.Infoln("部署应用完成")
-
-	klog.Infoln("开始按需设置存储")
-	//if storage == "true" {
-	//	// 按需选择磁盘的情况在界面上设置
-	//} else {
-	//	klog.Infoln("并未设置存储")
-	//}
-	klog.Infoln("设置存储结束")
 	klog.Info("结束退出程序")
 }
