@@ -7,7 +7,7 @@
 ## 说明
 
 在现有集群上执行
-`curl -fsSL http://island-resource.develenv.com/crab.sh`
+`curl -fsSL http://island-resource.develenv.com/crab.sh | bash`
 
 再执行
 `kubectl get svc -n island-system`, 查看暴露的端口号

@@ -40,7 +40,7 @@ spec:
   ports:
     - name: port
       port: 80
-      targetPort: 80
+      targetPort: 3000
   selector:
     app: island
     component: status
