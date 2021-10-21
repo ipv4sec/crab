@@ -3,10 +3,14 @@ package domain
 import (
 	"context"
 	"crab/cluster"
+	"crab/provider"
 	"crab/utils"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog/v2"
+	"strings"
 )
 
 func GetDomainHandlerFunc(c *gin.Context)  {
@@ -31,17 +35,35 @@ func PutDomainHandlerFunc(c *gin.Context) {
 	}
 	status := struct {
 		Status int `json:"status"`
-		Result string `json:"result"`
+		Message string `json:"message"`
 	}{
 		Status: 0,
-		Result: "",
+		Message: "未检测到域名的解析",
+	}
+	res, err := provider.HTTPClient.Get(fmt.Sprintf("http://%s/", param.Value), nil)
+	if err != nil {
+		klog.Errorln("请求该域名错误", err.Error())
+		c.JSON(200, utils.SuccessResponse(status))
+		return
+	}
+	bytes, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		klog.Errorln("请求该域名错误", err.Error())
+		c.JSON(200, utils.SuccessResponse(status))
+		return
+	}
+
+	if  strings.TrimSpace(string(bytes)) != "crab" {
+		klog.Errorln("接口返回域名错误", strings.TrimSpace(string(bytes)), param.Value)
+		c.JSON(200, utils.SuccessResponse(status))
+		return
 	}
 	conf, err := cluster.Client.Clientset.CoreV1().ConfigMaps("island-system").
 		Get(context.Background(),"island-info", metav1.GetOptions{})
 	if err != nil {
 		klog.Errorln("获取根域的键值对失败", err.Error())
 		status.Status = 1
-		status.Result = "保存根域失败"
+		status.Message = "保存根域失败"
 		c.JSON(200, utils.ErrorResponse(utils.ErrClusterGetConfigMap, status))
 		return
 	}
@@ -51,11 +73,11 @@ func PutDomainHandlerFunc(c *gin.Context) {
 	if err != nil {
 		klog.Errorln("设置根域的键值对失败", err.Error())
 		status.Status = 1
-		status.Result = "保存根域失败"
+		status.Message = "保存根域失败"
 		c.JSON(200, utils.ErrorResponse(utils.ErrClusterSetConfigMap, status))
 		return
 	}
 	status.Status = 2
-	status.Result = "保存根域成功"
+	status.Message = "保存根域成功"
 	c.JSON(200, utils.SuccessResponse(status))
 }
