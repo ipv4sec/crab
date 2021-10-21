@@ -20,7 +20,7 @@ import (
 func main() {
 	var err error
 	var conf string
-	flag.StringVar(&conf, "config", "config.yaml", "配置文件")
+	flag.StringVar(&conf,"config", "config.yaml", "配置文件")
 	flag.Parse()
 
 	klog.Infoln("读取配置文件")
@@ -63,9 +63,14 @@ func main() {
 	klog.Infoln("开始提供服务")
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
+	r.GET("/", func(c *gin.Context) {
+		c.String(200, "crab")
+	})
 	routers := r.Group("/api")
 	{
 		routers.GET("/user/:username", user.GetUserHandlerFunc)
+		routers.PUT("/user/:username", user.PutUserHandlerFunc)
+
 		routers.GET("/app", app.GetAppHandlerFunc)
 		routers.PUT("/app", app.PutAppHandlerFunc)
 		routers.POST("/app", app.PostAppHandlerFunc)

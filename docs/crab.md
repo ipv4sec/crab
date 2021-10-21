@@ -27,6 +27,7 @@
 |  ----  | ----  |
 | 0  | 没有需要设置的事项, 可直接显示 error 字段的内容 |
 | 1  | 需要设置根域, 提示信息可用 error 字段的内容  |
+| 2  | 需要设置存储插件, 提示信息可用 error 字段的内容  |
 
 比如在出错时, 可能的返回结果有
 ```json
@@ -117,16 +118,34 @@ Content-Type: multipart/form-data;
 |名称|说明|默认值|是否必填|
 |---|---|---|---|
 |file|实例描述文件（zip 包）|无|是|
-### 返回值
 
+### 返回值
+缺少插件时的返回值:
 ```
-{
-}
+{"error":  "未设置存储插件, 跳转到插件页面", "todo":  2}
+```
+
+未设置根域时的返回值:
+```
+{"error":  "未设置根域, 跳转到设置页面", "todo":  1}
+```
+
+正确返回时:
+```
 ```
 
 
 <a name="实例列表"></a>
 ## 实例列表
+
+|  status   | 意义  |
+|  ----  | ----  |
+| 0  | 未部署 |
+| 1  | 正在部署中  |
+| 2  | 部署完成  |
+| 3  | 卸载中  |
+| 4  | 卸载完成  |
+
 ### 请求语法
 ```
 GET /api/app HTTP/1.1
@@ -145,7 +164,81 @@ GET /api/app HTTP/1.1
             "name": "demo-app1",
             "entry": "island.com",
             "status": "",
-            "version": "0.0.2"
+            "version": "0.0.2",
+            "dependencies":  {
+                    "demo-app1": { #应用名
+                        "instances": [
+                                {
+                                    "name": "demo-app1",
+                                    "instanceid": "iqtxycne"
+                                },
+                                {
+                                    "name": "demo-app1",
+                                    "location": "https://www.huanqiu.com"
+                                }
+                        ], #应用实例 id 列表
+                        "userconfig": {
+                            "properties": {
+                                "param1": {
+                                    "type": "string"
+                                },
+                                "param2": {
+                                    "type": "number"
+                                },
+                                "param3": {
+                                    "type": "object",
+                                    "properties": {
+                                        "param3_1":{
+                                            "type": "string"
+                                        },
+                                        "param3_2":{
+                                            "type": "number"
+                                        }
+                                    }
+                                }
+                            },
+                            "required": [
+                                "param1"
+                            ],
+                            "type": "object"
+                        }
+                        "location": "https://www.huanqiu.com",
+                        "resources": [
+                            {
+                                "actions": [
+                                    "GET"
+                                ],
+                                "uri": "/app"
+                            }
+                        ],
+                        "type": "mutable"
+                    }
+            },
+            userconfig: {
+                    "properties": {
+                    "param1": {
+                        "type": "string"
+                    },
+                    "param2": {
+                        "type": "number"
+                    },
+                    "param3": {
+                        "type": "object",
+                        "properties": {
+                            "param3_1":{
+                                "type": "string"
+                            },
+                            "param3_2":{
+                                "type": "number"
+                            }
+                        }
+                    }
+                },
+                "required": [
+                    "param1"
+                ],
+                "type": "object"
+                },
         },
         {
             "id": "aminkcgo",
@@ -160,3 +253,73 @@ GET /api/app HTTP/1.1
 ```
 
 `rows.entry` 为实例链接
+
+
+<a name="修改root用户密码"></a>
+## 修改root用户密码
+
+### 请求语法
+```
+PUT /api/user/root HTTP/1.1
+```
+### 请求参数
+|名称|说明|默认值|是否必填|
+|---|---|---|---|
+|password|密码|无|是|
+|oldPassword|密码|无|是|
+
+### 请求示例
+```json
+{
+  "password": "admin233",
+  "oldPassword": "toor"
+}
+```
+### 返回值
+```
+{
+    "code": 0,
+    "result": "设置成功"
+}
+```
+
+
+
+
+<a name="设置集群根域"></a>
+## 设置集群根域
+
+### 请求语法
+```
+PUT /api/domain HTTP/1.1
+```
+### 请求参数
+|名称|说明|默认值|是否必填|
+|---|---|---|---|
+|value|绑定到此集群的域名|无|是|
+#### 请求参数示例
+```
+{
+    "value": "abc.com",
+}
+```
+
+### 返回值
+```
+{
+    "code": 0,
+    "result": {
+      "status": 3,
+      "message": "成功",
+    }
+}
+```
+
+`result.status` 为设置根域后的状态码, 数字类型, 具体意义见下表
+`result.message` 为当前的状态信息, 字符串,  可直接显示在网页
+
+|  status   | 意义  |
+|  ----  | ----  |
+| 0  | 检测域名的解析失败 |
+| 1  | 检测域名的解析成功, 保存失败 |
+| 2  | 检测域名的解析成功, 保存成功 |

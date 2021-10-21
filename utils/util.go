@@ -2,6 +2,7 @@ package utils
 
 import (
 	"archive/zip"
+	"crab/aam/v1alpha1"
 	"io"
 	"os"
 	"path/filepath"
@@ -11,6 +12,15 @@ import (
 func Contains(s []string, e string) bool {
 	for _, a := range s {
 		if a == e {
+			return true
+		}
+	}
+	return false
+}
+
+func ContainsTrait(s []v1alpha1.Trait, e string) bool {
+	for _, a := range s {
+		if a.Type == e {
 			return true
 		}
 	}
