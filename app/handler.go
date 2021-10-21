@@ -286,6 +286,28 @@ func PutAppHandlerFunc(c *gin.Context) {
 		}
 		v, _ := island.Data["root-domain"]
 
+		for i := 0; i < len(param.Dependencies); i++ {
+			if param.Dependencies[i].Instanceid != "" {
+				var a App
+				err = db.Client.Where("id = ?", param.Dependencies[i].Instanceid).Find(&a).Error
+				if err != nil {
+					klog.Errorln("数据库查询错误:", err.Error())
+					continue
+				}
+				var manifest v1alpha1.Manifest
+				err = yaml.Unmarshal([]byte(a.Manifest), &manifest)
+				if err != nil {
+					klog.Errorln("解析描述文件错误:", err.Error())
+					continue
+				}
+				for j := 0; j < len(manifest.Spec.Components); j++ {
+					if utils.ContainsTrait(manifest.Spec.Components[j].Traits, "ingress") {
+						param.Dependencies[i].EntryService = manifest.Spec.Components[j].Name
+					}
+				}
+			}
+		}
+
 		// TODO
 		yaml, err := provider.Yaml(app.Manifest, app.ID, v, param.Configurations, param.Dependencies)
 		if err != nil {

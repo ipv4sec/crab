@@ -43,11 +43,6 @@ spec:
         - name: island-setup
           image: harbor1.zlibs.com/island/island-setup:alpha
           imagePullPolicy: Always
-          env:
-            - name: ISLAND_DOMAIN
-              value: example.com
-            - name: ISLAND_PASSWORD
-              value: toor
       restartPolicy: OnFailure
       serviceAccountName: crab
 ---

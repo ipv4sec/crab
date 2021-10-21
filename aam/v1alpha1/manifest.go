@@ -11,7 +11,7 @@ type Manifest struct {
 		Exports map[string][]string
 		Dependencies []Dependency `yaml:"dependencies" json:"dependencies"`
 		Configurations interface{} `yaml:"userconfigs" json:"userconfigs"`
-		Components [] map[string]interface{} `json:"components"`
+		Components [] Component `json:"components"`
 	} `yaml:"spec" json:"spec"`
 }
 

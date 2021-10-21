@@ -168,12 +168,6 @@ func main() {
 	klog.Infoln("开始设置根域")
 	yaml := `
 apiVersion: v1
-kind: Namespace
-metadata:
-  name: island-system
----
-
-apiVersion: v1
 kind: ConfigMap
 metadata:
   name: island-info

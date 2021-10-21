@@ -98,7 +98,7 @@ data:
       `configuration` longtext COLLATE utf8mb4_bin NOT NULL COMMENT '应用配置',
       `dependencies` longtext COLLATE utf8mb4_bin NOT NULL COMMENT '应用依赖',
       `manifest` longtext COLLATE utf8mb4_bin NOT NULL COMMENT '应用描述',
-      `paramters` longtext CHARACTER SET utf8mb4 NOT NULL COMMENT '配置参数',
+      `parameters` longtext CHARACTER SET utf8mb4 NOT NULL COMMENT '配置参数',
       `deployment` longtext CHARACTER SET utf8mb4 NOT NULL COMMENT '应用部署',
       `created_at` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT '创建时间',
       `updated_at` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT '更新时间',
