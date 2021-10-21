@@ -137,6 +137,15 @@ Content-Type: multipart/form-data;
 
 <a name="实例列表"></a>
 ## 实例列表
+
+|  status   | 意义  |
+|  ----  | ----  |
+| 0  | 未部署 |
+| 1  | 正在部署中  |
+| 2  | 部署完成  |
+| 3  | 卸载中  |
+| 4  | 卸载完成  |
+
 ### 请求语法
 ```
 GET /api/app HTTP/1.1
