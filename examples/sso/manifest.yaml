@@ -1,0 +1,21 @@
+apiVersion: ami.globalsphare.com/v1alpha1
+kind: Application
+metadata:
+  name: sso
+  annotations:
+    version: 3.0.0
+spec:
+  components:
+    - name: sso
+      type: webservice
+      properties:
+        image: nginx:1.21
+        configs:
+          - path: /usr/share/nginx/html/
+            subPath: user.json
+            data:
+              - name: user.json
+                value: |
+                  {"users":["zhangsan", "lisi"]}
+      traits:
+        - type: ingress
