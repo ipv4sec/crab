@@ -61,3 +61,15 @@ spec:
       targetPort: 3000
   type: NodePort
 EOF
+
+port=$(kubectl get svc crab -n island-system -o jsonpath='{.spec.ports[?(@.port==80)].nodePort}')
+
+echo
+echo "================================================================================"
+echo
+echo "系统正在部署中, 之后请访问集群端口:"$port
+echo
+echo "注意: 默认登录用户名为root, 默认密码为toor, 登录成功后请尽快修改此密码"
+echo
+echo "================================================================================"
+echo
