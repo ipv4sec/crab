@@ -44,6 +44,8 @@
 
 <a name="插件列表"></a>
 ## 插件列表
+
+TODO, 未商定
 ### 请求语法
 ```
 GET /api/plugins HTTP/1.1
@@ -80,6 +82,7 @@ Content-Type: application/json
 ## 修改插件
 目前只有插件的状态能修改, 通过修改插件的状态来安装插件
 
+TODO, 未商定
 ### 请求语法
 ```
 PUT /api/plugin/<id> HTTP/1.1
@@ -131,8 +134,7 @@ Content-Type: multipart/form-data;
 ```
 
 正确返回时:
-```
-```
+按照之前的接口返回格式
 
 
 <a name="实例列表"></a>
@@ -156,6 +158,7 @@ GET /api/app HTTP/1.1
 |offset| |0|否|
 |limit|  |10|否|
 ### 返回值
+按照之前的接口返回格式的同时, 增加 dependencies 和 userconfig 字段
 ```
 {
     "rows": [
@@ -176,40 +179,6 @@ GET /api/app HTTP/1.1
                                     "name": "demo-app1",
                                     "location": "https://www.huanqiu.com"
                                 }
-                        ], #应用实例 id 列表
-                        "userconfig": {
-                            "properties": {
-                                "param1": {
-                                    "type": "string"
-                                },
-                                "param2": {
-                                    "type": "number"
-                                },
-                                "param3": {
-                                    "type": "object",
-                                    "properties": {
-                                        "param3_1":{
-                                            "type": "string"
-                                        },
-                                        "param3_2":{
-                                            "type": "number"
-                                        }
-                                    }
-                                }
-                            },
-                            "required": [
-                                "param1"
-                            ],
-                            "type": "object"
-                        }
-                        "location": "https://www.huanqiu.com",
-                        "resources": [
-                            {
-                                "actions": [
-                                    "GET"
-                                ],
-                                "uri": "/app"
-                            }
                         ],
                         "type": "mutable"
                     }
@@ -291,7 +260,7 @@ PUT /api/user/root HTTP/1.1
 
 ### 请求语法
 ```
-PUT /api/domain HTTP/1.1
+PUT /cluster/domain HTTP/1.1
 ```
 ### 请求参数
 |名称|说明|默认值|是否必填|
@@ -323,3 +292,128 @@ PUT /api/domain HTTP/1.1
 | 0  | 检测域名的解析失败 |
 | 1  | 检测域名的解析成功, 保存失败 |
 | 2  | 检测域名的解析成功, 保存成功 |
+
+
+<a name="获取节点IP地址"></a>
+## 获取节点IP地址
+显示所有节点的IP地址(仅能显示此节点网卡上绑定的IP地址)
+
+### 请求语法
+```
+GET /cluster/addrs HTTP/1.1
+```
+### 请求参数
+无
+
+### 返回值
+```
+{
+    "code": 0,
+    "result": [
+        {
+            "name": "master1",
+            "addrs": [
+              "192.168.0.1",
+              "192.168.0.2",
+              "192.168.0.3",
+            ]
+        },
+        {
+            "name": "salve1",
+            "addrs": [
+              "192.168.0.4",
+            ]
+        },
+        {
+            "name": "salve2",
+            "addrs": [
+              "192.168.0.5",
+              "192.168.0.6",
+            ]
+        }
+    ]
+}
+```
+
+
+<a name="获取存储状态"></a>
+## 获取存储状态
+能获取到存储的状态
+
+### 请求语法
+```
+GET /cluster/storage HTTP/1.1
+```
+### 请求参数
+无
+### 返回值
+```
+{
+    "code": 0,
+    "result": {
+        "store": {
+            "status": 0,
+            "result": "", 
+        },
+        "volumes": [
+        {
+            "name": "vdc",
+            "size": "1024G",
+            "hostname": "192.168.0.2",
+            "hasChildren": false,
+        },
+        ]
+    }
+}
+```
+
+`result.store` 为存储集群的状态信息
+`result.volumes` 为当前集群内所有的磁盘信息
+
+`name`: 磁盘名称
+`size`: 磁盘大小
+`hostname`: 所在主机
+`hasChildren`: 是否存在子分区
+
+`result.store.status` 为状态码, 数字类型, 具体意义见下表
+`result.store.result` 为当前的状态信息, 字符串,  可直接显示在网页
+
+|  status   | 意义  |
+|  ----  | ----  |
+| 0  | 存储集群还未初始化 |
+| 1  | 存储集群正在构建中 |
+| 2  | 存储集群平稳运行中 |
+
+<a name="初始化存储"></a>
+## 初始化存储
+
+初始化之后, 要再次 `GET /cluster/storage` 判断 `result.store.status` 为 2 时, 存储初始化成功
+
+### 请求语法
+```
+POST /cluster/storage HTTP/1.1
+```
+### 请求参数
+|名称|说明|默认值|是否必填|
+|---|---|---|---|
+|default|是否使用默认配置, true时, 忽略其他参数| false |是|
+|volumes|要使用的磁盘数组|无|否|
+#### 请求参数示例
+```
+{
+    "default": false,
+    "volumes": [
+     {
+            "name": "vdc",
+            "hostname": "192.168.0.2"
+     },
+     ]
+}
+```
+### 返回值
+```
+{
+    "code": 0,
+    "result": "初始化存储成功, 等待内部操作完成"
+}
+```

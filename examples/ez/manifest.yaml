@@ -1,0 +1,32 @@
+apiVersion: ami.globalsphare.com/v1alpha1
+kind: Application
+metadata:
+  name: ez
+  annotations:
+    version: 3.0.0
+spec:
+  components:
+    - name: ez
+      type: webservice
+      properties:
+        image: harbor1.zlibs.com/island/ez:alpha
+        configs:
+          - path: /app
+            subPath: id.txt
+            data:
+              - name: id.txt
+                value: "ez"
+      traits:
+        - type: ingress
+
+
+  dependencies:
+    - name: sso
+      version: ">=0.0.1"
+      location: user-defined
+      uses:
+        /*:
+          - create
+          - read
+          - update
+          - delete
