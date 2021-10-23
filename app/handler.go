@@ -31,6 +31,8 @@ type Instance struct {
 	*App
 	Status string `json:"status"`
 	Entry  string `json:"entry"`
+	Dependencies  map[string]interface{} `json:"dependencies"`
+	Configuration map[string]interface{} `json:"userconfig"`
 }
 
 func GetAppHandlerFunc(c *gin.Context) {
@@ -82,11 +84,53 @@ func GetAppHandlerFunc(c *gin.Context) {
 	//| 3  | 卸载中  |
 	//| 4  | 卸载完成  |
 	for i := 0; i < len(apps); i++ {
+		var manifest v1alpha1.Manifest
+		err = yaml.Unmarshal([]byte(apps[i].Manifest), &manifest)
+		if err != nil {
+			klog.Errorln("解析描述文件错误:", err.Error())
+			continue
+		}
+
+
+		dependencies := map[string]interface{}{}
+		for i := 0; i < len(manifest.Spec.Dependencies); i++ {
+			d := Dependency{
+				Instances: []struct {
+					ID      string `json:"instanceid"`
+					Version string `json:"version"`
+				}{},
+			}
+			d.Type, d.Link = Link(manifest.Spec.Dependencies[i].Location)
+			if d.Type == Mutable {
+				var apps []App
+				err = db.Client.Where("name = ?", manifest.Spec.Dependencies[i].Name).Find(&apps).Error
+				if err != nil {
+					klog.Errorln("数据库查询错误:", err.Error())
+					continue
+				}
+				for j := 0; j < len(apps); j++ {
+					v, err := semver.Parse(apps[j].Version)
+					if err != nil {
+						continue
+					}
+					ra, err := semver.ParseRange(manifest.Spec.Dependencies[i].Version)
+					if ra(v) {
+						d.Instances = append(d.Instances, struct {
+							ID      string `json:"instanceid"`
+							Version string `json:"version"`
+						}{ID: apps[j].ID, Version: apps[j].Version})
+					}
+				}
+			}
+			dependencies[manifest.Spec.Dependencies[i].Name] = d
+		}
 		ins := Instance{
 			App:    &apps[i],
 			Status: "未部署",
 			// TODO
 			Entry:  endpoints[apps[i].ID +"-http"],
+			Configuration: manifest.Spec.Configurations,
+			Dependencies: dependencies,
 		}
 		if apps[i].Status == 1 {
 			ins.Status = "正在部署中"
@@ -160,17 +204,28 @@ func PostAppHandlerFunc(c *gin.Context) {
 	klog.Info("此实例的配置:", manifest.Spec.Configurations)
 	klog.Info("此实例的依赖:", manifest.Spec.Dependencies)
 
+	configuration := map[string]interface{}{}
+	if manifest.Spec.Configurations != nil {
+		configuration = manifest.Spec.Configurations
+	}
+
+	configurationBytes, err := json.Marshal(configuration)
+	if err != nil {
+		klog.Errorln("序列化运行时配置字段错误:", err.Error())
+	}
+
 	dependenciesBytes, err := json.Marshal(manifest.Spec.Dependencies)
 	if err != nil {
 		klog.Errorln("序列化依赖字段错误:", err.Error())
 	}
+
 	app := App{
 		ID:     fmt.Sprintf("ins%v", time.Now().Unix()),
 		Status:   0,
 
 		Name:     manifest.Metadata.Name,
 		Version:  manifest.Metadata.Annotations.Version,
-		Configuration: fmt.Sprintf("%v", manifest.Spec.Configurations),
+		Configuration: string(configurationBytes),
 		Dependencies: string(dependenciesBytes),
 
 		Manifest: string(bytes),
@@ -217,14 +272,15 @@ func PostAppHandlerFunc(c *gin.Context) {
 		}
 		dependencies[manifest.Spec.Dependencies[i].Name] = d
 	}
+
 	c.JSON(200, utils.RowResponse(struct {
 		Dependencies   map[string]interface{} `json:"dependencies" `
 		ID             string                 `json:"instanceid"`
-		Configurations interface{}           `json:"userconfig"`
+		Configurations map[string]interface{}           `json:"userconfig"`
 	}{
 		Dependencies: dependencies,
 		ID:             app.ID,
-		Configurations: manifest.Spec.Configurations,
+		Configurations: configuration,
 	}))
 }
 func PutAppHandlerFunc(c *gin.Context) {

@@ -77,7 +77,7 @@ func main() {
 		routers.DELETE("/app", app.DeleteAppHandlerFunc)
 	}
 
-	clusterGroup := routers.Group("/cluster")
+	clusterGroup := r.Group("/cluster")
 	{
 		clusterGroup.GET("/addrs", storage.GetAddrsHandlerFunc)
 		clusterGroup.GET("/domain", domain.GetDomainHandlerFunc)
