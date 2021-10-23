@@ -74,6 +74,13 @@ func GetAppHandlerFunc(c *gin.Context) {
 			"http://" + hosts[0].(string)
 	}
 	vals := []Instance{}
+	//|  status   | 意义  |
+	//|  ----  | ----  |
+	//| 0  | 未部署 |
+	//| 1  | 正在部署中  |
+	//| 2  | 部署完成  |
+	//| 3  | 卸载中  |
+	//| 4  | 卸载完成  |
 	for i := 0; i < len(apps); i++ {
 		ins := Instance{
 			App:    &apps[i],
