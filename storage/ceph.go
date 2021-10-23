@@ -108,31 +108,31 @@ func GetStorageHandlerFunc(c *gin.Context) {
 	}
 	status := struct {
 		Status int    `json:"status"`
-		Result string `json:"result"`
+		Message string `json:"message"`
 	}{}
 	if deploy.Status.AvailableReplicas == 0 {
 		status.Status = 0
-		status.Result = "存储集群还未初始化"
+		status.Message = "存储集群还未初始化"
 	}
 	if deploy.Status.AvailableReplicas > 0 {
 		s := fetchStorageStatus()
 		if s == 0 {
 			status.Status = 0
-			status.Result = "存储集群还未初始化"
+			status.Message = "存储集群还未初始化"
 		}
 		if s == 1 {
 			status.Status = 1
-			status.Result = "存储集群正在构建中"
+			status.Message = "存储集群正在构建中"
 		}
 		if s == 2 {
 			status.Status = 2
-			status.Result = "存储集群平稳运行中"
+			status.Message = "存储集群平稳运行中"
 		}
 	}
 	c.JSON(200, utils.SuccessResponse(struct {
 		Store struct {
 			Status int    `json:"status"`
-			Result string `json:"result"`
+			Message string `json:"message"`
 		} `json:"store"`
 		Volumes []Volume `json:"volumes"`
 	}{
