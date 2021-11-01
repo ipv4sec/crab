@@ -1,7 +1,6 @@
-package manifest
+package parser
 
 import (
-	dependency "crab/dependencies"
 	"crab/utils"
 	"crypto/md5"
 	"encoding/hex"
@@ -41,7 +40,7 @@ type Params struct {
 	Content string 	`json:"Content"`
 	Instanceid string `json:"InstanceId"`
 	Userconfig map[string]string `json:"UserConfig"`
-	Dependencies []dependency.Dependency `json:"Dependencies"`
+	Dependencies []Dependency `json:"Dependencies"`
 	RootDomain string `json:"RootDomain"`
 }
 
@@ -103,7 +102,7 @@ func PostManifestHandlerFunc(c *gin.Context) {
 }
 
 //由manifest.yaml生成vale.yaml
-func GenValeYaml(instanceId, content, userconfig, rootDomain string, dependencies []dependency.Dependency) (VelaYaml, error) {
+func GenValeYaml(instanceId, content, userconfig, rootDomain string, dependencies []Dependency) (VelaYaml, error) {
 	var vela = VelaYaml{"", make(map[string]interface{}, 0)}
 	var err error
 	manifestServiceOrigin := ManifestServiceOrigin{}
@@ -132,10 +131,10 @@ func GenValeYaml(instanceId, content, userconfig, rootDomain string, dependencie
 	//为每个 service 创建一个 authorization，授权当前应用下的其他服务有访问的权限
 	for _, component := range manifestServiceOrigin.Spec.Components {
 		authorizationData = append(authorizationData,
-			dependency.Authorization{
+			Authorization{
 				Namespace: instanceId,
 				Service:   component.Name,
-				Resources: make([]dependency.DependencyUseItem, 0)},
+				Resources: make([]DependencyUseItem, 0)},
 		)
 	}
 
@@ -157,7 +156,7 @@ func GenValeYaml(instanceId, content, userconfig, rootDomain string, dependencie
 
 //由vale.yaml生成k8s
 func GenK8sYaml(instanceid string, vela VelaYaml) (string, error) {
-	//manifest
+	//parser
 	manifestK8s, err := GenManifestK8s(instanceid, vela)
 	if err != nil {
 		klog.Errorln(err.Error())
@@ -231,7 +230,7 @@ func RandomString(str string) string {
 }
 
 //生成kubevela格式的service
-func serviceVela(svc Component, instanceid string, authorization []dependency.Authorization, serviceentry []dependency.ServiceEntry, configItemData []ConfigItemDataItem, rootDomain string, serviceEntryName string) interface{} {
+func serviceVela(svc Component, instanceid string, authorization []Authorization, serviceentry []ServiceEntry, configItemData []ConfigItemDataItem, rootDomain string, serviceEntryName string) interface{} {
 	if svc.Type == "webservice" {
 		service := WebserviceVela{
 			Workload:      svc.Type,
@@ -324,10 +323,10 @@ func serviceVela(svc Component, instanceid string, authorization []dependency.Au
 }
 
 //处理依赖
-func parseDependencies(dependencies []dependency.Dependency) ([]dependency.Authorization, []dependency.ServiceEntry, map[string]string, error) {
+func parseDependencies(dependencies []Dependency) ([]Authorization, []ServiceEntry, map[string]string, error) {
 	var err error
-	authorization := make([]dependency.Authorization, 0)
-	serviceEntry := make([]dependency.ServiceEntry, 0)
+	authorization := make([]Authorization, 0)
+	serviceEntry := make([]ServiceEntry, 0)
 	//dependencies := make([]dependency.Dependency, 0)
 	configmap := make(map[string]string, 0)
 	//err = json.Unmarshal([]byte(str), &dependencies)
@@ -336,16 +335,16 @@ func parseDependencies(dependencies []dependency.Dependency) ([]dependency.Autho
 	//	return authorization, serviceEntry, configmap, errors.New("依赖解析失败")
 	//}
 	//解析uses
-	dependencyVelas := make([]dependency.DependencyVela, 0)
+	dependencyVelas := make([]DependencyVela, 0)
 	for _, v := range dependencies {
 		if v.Instanceid != "" && v.EntryService == "" {
 			return authorization, serviceEntry, configmap, errors.New("dependencies.entryService不能为空")
 		}
-		resource,err := dependency.ApiParse(v.Uses)
+		resource,err := ApiParse(v.Uses)
 		if err != nil {
 			return authorization, serviceEntry, configmap, err
 		}
-		dependencyVelas = append(dependencyVelas, dependency.DependencyVela{
+		dependencyVelas = append(dependencyVelas, DependencyVela{
 			v.Instanceid,
 			v.Name,
 			v.Location,
@@ -363,16 +362,16 @@ func parseDependencies(dependencies []dependency.Dependency) ([]dependency.Autho
 }
 
 //依赖的服务,授权
-func dependendService(dependencyVelas []dependency.DependencyVela) ([]dependency.Authorization, []dependency.ServiceEntry, map[string]string, error) {
-	auth := make([]dependency.Authorization, 0)
+func dependendService(dependencyVelas []DependencyVela) ([]Authorization, []ServiceEntry, map[string]string, error) {
+	auth := make([]Authorization, 0)
 	//外部服务调用
-	svcEntry := make([]dependency.ServiceEntry, 0)
+	svcEntry := make([]ServiceEntry, 0)
 	//运行时配置
 	cm := make(map[string]string, 0)
 
 	for _, v := range dependencyVelas {
 		if v.Instanceid != "" {
-			auth = append(auth, dependency.Authorization{
+			auth = append(auth, Authorization{
 				v.Instanceid, v.EntryService, v.Resource,
 			})
 			cm[v.Name] = fmt.Sprintf("%s.%s.svc.cluster.local.", v.EntryService, v.Instanceid)
@@ -390,7 +389,7 @@ func dependendService(dependencyVelas []dependency.DependencyVela) ([]dependency
 					return auth, svcEntry, cm, err
 				}
 				arr := strings.Split(u.Host, ".")
-				auth = append(auth, dependency.Authorization{arr[0], arr[1], v.Resource})
+				auth = append(auth, Authorization{arr[0], arr[1], v.Resource})
 			} else {
 				arr, err := url.ParseRequestURI(v.Location)
 				if err != nil {
@@ -418,7 +417,7 @@ func dependendService(dependencyVelas []dependency.DependencyVela) ([]dependency
 					}
 				}
 				svcEntry = append(svcEntry,
-					dependency.ServiceEntry{arr.Host, port, protocol},
+					ServiceEntry{arr.Host, port, protocol},
 				)
 			}
 		}
@@ -453,7 +452,7 @@ func inExCheck(location string) (string, error) {
 
 func GenManifestK8s(instanceid string, vela VelaYaml) (string, error) {
 	manifest := make(map[string]manifestParam, 0)
-	manifest["manifest"] = manifestParam{
+	manifest["parser"] = manifestParam{
 		vela.Name,
 		instanceid,
 	}
@@ -463,7 +462,7 @@ func GenManifestK8s(instanceid string, vela VelaYaml) (string, error) {
 		return "", errors.New("manifestStr json.Marshal 失败")
 	}
 	//获取cue模板
-	manifestCue, err := template("manifest")
+	manifestCue, err := template("parser")
 	manifestContent := "\nparameter:%s\n%s"
 	manifestContent = fmt.Sprintf(manifestContent, manifestStr, manifestCue)
 	fileName := RandomString(manifestContent)
@@ -495,7 +494,7 @@ func GenManifestK8s(instanceid string, vela VelaYaml) (string, error) {
 			klog.Errorln(err.Error())
 			return "", err
 		}
-		k8sYaml += fmt.Sprintf("---\n#manifest\n%s", str)
+		k8sYaml += fmt.Sprintf("---\n#parser\n%s", str)
 	}
 	return k8sYaml, nil
 }
@@ -571,4 +570,32 @@ func GenComponentsK8s(vela VelaYaml) (string, error) {
 		}
 	}
 	return k8sYaml, nil
+}
+//解析use
+func ApiParse(uses map[string][]string) ([]DependencyUseItem, error) {
+	var err error
+	rtn := make([]DependencyUseItem, 0)
+	for k, v := range uses {
+		count := 0
+		actions := make([]string, 0)
+		for _, option := range v {
+			if option == "create" {
+				actions = append(actions, "POST")
+			}else if option == "read" {
+				actions = append(actions, "GET", "HEAD", "OPTIONS")
+			}else if option == "update" {
+				actions = append(actions, "PUT", "PATCH")
+			}else if option == "delete" {
+				actions = append(actions, "DELETE")
+			}else{
+				return rtn, errors.New(fmt.Sprintf("依赖资源的操作类型(%s)不存在\n", option))
+			}
+			count++
+		}
+		if count == 0 {
+			return rtn, errors.New("依赖资源的操作类型不能为空")
+		}
+		rtn = append(rtn, DependencyUseItem{k, actions})
+	}
+	return rtn,err
 }

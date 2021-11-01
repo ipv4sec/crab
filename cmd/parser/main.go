@@ -1,7 +1,7 @@
 package main
 
 import (
-	"crab/manifest"
+	"crab/parser"
 	"github.com/gin-gonic/gin"
 	"k8s.io/klog/v2"
 )
@@ -9,7 +9,7 @@ import (
 func main() {
 	var err error
 	r := gin.Default()
-	r.POST("/", manifest.PostManifestHandlerFunc)
+	r.POST("/", parser.PostManifestHandlerFunc)
 
 	err = r.Run(":3000")
 	if err != nil {
