@@ -1,24 +1,15 @@
 package utils
 
-type Reply struct {
-	Code int `json:"code"`
-	Result interface{} `json:"result"`
-}
-
-func RowResponse(data interface{}) interface{} {
-	return data
-}
-
-func SuccessResponse(data interface{}) *Reply {
-	return &Reply{
-		Code: 0,
-		Result: data,
+func SuccessResponse(data interface{}) interface{} {
+	return map[string]interface{}{
+		"code": 0,
+		"result": data,
 	}
 }
 
-func ErrorResponse(code int, data interface{}) *Reply {
-	return &Reply{
-		Code: code,
-		Result: data,
+func ErrorResponse(code int, data interface{}) interface{} {
+	return map[string]interface{}{
+		"code": code,
+		"result": data,
 	}
 }

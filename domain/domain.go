@@ -3,6 +3,7 @@ package domain
 import (
 	"context"
 	"crab/cluster"
+	"crab/middleware"
 	"crab/provider"
 	"crab/utils"
 	"fmt"
@@ -77,6 +78,8 @@ func PutDomainHandlerFunc(c *gin.Context) {
 		c.JSON(200, utils.ErrorResponse(utils.ErrClusterSetConfigMap, status))
 		return
 	}
+	middleware.Memory.Domain = param.Value
+
 	status.Status = 2
 	status.Message = "保存根域成功"
 	c.JSON(200, utils.SuccessResponse(status))
