@@ -3,7 +3,6 @@ package provider
 import (
 	"bytes"
 	dependency "crab/dependencies"
-	"crab/utils"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -38,7 +37,10 @@ func Yaml(manifest, uuid, domain string, config interface{}, dependencies []depe
 		return "", fmt.Errorf("读取翻译器返回错误: %w", err)
 	}
 	klog.Info("读取翻译器返回:", string(bodyBytes))
-	var reply utils.Reply
+	var reply struct{
+		Code int `json:"code"`
+		Result interface{} `json:"result"`
+	}
 	err = json.Unmarshal(bodyBytes, &reply)
 	if err != nil {
 		return "", fmt.Errorf("翻译器返回序列化错误: %w", err)

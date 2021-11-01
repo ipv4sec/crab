@@ -62,30 +62,24 @@ func main() {
 
 	klog.Infoln("开始提供服务")
 	gin.SetMode(gin.ReleaseMode)
-	r := gin.Default()
-	r.GET("/", func(c *gin.Context) {
+	routers := gin.Default()
+	routers.GET("/", func(c *gin.Context) {
 		c.String(200, "crab")
 	})
-	routers := r.Group("/api")
-	{
-		routers.GET("/user/:username", user.GetUserHandlerFunc)
-		routers.PUT("/user/:username", user.PutUserHandlerFunc)
 
-		routers.GET("/app", app.GetAppHandlerFunc)
-		routers.PUT("/app", app.PutAppHandlerFunc)
-		routers.POST("/app", app.PostAppHandlerFunc)
-		routers.DELETE("/app", app.DeleteAppHandlerFunc)
-	}
+	routers.GET("/user/:username", user.GetUserHandlerFunc)
+	routers.PUT("/user/:username", user.PutUserHandlerFunc)
 
-	clusterGroup := r.Group("/cluster")
-	{
-		clusterGroup.GET("/addrs", storage.GetAddrsHandlerFunc)
-		clusterGroup.GET("/domain", domain.GetDomainHandlerFunc)
-		clusterGroup.PUT("/domain", domain.PutDomainHandlerFunc)
-		clusterGroup.GET("/storage", storage.GetStorageHandlerFunc)
-		clusterGroup.POST("/storage", storage.PostStorageHandlerFunc)
-	}
-	err = r.Run("0.0.0.0:3000")
+	routers.GET("/app", app.GetAppHandlerFunc)
+	routers.PUT("/app", app.PutAppHandlerFunc)
+	routers.POST("/app", app.PostAppHandlerFunc)
+	routers.DELETE("/app", app.DeleteAppHandlerFunc)
+
+	routers.GET("/cluster/addrs", storage.GetAddrsHandlerFunc)
+	routers.GET("/cluster/domain", domain.GetDomainHandlerFunc)
+	routers.PUT("/cluster/domain", domain.PutDomainHandlerFunc)
+
+	err = routers.Run("0.0.0.0:3000")
 	if err != nil {
 		panic(fmt.Errorf("监听端口失败: %w", err))
 	}

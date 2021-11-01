@@ -91,7 +91,6 @@ func GetAppHandlerFunc(c *gin.Context) {
 			continue
 		}
 
-
 		dependencies := map[string]interface{}{}
 		for i := 0; i < len(manifest.Spec.Dependencies); i++ {
 			d := Dependency{
@@ -146,7 +145,7 @@ func GetAppHandlerFunc(c *gin.Context) {
 		}
 		vals = append(vals, ins)
 	}
-	c.JSON(200, utils.RowResponse(Pagination{
+	c.JSON(200, utils.SuccessResponse(Pagination{
 		Total: len(apps),
 		Rows:  vals,
 	}))
@@ -154,14 +153,14 @@ func GetAppHandlerFunc(c *gin.Context) {
 func PostAppHandlerFunc(c *gin.Context) {
 	file, err := c.FormFile("file")
 	if err != nil {
-		c.JSON(200, utils.RowResponse(map[string]string{"error":"接收文件错误"}))
+		c.JSON(200, utils.ErrorResponse(10086, "接收文件错误"))
 		return
 	}
 	currentTimestamp := time.Now().Unix()
 	err = c.SaveUploadedFile(file, fmt.Sprintf("/tmp/%v.zip", currentTimestamp))
 	if err != nil {
 		klog.Errorln("保存文件错误:", err.Error())
-		c.JSON(200, utils.RowResponse(map[string]string{"error":"保存文件错误"}))
+		c.JSON(200, utils.ErrorResponse(10086, "保存文件错误"))
 		return
 	}
 	// 增加校验域名
@@ -169,13 +168,13 @@ func PostAppHandlerFunc(c *gin.Context) {
 		Get(context.Background(), "island-info", metav1.GetOptions{})
 	if err != nil {
 		klog.Errorln("获取根域失败", err.Error())
-		c.JSON(200, utils.RowResponse(map[string]string{"error":"获取根域失败"}))
+		c.JSON(200, utils.ErrorResponse(10086, "获取根域失败"))
 		return
 	}
 	v, _ := island.Data["root-domain"]
 	if v == "" {
 		klog.Errorln("获取根域为默认值:", v)
-		c.JSON(200, utils.RowResponse(map[string]interface{}{
+		c.JSON(200, utils.ErrorResponse(10086,  map[string]interface{}{
 			"error":"未设置根域, 请设置根域",
 			"todo": 1,
 		}))
@@ -190,7 +189,7 @@ func PostAppHandlerFunc(c *gin.Context) {
 	bytes, err := ioutil.ReadFile(fmt.Sprintf("/tmp/%v/manifest.yaml", currentTimestamp))
 	if err != nil {
 		klog.Errorln("读取描述文件错误:", err.Error())
-		c.JSON(200, utils.RowResponse(map[string]string{"error":"读取描述文件错误"}))
+		c.JSON(200, utils.ErrorResponse(10086, "读取描述文件错误"))
 		return
 	}
 
@@ -198,7 +197,7 @@ func PostAppHandlerFunc(c *gin.Context) {
 	err = yaml.Unmarshal(bytes, &manifest)
 	if err != nil {
 		klog.Errorln("解析描述文件错误:", err.Error())
-		c.JSON(200, utils.RowResponse(map[string]string{"error":"解析描述文件错误"}))
+		c.JSON(200, utils.ErrorResponse(10086, "解析描述文件错误"))
 		return
 	}
 	klog.Info("此实例的配置:", manifest.Spec.Configurations)
@@ -235,7 +234,8 @@ func PostAppHandlerFunc(c *gin.Context) {
 	}
 	err = db.Client.Create(&app).Error
 	if err != nil {
-		c.JSON(200, utils.RowResponse(map[string]string{"error":"数据库保存错误"}))
+		klog.Errorln("数据库保存错误:", err.Error())
+		c.JSON(200, utils.ErrorResponse(10086, "数据库保存错误"))
 		return
 	}
 
@@ -273,7 +273,7 @@ func PostAppHandlerFunc(c *gin.Context) {
 		dependencies[manifest.Spec.Dependencies[i].Name] = d
 	}
 
-	c.JSON(200, utils.RowResponse(struct {
+	c.JSON(200, utils.SuccessResponse(struct {
 		Dependencies   map[string]interface{} `json:"dependencies" `
 		ID             string                 `json:"instanceid"`
 		Configurations map[string]interface{}           `json:"userconfig"`
@@ -330,11 +330,7 @@ func PutAppHandlerFunc(c *gin.Context) {
 			return
 		}
 		klog.Infoln("执行命令结果:", output)
-		c.JSON(200, utils.RowResponse(struct {
-			Result string `json:"result"`
-		}{
-			Result: "卸载完成",
-		}))
+		c.JSON(200, utils.SuccessResponse("卸载完成"))
 		return
 	}
 
@@ -398,7 +394,7 @@ func PutAppHandlerFunc(c *gin.Context) {
 }
 
 func DeleteAppHandlerFunc(c *gin.Context) {
-	id := c.Query("instanceid") // TODO
+	id := c.Query("id")
 	if id == "" {
 		c.JSON(200, utils.ErrorResponse(10086, "参数错误"))
 		return
