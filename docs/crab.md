@@ -2,61 +2,57 @@
 # Overview
 
 - [说明](#说明)
-- [用户信息](#用户信息)
+- [获取管理员信息](#获取管理员信息)
 - [修改管理员密码](#修改管理员密码)
-
 - [添加实例](#添加实例)
 - [实例列表](#实例列表)
 - [实例详情](#实例详情)
+- [实例日志](#实例日志)
 - [运行实例](#运行实例)
-- [卸载实例](#卸载实例)
 - [删除实例](#删除实例)
-
 - [获取节点地址](#获取节点地址)
 - [获取集群根域](#获取集群根域)
 - [设置集群根域](#设置集群根域)
-
 - [设置工作负载源](#设置工作负载源)
 - [查询工作负载源](#查询工作负载源)
-- [更新工作负载源](#更新工作负载源)
+
 - [流水线接口](#流水线接口)
+
+- [查询实例状态](#查询实例状态)
+- [查询组件状态](#查询组件状态)
+- [设置组件状态](#设置组件状态)
 
 
 
 <a name="说明"></a>
 ## 说明
-正确时的返回:
-```json
-{
-  "code": 0,
-  "result": "业务数据, 任意格式"
-}
+### 返回的数据结构如下
 ```
-错误时的返回:
-```json
 {
-  "code": 1,
-  "result": "提示信息"
+    "code": 错误代码,
+    "result": 任意类型
 }
 ```
 
-接口的字段为小驼峰命名, 特有名词除外
-当前特有名词有`userconfig`
+其中 `code` 表示的为错误代码, 数字类型
 
-<a name="用户信息"></a>
-## 用户信息
+正常返回时`code`为`0`, `result`为数据, 可能是数字, 布尔, 字符串, 数组, 对象等等
+
+错误返回时`code`不为`0`, `result`为错误信息, 字符串类型, 可直接显示在浏览器页面
+
+错误代码原则上前端用不到, 前端仅需要判断非0时显示`result`字段即可
+
+接口请求和输出均为JSON格式, 接口的字段为小驼峰命名, 特有名词除外(注意:当前特有名词有`userconfig`)
+
+<a name="获取管理员信息"></a>
+## 获取管理员信息
 ### 请求语法
 ```
-GET /user/<username> HTTP/1.1
+GET /user/root HTTP/1.1
 ```
 ### 请求参数
-以下为URL PATH参数
+无
 
-**注意** 目前只有`root`用户
-
-|名称|说明|默认值|是否必填|
-|---|---|---|---|
-|username| 用户名 |无|是|
 ### 返回值
 ```json
 {
@@ -106,28 +102,6 @@ Content-Type: multipart/form-data;
 |---|---|---|---|
 |file|实例描述文件（zip 包）|无|是|
 ### 返回值
-此接口的正常返回有两种
-
-第一种:
-```json
-{
-  "code": 0,
-  "result": {
-    "todo": 1,
-    "message": "未设置根域, 设置根域"
-  }
-}
-```
-未设置根域时的返回结果没有错误(即code为0, 因为未设置根域是正常的业务逻辑),
-前端需要在正常返回逻辑中判断, 可`result.hasOwnProperty("todo")`判断, 之后直接显示
-`result.message`字段即可, 
-
-|  todo   | 意义  |
-|  ----  | ----  |
-| 1  | 未设置根域 |
-
-
-第二种, :
 ```json
 {
   "code": 0,
@@ -211,58 +185,10 @@ GET /app?limit=<limit>&offset=<offset> HTTP/1.1
         "id": "ins1634971791",
         "name": "harbor",
         "version": "2.0.0",
-        "created_at": "2021-10-23T06:49:51.498Z",
-        "updated_at": "2021-10-23T06:49:51.498Z",
         "status": "未部署",
         "entry": "http://ins1634971791.example.com",
-        "dependencies": {
-          "github": {
-            "instances": [
-              {
-                "name": "github",
-                "id": "ins1634971790"
-              }
-            ],
-            "location": "https://www.github.com",
-            "type": "immutable"
-          }
-        },
-        "userconfig": {
-          "properties": {
-            "param1": {
-              "type": "integer"
-            },
-            "param2": {
-              "type": "string"
-            },
-            "param3": {
-              "properties": {
-                "param3_1": {
-                  "type": "number"
-                },
-                "param3_2": {
-                  "type": "number"
-                }
-              },
-              "required": [
-                "param3_1"
-              ],
-              "type": "object"
-            },
-            "param4": {
-              "items": {
-                "type": "string"
-              },
-              "minItems": 1,
-              "type": "array",
-              "uniqueItems": true
-            }
-          },
-          "required": [
-            "param2"
-          ],
-          "type": "object"
-        }
+        "created_at": "2021-10-23T06:49:51.498Z",
+        "updated_at": "2021-10-23T06:49:51.498Z"
       }
     ],
     "total": 1
@@ -289,8 +215,41 @@ GET /app/<id> HTTP/1.1
   "code": 0,
   "result": {
     "id": "ins1634971791",
-    "deployment": "可导出的部署信息"
+    "deployment": "可导出的部署信息, 前端将此字段信息保存为yaml文件后下载"
   }
+}
+```
+
+<a name="实例日志"></a>
+## 实例日志
+### 请求语法
+```
+GET /app/<id>/status HTTP/1.1
+```
+### 请求参数
+以下参数为URL PATH参数
+
+|名称|说明|默认值|是否必填|
+|---|---|---|---|
+|id| 实例主键 |无|是|
+
+### 返回值
+
+`result[].name` 组件名称, `result[].message` 组件日志
+
+```json
+{
+  "code": 0,
+  "result": [
+    {
+      "name": "cache",
+      "message": "春江潮水连海平，海上明月共潮生"
+    },
+    {
+      "name": "nginx",
+      "message": "滟滟随波千万里，何处春江无月明"
+    }
+  ]
 }
 ```
 
@@ -371,32 +330,6 @@ PUT /app/<id> HTTP/1.1
 }
 ```
 
-<a name="卸载实例"></a>
-## 卸载实例
-### 请求语法
-```
-PUT /app/<id> HTTP/1.1
-```
-### 请求参数
-以下参数为URL PATH参数
-
-|名称|说明|默认值|是否必填|
-|---|---|---|---|
-|id|应用实例 id|无|是|
-
-以下参数为BODY体参数
-
-|名称|说明|默认值|是否必填|
-|---|---|---|---|
-|status| 实例状态,此处固定为3 |无|是|
-### 返回值
-```json
-{
-    "code": 0,
-    "result": "卸载中"
-}
-```
-
 <a name="删除实例"></a>
 ## 删除实例
 ### 请求语法
@@ -472,7 +405,7 @@ GET /cluster/domain HTTP/1.1
 ```json
 {
     "code": 0,
-    "result": "abc.com"
+    "result": "example.com"
 }
 ```
 
@@ -486,7 +419,7 @@ PUT /cluster/domain HTTP/1.1
 ### 请求参数
 |名称|说明|默认值|是否必填|
 |---|---|---|---|
-|value|绑定到此集群的域名|无|是|
+|domain|绑定到此集群的域名|无|是|
 #### 请求参数示例
 ```json
 {
@@ -525,7 +458,7 @@ PUT /cluster/mirror HTTP/1.1
 ### 请求参数
 |名称|说明|默认值|是否必填|
 |---|---|---|---|
-|value|作负载源|无|是|
+|mirror|作负载源|无|是|
 #### 请求参数示例
 ```json
 {
@@ -555,33 +488,7 @@ GET /cluster/mirror HTTP/1.1
 ```json
 {
     "code": 0,
-    "result": {
-        "mirror": "https://github.com/xxx.git",
-        "version": "211af118fac7669",
-        "created_at": "2021-10-23T06:49:51.498Z",
-        "updated_at": "2021-10-23T06:49:51.498Z"
-    }
-}
-```
-
-<a name="更新工作负载源"></a>
-## 更新工作负载源
-
-### 请求语法
-```
-GET /cluster/repo HTTP/1.1
-```
-### 请求参数
-无
-
-### 返回值
-```json
-{
-    "code": 0,
-    "result": {
-      "message": "更新成功",
-      "version": "211af118fac7669"
-    }
+    "result": "https://github.com/xxx.git"
 }
 ```
 
@@ -611,5 +518,83 @@ PUT /deployment/<id> HTTP/1.1
 {
     "code": 0,
     "result": "部署成功"
+}
+```
+
+<a name="查询实例状态"></a>
+## 查询实例状态
+
+|  statusCode   | 意义  |
+|  ----  | ----  |
+| 0  | 正在部署中 |
+| 1  | 部署完成 |
+| 2  | 卸载中 |
+| 3  | 卸载完成 |
+
+
+### 请求语法
+```
+GET /status/<id> HTTP/1.1
+```
+### 请求参数
+以下参数为URL PATH参数
+
+|名称|说明|默认值|是否必填|
+|---|---|---|---|
+|id|应用实例 id|无|是|
+
+### 返回值
+```json
+{
+    "code": 0,
+    "result": 1
+}
+```
+
+<a name="查询组件状态"></a>
+## 查询组件状态
+
+### 请求语法
+```
+GET /status/<id>/<componentName> HTTP/1.1
+```
+### 请求参数
+以下参数为URL PATH参数
+
+|名称|说明|默认值|是否必填|
+|---|---|---|---|
+|id|应用实例 id|无|是|
+|componentName|workload名称|无|是|
+
+### 返回值
+```json
+{
+    "code": 0,
+    "result": 1
+}
+```
+
+<a name="设置组件状态"></a>
+## 设置组件状态
+
+### 请求语法
+```
+PUT /status/<id>/<componentName>/<statusCode> HTTP/1.1
+```
+### 请求参数
+以下参数为URL PATH参数
+
+|名称|说明|默认值|是否必填|
+|---|---|---|---|
+|id|应用实例 id|无|是|
+|componentName|workload名称|无|是|
+|statusCode|状态代码, 数字|无|是|
+
+
+### 返回值
+```json
+{
+    "code": 0,
+    "result": "设置组件状态成功"
 }
 ```
