@@ -5,9 +5,7 @@ import (
 	"crab/aam/v1alpha1"
 	"crab/cluster"
 	"crab/db"
-	dependency "crab/dependencies"
 	"crab/exec"
-	"crab/provider"
 	"crab/utils"
 	"encoding/json"
 	"fmt"
@@ -27,15 +25,20 @@ type Pagination struct {
 	Rows  interface{} `json:"rows"`
 }
 
-type Instance struct {
+type DTO struct {
 	*App
-	Status string `json:"status"`
-	Entry  string `json:"entry"`
+	Status        string                 `json:"status"`
+	Entry         string                 `json:"entry"`
 	Dependencies  map[string]interface{} `json:"dependencies"`
-	Configuration map[string]interface{} `json:"userconfig"`
+	Configurations map[string]interface{} `json:"userconfigs"`
 }
 
-func GetAppHandlerFunc(c *gin.Context) {
+type Status struct {
+	Name string `json:"name"`
+	Message string `json:"message"`
+}
+
+func GetAppsHandlerFunc(c *gin.Context) {
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
 	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
 	var apps []App
@@ -75,16 +78,9 @@ func GetAppHandlerFunc(c *gin.Context) {
 		endpoints[gws.Items[i].Object["metadata"].(map[string]interface{})["name"].(string)] =
 			"http://" + hosts[0].(string)
 	}
-	vals := []Instance{}
-	//|  status   | 意义  |
-	//|  ----  | ----  |
-	//| 0  | 未部署 |
-	//| 1  | 正在部署中  |
-	//| 2  | 部署完成  |
-	//| 3  | 卸载中  |
-	//| 4  | 卸载完成  |
+	var val []DTO
 	for i := 0; i < len(apps); i++ {
-		var manifest v1alpha1.Manifest
+		var manifest v1alpha1.Application
 		err = yaml.Unmarshal([]byte(apps[i].Manifest), &manifest)
 		if err != nil {
 			klog.Errorln("解析描述文件错误:", err.Error())
@@ -94,10 +90,7 @@ func GetAppHandlerFunc(c *gin.Context) {
 		dependencies := map[string]interface{}{}
 		for i := 0; i < len(manifest.Spec.Dependencies); i++ {
 			d := Dependency{
-				Instances: []struct {
-					ID      string `json:"instanceid"`
-					Version string `json:"version"`
-				}{},
+				Instances: []Instance{},
 			}
 			d.Type, d.Link = Link(manifest.Spec.Dependencies[i].Location)
 			if d.Type == Mutable {
@@ -114,42 +107,70 @@ func GetAppHandlerFunc(c *gin.Context) {
 					}
 					ra, err := semver.ParseRange(manifest.Spec.Dependencies[i].Version)
 					if ra(v) {
-						d.Instances = append(d.Instances, struct {
-							ID      string `json:"instanceid"`
-							Version string `json:"version"`
-						}{ID: apps[j].ID, Version: apps[j].Version})
+						d.Instances = append(d.Instances, Instance{ID: apps[j].ID, Version: apps[j].Version})
 					}
 				}
 			}
 			dependencies[manifest.Spec.Dependencies[i].Name] = d
 		}
-		ins := Instance{
+		dto := DTO{
 			App:    &apps[i],
 			Status: "未部署",
-			// TODO
-			Entry:  endpoints[apps[i].ID +"-http"],
-			Configuration: manifest.Spec.Configurations,
-			Dependencies: dependencies,
+			Entry:         endpoints[apps[i].ID+"-http"],
+			Configurations: manifest.Spec.Userconfigs,
+			Dependencies:  dependencies,
 		}
 		if apps[i].Status == 1 {
-			ins.Status = "正在部署中"
+			dto.Status = "正在部署中"
 		}
 		if apps[i].Status == 2 {
-			ins.Status = "部署完成"
+			dto.Status = "部署完成"
 		}
 		if apps[i].Status == 3 {
-			ins.Status = "卸载中"
+			dto.Status = "卸载中"
 		}
 		if apps[i].Status == 4 {
-			ins.Status = "卸载完成"
+			dto.Status = "卸载完成"
 		}
-		vals = append(vals, ins)
+		val = append(val, dto)
 	}
 	c.JSON(200, utils.SuccessResponse(Pagination{
 		Total: len(apps),
-		Rows:  vals,
+		Rows:  val,
 	}))
 }
+
+func GetAppHandlerFunc(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequestParam, "参数错误"))
+		return
+	}
+	c.JSON(200, utils.SuccessResponse(map[string]string{
+		"id": id,
+		"deployment": "2333",
+	}))
+}
+
+func GetAppStatusHandlerFunc(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequestParam, "参数错误"))
+		return
+	}
+	c.JSON(200, utils.SuccessResponse([]Status{
+		{
+			Name:    "cache",
+			Message: "春江潮水连海平，海上明月共潮生",
+		},
+		{
+			Name:    "nginx",
+			Message: "滟滟随波千万里，何处春江无月明",
+		},
+	}))
+}
+
+
 func PostAppHandlerFunc(c *gin.Context) {
 	file, err := c.FormFile("file")
 	if err != nil {
@@ -161,23 +182,6 @@ func PostAppHandlerFunc(c *gin.Context) {
 	if err != nil {
 		klog.Errorln("保存文件错误:", err.Error())
 		c.JSON(200, utils.ErrorResponse(10086, "保存文件错误"))
-		return
-	}
-	// 增加校验域名
-	island, err := cluster.Client.Clientset.CoreV1().ConfigMaps("island-system").
-		Get(context.Background(), "island-info", metav1.GetOptions{})
-	if err != nil {
-		klog.Errorln("获取根域失败", err.Error())
-		c.JSON(200, utils.ErrorResponse(10086, "获取根域失败"))
-		return
-	}
-	v, _ := island.Data["root-domain"]
-	if v == "" {
-		klog.Errorln("获取根域为默认值:", v)
-		c.JSON(200, utils.ErrorResponse(10086,  map[string]interface{}{
-			"error":"未设置根域, 请设置根域",
-			"todo": 1,
-		}))
 		return
 	}
 
@@ -193,19 +197,19 @@ func PostAppHandlerFunc(c *gin.Context) {
 		return
 	}
 
-	var manifest v1alpha1.Manifest
+	var manifest v1alpha1.Application
 	err = yaml.Unmarshal(bytes, &manifest)
 	if err != nil {
 		klog.Errorln("解析描述文件错误:", err.Error())
 		c.JSON(200, utils.ErrorResponse(10086, "解析描述文件错误"))
 		return
 	}
-	klog.Info("此实例的配置:", manifest.Spec.Configurations)
+	klog.Info("此实例的配置:", manifest.Spec.Userconfigs)
 	klog.Info("此实例的依赖:", manifest.Spec.Dependencies)
 
 	configuration := map[string]interface{}{}
-	if manifest.Spec.Configurations != nil {
-		configuration = manifest.Spec.Configurations
+	if manifest.Spec.Userconfigs != nil {
+		configuration = manifest.Spec.Userconfigs
 	}
 
 	configurationBytes, err := json.Marshal(configuration)
@@ -220,12 +224,12 @@ func PostAppHandlerFunc(c *gin.Context) {
 
 	app := App{
 		ID:     fmt.Sprintf("ins%v", time.Now().Unix()),
-		Status:   0,
+		Status: 0,
 
-		Name:     manifest.Metadata.Name,
-		Version:  manifest.Metadata.Annotations.Version,
-		Configuration: string(configurationBytes),
-		Dependencies: string(dependenciesBytes),
+		Name:          manifest.Metadata.Name,
+		Version:       manifest.Metadata.Version,
+		Configurations: string(configurationBytes),
+		Dependencies:  string(dependenciesBytes),
 
 		Manifest: string(bytes),
 
@@ -239,14 +243,10 @@ func PostAppHandlerFunc(c *gin.Context) {
 		return
 	}
 
-
 	dependencies := map[string]interface{}{}
 	for i := 0; i < len(manifest.Spec.Dependencies); i++ {
 		d := Dependency{
-			Instances: []struct {
-				ID      string `json:"instanceid"`
-				Version string `json:"version"`
-			}{},
+			Instances: []Instance{},
 		}
 		d.Type, d.Link = Link(manifest.Spec.Dependencies[i].Location)
 		if d.Type == Mutable {
@@ -263,10 +263,7 @@ func PostAppHandlerFunc(c *gin.Context) {
 				}
 				ra, err := semver.ParseRange(manifest.Spec.Dependencies[i].Version)
 				if ra(v) {
-					d.Instances = append(d.Instances, struct {
-						ID      string `json:"instanceid"`
-						Version string `json:"version"`
-					}{ID: apps[j].ID, Version: apps[j].Version})
+					d.Instances = append(d.Instances, Instance{ID: apps[j].ID, Version: apps[j].Version})
 				}
 			}
 		}
@@ -275,20 +272,28 @@ func PostAppHandlerFunc(c *gin.Context) {
 
 	c.JSON(200, utils.SuccessResponse(struct {
 		Dependencies   map[string]interface{} `json:"dependencies" `
-		ID             string                 `json:"instanceid"`
-		Configurations map[string]interface{}           `json:"userconfig"`
+		ID             string                 `json:"id"`
+		Configurations map[string]interface{} `json:"userconfigs"`
 	}{
-		Dependencies: dependencies,
+		Dependencies:   dependencies,
 		ID:             app.ID,
 		Configurations: configuration,
 	}))
 }
 func PutAppHandlerFunc(c *gin.Context) {
-	var param struct{
-		Status         int         `json:"status"`
-		ID             string      `json:"instanceid"` // TODO
-		Configurations  interface{} `json:"userconfig"` // TODO
-		Dependencies []dependency.Dependency `json:"dependencies"`
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequestParam, "参数错误"))
+		return
+	}
+	var param struct {
+		Status         int                     `json:"status"`
+		Configurations interface{}             `json:"userconfigs"`
+		Dependencies   []struct {
+			ID string `json:"id"`
+			Name string `json:"name"`
+			EntryService string
+		} `json:"dependencies"`
 	}
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -296,79 +301,50 @@ func PutAppHandlerFunc(c *gin.Context) {
 		c.JSON(200, utils.ErrorResponse(10086, "参数错误"))
 		return
 	}
-	if param.ID == "" || param.Status == 0 {
-		c.JSON(200, utils.ErrorResponse(10086, "参数错误"))
-		return
-	}
-	// 运行或者卸载
 	var app App
-	err = db.Client.Where("id = ?", param.ID).Find(&app).Error
+	err = db.Client.Where("id = ?", id).Find(&app).Error
 	if err != nil {
 		klog.Errorln("数据库查询错误:", err.Error())
 		c.JSON(200, utils.ErrorResponse(10086, "该实例不存在"))
 		return
 	}
-	// 卸载
-	if param.Status == 3 {
-		err = db.Client.Model(App{}).Where("pk = ?", app.PK).Update("status", 3).Error
-		if err != nil {
-			klog.Errorln("数据库更新错误:", err.Error())
-			c.JSON(200, utils.ErrorResponse(10086, "更新状态错误"))
-			return
-		}
-		executor := exec.CommandExecutor{}
-		command := fmt.Sprintf("/usr/local/bin/kubectl delete ns %s", app.ID)
-		output, err := executor.ExecuteCommandWithCombinedOutput("bash", "-c", command)
-		if err != nil {
-			klog.Errorln("执行命令错误", err.Error())
-		}
-		err = db.Client.Model(App{}).Where(
-			"pk = ?", app.PK).Update("status", 4).Error
-		if err != nil {
-			klog.Errorln("数据库更新错误:", err.Error())
-			c.JSON(200, utils.ErrorResponse(10086, "更新状态错误"))
-			return
-		}
-		klog.Infoln("执行命令结果:", output)
-		c.JSON(200, utils.SuccessResponse("卸载完成"))
-		return
-	}
-
 	// 运行
+	// todo
 	if param.Status == 1 {
-		island, err := cluster.Client.Clientset.CoreV1().ConfigMaps("island-system").
-			Get(context.Background(), "island-info", metav1.GetOptions{})
-		if err != nil {
-			klog.Errorln("获取根域失败", err.Error())
-			c.JSON(200, utils.ErrorResponse(10086, "获取根域失败"))
-			return
-		}
-		v, _ := island.Data["root-domain"]
+		//island, err := cluster.Client.Clientset.CoreV1().ConfigMaps("island-system").
+		//	Get(context.Background(), "island-info", metav1.GetOptions{})
+		//if err != nil {
+		//	klog.Errorln("获取根域失败", err.Error())
+		//	c.JSON(200, utils.ErrorResponse(10086, "获取根域失败"))
+		//	return
+		//}
+		// v, _ := island.Data["root-domain"]
 
 		for i := 0; i < len(param.Dependencies); i++ {
-			if param.Dependencies[i].Instanceid != "" {
+			if param.Dependencies[i].ID != "" {
 				var a App
-				err = db.Client.Where("id = ?", param.Dependencies[i].Instanceid).Find(&a).Error
+				err = db.Client.Where("id = ?", param.Dependencies[i].ID).Find(&a).Error
 				if err != nil {
 					klog.Errorln("数据库查询错误:", err.Error())
 					continue
 				}
-				var manifest v1alpha1.Manifest
+				var manifest v1alpha1.Application
 				err = yaml.Unmarshal([]byte(a.Manifest), &manifest)
 				if err != nil {
 					klog.Errorln("解析描述文件错误:", err.Error())
 					continue
 				}
-				for j := 0; j < len(manifest.Spec.Components); j++ {
-					if utils.ContainsTrait(manifest.Spec.Components[j].Traits, "ingress") {
-						param.Dependencies[i].EntryService = manifest.Spec.Components[j].Name
+				for j := 0; j < len(manifest.Spec.Workloads); j++ {
+					if utils.ContainsTrait(manifest.Spec.Workloads[j].Traits, "ingress") {
+						param.Dependencies[i].EntryService = manifest.Spec.Workloads[j].Name
 					}
 				}
 			}
 		}
 
 		// TODO
-		yaml, err := provider.Yaml(app.Manifest, app.ID, v, param.Configurations, param.Dependencies)
+		// yaml, err := provider.Yaml(app.Manifest, app.ID, v, param.Configurations, param.Dependencies)
+		yaml := ""
 		if err != nil {
 			klog.Errorln("连接到翻译器错误:", err.Error())
 			c.JSON(200, utils.ErrorResponse(10086, "连接到翻译器错误"))
@@ -394,16 +370,38 @@ func PutAppHandlerFunc(c *gin.Context) {
 }
 
 func DeleteAppHandlerFunc(c *gin.Context) {
-	id := c.Query("id")
+	id := c.Param("id")
 	if id == "" {
-		c.JSON(200, utils.ErrorResponse(10086, "参数错误"))
+		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequestParam, "参数错误"))
 		return
 	}
-	err := db.Client.Model(&App{}).Where("id = ?", id).Delete(App{}).Error
+	var app App
+	err := db.Client.Where("id = ?", id).Find(&app).Error
 	if err != nil {
-		klog.Errorln("删除实例错误:", err.Error())
-		c.JSON(200, utils.ErrorResponse(10086, "删除实例错误"))
+		klog.Errorln("数据库查询错误:", err.Error())
+		c.JSON(200, utils.ErrorResponse(10086, "该实例不存在"))
 		return
 	}
-	c.JSON(200, utils.SuccessResponse("删除成功"))
+
+	err = db.Client.Model(App{}).Where("pk = ?", app.PK).Update("status", 3).Error
+	if err != nil {
+		klog.Errorln("数据库更新错误:", err.Error())
+		c.JSON(200, utils.ErrorResponse(10086, "更新状态错误"))
+		return
+	}
+	executor := exec.CommandExecutor{}
+	command := fmt.Sprintf("/usr/local/bin/kubectl delete ns %s", app.ID)
+	output, err := executor.ExecuteCommandWithCombinedOutput("bash", "-c", command)
+	if err != nil {
+		klog.Errorln("执行命令错误", err.Error())
+	}
+	err = db.Client.Model(App{}).Where(
+		"pk = ?", app.PK).Update("status", 4).Error
+	if err != nil {
+		klog.Errorln("数据库更新错误:", err.Error())
+		c.JSON(200, utils.ErrorResponse(10086, "更新状态错误"))
+		return
+	}
+	klog.Infoln("执行命令结果:", output)
+	c.JSON(200, utils.SuccessResponse("卸载完成"))
 }

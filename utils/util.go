@@ -18,7 +18,10 @@ func Contains(s []string, e string) bool {
 	return false
 }
 
-func ContainsTrait(s []v1alpha1.Trait, e string) bool {
+func ContainsTrait(s []struct {
+	Type       string
+	Properties v1alpha1.Properties
+}, e string) bool {
 	for _, a := range s {
 		if a.Type == e {
 			return true

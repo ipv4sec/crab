@@ -5,7 +5,9 @@ import (
 	"crab/cluster"
 	"crab/config"
 	"crab/db"
+	"crab/deployment"
 	"crab/domain"
+	"crab/mirror"
 	"crab/status"
 	"crab/storage"
 	"crab/user"
@@ -70,14 +72,26 @@ func main() {
 	routers.GET("/user/:username", user.GetUserHandlerFunc)
 	routers.PUT("/user/:username", user.PutUserHandlerFunc)
 
-	routers.GET("/app", app.GetAppHandlerFunc)
-	routers.PUT("/app", app.PutAppHandlerFunc)
 	routers.POST("/app", app.PostAppHandlerFunc)
-	routers.DELETE("/app", app.DeleteAppHandlerFunc)
+	routers.GET("/app", app.GetAppsHandlerFunc)
+	routers.GET("/app/:id", app.GetAppHandlerFunc)
+	routers.GET("/app/:id/status", app.GetAppStatusHandlerFunc)
+	routers.PUT("/app/:id", app.PutAppHandlerFunc)
+	routers.DELETE("/app/:id", app.DeleteAppHandlerFunc)
 
 	routers.GET("/cluster/addrs", storage.GetAddrsHandlerFunc)
 	routers.GET("/cluster/domain", domain.GetDomainHandlerFunc)
 	routers.PUT("/cluster/domain", domain.PutDomainHandlerFunc)
+
+	routers.GET("/cluster/mirror", mirror.GetMirrorHandlerFunc)
+	routers.PUT("/cluster/mirror", mirror.PutMirrorHandlerFunc)
+
+	routers.PUT("/deployment/:id", deployment.PutDeploymentHandlerFunc)
+
+	routers.GET("/status/:id", status.GetStatusHandlerFunc)
+	routers.GET("/status/:id/:componentName", status.GetComponentStatusHandlerFunc)
+	routers.PUT("/status/:id/:componentName/:statusCode", status.PutStatusHandlerFunc)
+
 
 	err = routers.Run("0.0.0.0:3000")
 	if err != nil {
