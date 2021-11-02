@@ -42,7 +42,7 @@
 
 错误代码原则上前端用不到, 前端仅需要判断非0时显示`result`字段即可
 
-接口请求和输出均为JSON格式, 接口的字段为小驼峰命名, 特有名词除外(注意:当前特有名词有`userconfig`)
+接口请求和输出均为JSON格式, 接口的字段为小驼峰命名, 特有名词除外(注意:当前特有名词有`userconfigs`)
 
 <a name="获取管理员信息"></a>
 ## 获取管理员信息
@@ -119,7 +119,7 @@ Content-Type: multipart/form-data;
         "type": "immutable"
       }
     },
-    "userconfig": {
+    "userconfigs": {
       "properties": {
         "param1": {
           "type": "integer"
@@ -272,7 +272,7 @@ PUT /app/<id> HTTP/1.1
 |名称|说明|默认值|是否必填|
 |---|---|---|---|
 |dependencies|依赖描述 |无|否|
-|userconfig| 实例自定义配置信息 |无|否|
+|userconfigs| 实例自定义配置信息 |无|否|
 |status| 实例状态,此处固定为1 |无|是|
 #### dependencies 示例
 ```json
@@ -287,7 +287,7 @@ PUT /app/<id> HTTP/1.1
 	}
 ]
 ```
-#### userconfig 示例
+#### userconfigs 示例
 ```json
 {
     "param1": "aaa",
@@ -312,7 +312,7 @@ PUT /app/<id> HTTP/1.1
       "location": "https://www.huanqiu.com"
     }
   ],
-  "userconfig": {
+  "userconfigs": {
     "param1": "aaa",
     "param2": 123,
     "param3": {
