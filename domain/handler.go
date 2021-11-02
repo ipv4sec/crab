@@ -3,15 +3,10 @@ package domain
 import (
 	"context"
 	"crab/cluster"
-	"crab/middleware"
-	"crab/provider"
 	"crab/utils"
-	"fmt"
 	"github.com/gin-gonic/gin"
-	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog/v2"
-	"strings"
 )
 
 func GetDomainHandlerFunc(c *gin.Context)  {
@@ -27,7 +22,7 @@ func GetDomainHandlerFunc(c *gin.Context)  {
 
 func PutDomainHandlerFunc(c *gin.Context) {
 	var param struct {
-		Value string `json:"value"`
+		Value string `json:"domain"`
 	}
 	err := c.ShouldBindJSON(&param)
 	if err != nil || param.Value == "" {
@@ -41,24 +36,24 @@ func PutDomainHandlerFunc(c *gin.Context) {
 		Status: 0,
 		Message: "未检测到域名的解析",
 	}
-	res, err := provider.HTTPClient.Get(fmt.Sprintf("http://%s/", param.Value), nil)
-	if err != nil {
-		klog.Errorln("请求该域名错误", err.Error())
-		c.JSON(200, utils.SuccessResponse(status))
-		return
-	}
-	bytes, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		klog.Errorln("请求该域名错误", err.Error())
-		c.JSON(200, utils.SuccessResponse(status))
-		return
-	}
-
-	if  strings.TrimSpace(string(bytes)) != "crab" {
-		klog.Errorln("接口返回域名错误", strings.TrimSpace(string(bytes)), param.Value)
-		c.JSON(200, utils.SuccessResponse(status))
-		return
-	}
+	//res, err := provider.HTTPClient.Get(fmt.Sprintf("http://%s/", param.Value), nil)
+	//if err != nil {
+	//	klog.Errorln("请求该域名错误", err.Error())
+	//	c.JSON(200, utils.SuccessResponse(status))
+	//	return
+	//}
+	//bytes, err := ioutil.ReadAll(res.Body)
+	//if err != nil {
+	//	klog.Errorln("请求该域名错误", err.Error())
+	//	c.JSON(200, utils.SuccessResponse(status))
+	//	return
+	//}
+	//
+	//if  strings.TrimSpace(string(bytes)) != "crab" {
+	//	klog.Errorln("接口返回域名错误", strings.TrimSpace(string(bytes)), param.Value)
+	//	c.JSON(200, utils.SuccessResponse(status))
+	//	return
+	//}
 	conf, err := cluster.Client.Clientset.CoreV1().ConfigMaps("island-system").
 		Get(context.Background(),"island-info", metav1.GetOptions{})
 	if err != nil {
@@ -78,7 +73,6 @@ func PutDomainHandlerFunc(c *gin.Context) {
 		c.JSON(200, utils.ErrorResponse(utils.ErrClusterSetConfigMap, status))
 		return
 	}
-	middleware.Memory.Domain = param.Value
 
 	status.Status = 2
 	status.Message = "保存根域成功"

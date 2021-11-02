@@ -7,10 +7,10 @@ type App struct {
 	ID     string `json:"id"`
 	Status int    `json:"status"`
 
-	Name          string `json:"name"`
-	Version       string `json:"version"`
-	Configuration string `json:"configuration"`
-	Dependencies  string `json:"dependencies"`
+	Name           string `json:"name"`
+	Version        string `json:"version"`
+	Configurations string `json:"configurations"`
+	Dependencies   string `json:"dependencies"`
 
 	Manifest string `json:"manifest"`
 

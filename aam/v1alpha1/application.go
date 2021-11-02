@@ -16,9 +16,9 @@ type Application struct {
 		Annotations  map[string]string
 	}
 	Spec struct {
-		Workloads      []Workload
-		Exports        map[string][]string
-		Dependencies   []Dependency
-		Configurations map[string][]string `yaml:"userconfigs" json:"userconfigs"`
+		Workloads    []Workload
+		Exports      map[string][]string
+		Dependencies []Dependency
+		Userconfigs  map[string]interface{} `yaml:"userconfigs" json:"userconfigs"`
 	}
 }

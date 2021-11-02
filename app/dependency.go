@@ -11,14 +11,16 @@ const (
 	Immutable DependencyType = "immutable"
 )
 
+type Instance struct {
+	ID      string `json:"id"`
+	Version string `json:"version"`
+}
+
 type Dependency struct {
-	Instances     []struct{
-		ID string `json:"instanceid"`
-		Version string `json:"version"`
-	} `json:"instances"`
-	Configuration struct{} `json:"userconfig"`
-	Link          string `json:"location"`
-	Type          DependencyType `json:"type"`
+	Instances      []Instance     `json:"instances"`
+	Configurations struct{}       `json:"userconfigs"`
+	Link           string         `json:"location"`
+	Type           DependencyType `json:"type"`
 }
 
 func Link(value string) (DependencyType, string) {
