@@ -1,6 +1,6 @@
 package v1alpha1
 
-type Trait struct {
+type WorkloadType struct {
 	ApiVersion string
 	Kind       string
 	Metadata   struct{
@@ -9,5 +9,6 @@ type Trait struct {
 	}
 	Spec struct{
 		Parameter interface{}
+		Traits []string
 	}
 }
