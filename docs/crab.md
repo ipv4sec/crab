@@ -590,6 +590,18 @@ PUT /status/<id>/<componentName>/<statusCode> HTTP/1.1
 |componentName|workload名称|无|是|
 |statusCode|状态代码, 数字|无|是|
 
+以下参数为BODY参数
+
+|名称|说明|默认值|是否必填|
+|---|---|---|---|
+|message|日志字符串|无|否|
+
+### 请求示例
+```json
+{
+  "message": "春江潮水连海平，海上明月共潮生"
+}
+```
 
 ### 返回值
 ```json
