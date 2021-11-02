@@ -1,0 +1,13 @@
+apiVersion: aam.globalsphare.com/v1alpha1
+kind: WorkloadType
+metadata:
+  name: mysql
+spec:
+  paramter:
+    namespace: string
+    rootpwd: string | "123456"
+    storage: {
+      capacity: string | "1Gi"
+    }
+    init: string
+    after?: string
