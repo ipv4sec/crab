@@ -2,7 +2,7 @@
 
 - [说明](#说明)
 - [错误代码](#错误代码)
-- [解析manifest文件](#解析manifest文件)
+- [执行](#执行)
 
 <a name="说明"></a>
 
@@ -39,8 +39,8 @@
 错误代码的第二三位, 标识组件
 错误代码的第四五位, 标识错误代码
 
-<a name="解析manifest文件"></a>
-## 解析manifest文件
+<a name="执行"></a>
+## 执行
 
 
 ### 请求语法
@@ -51,23 +51,17 @@ POST / HTTP/1.1
 ### 请求参数
 |名称|说明|类型|默认值|是否必填|
 |---|---|---|---|---|
-|Content|文件内容|string|无|是|
+|Yaml|翻译器生成的文件内容|string|无|是|
 |InstanceId|实例id|string|无|是|
-|UserConfig|运行时配置|object|{}|否|
-|Dependencies|实例依赖|dependency数组|[]|否|
-|RootDomain|根域|string|无|是|
+|Level|环境|string|无|develop|
 
-Dependencies.InstanceId 内部服务实例id，为string类型，选择内部服务时必填
-Dependencies.Location string类型，必填
-Dependencies.Version 版本号, string类型，非必填
-Dependencies.Uses  使用的资源和权限， map[string] []string类型，非必填
-Dependencies.EntryService 服务暴露的组件的名称，string类型，选择内部服务时必填
-Dependencies.Name 依赖服务的名称，string类型，必填
+yaml 内部服务实例id，为string类型，选择内部服务时必填
+level 部署的环境, string类型，非必填
 
 ### 返回值
 ```
 {
     "code": 0,
-    "result": "中间格式yaml"
+    "result": "ok"
 }
 ```
