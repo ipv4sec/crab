@@ -55,8 +55,8 @@ POST / HTTP/1.1
 |InstanceId|实例id|string|无|是|
 |Level|环境|string|无|develop|
 
-yaml 内部服务实例id，为string类型，选择内部服务时必填
-level 部署的环境, string类型，非必填
+Yaml 翻译器生成的文件内容,中间格式, string，必填
+Level 部署的环境, string类型，非必填
 
 ### 返回值
 ```
