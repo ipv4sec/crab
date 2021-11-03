@@ -2,12 +2,12 @@ apiVersion: ami.globalsphare.com/v1alpha1
 kind: Application
 metadata:
   name: ez
-  annotations:
-    version: 3.0.0
+  version: 3.0.0
 spec:
-  components:
+  workloads:
     - name: ez
       type: webservice
+      vendor: webservice
       properties:
         image: harbor1.zlibs.com/island/ez:alpha
         configs:
@@ -18,13 +18,11 @@ spec:
                 value: "ez"
       traits:
         - type: ingress
-
-
   dependencies:
     - name: sso
       version: ">=0.0.1"
       location: user-defined
-      uses:
+      items:
         /*:
           - create
           - read

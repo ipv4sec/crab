@@ -21,7 +21,7 @@ func GetAddrsHandlerFunc(c *gin.Context)  {
 		List(context.Background(), metav1.ListOptions{})
 	if err != nil {
 		klog.Errorln("获取ROOK的键值对失败", err.Error())
-		c.JSON(200, utils.ErrorResponse(utils.ErrClusterGetConfigMap, "获取地址信息失败"))
+		c.JSON(200, utils.ErrorResponse(utils.ErrClusterInternalServer, "获取地址信息失败"))
 		return
 	}
 	var addrs []Data

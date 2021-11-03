@@ -3,18 +3,18 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: island-web-user
+  name: island-api-user
   namespace: island-system
 ---
 
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: island-web-user-building
+  name: island-api-user-building
   namespace: island-system
 subjects:
   - kind: ServiceAccount
-    name: island-web-user
+    name: island-api-user
     apiGroup: ""
     namespace: island-system
 roleRef:
@@ -26,39 +26,39 @@ roleRef:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: island-web
+  name: island-api
   namespace: island-system
   labels:
     app: island
-    component: web
+    component: api
 spec:
   replicas: 1
   template:
     metadata:
-      name: island-web
+      name: island-api
       labels:
         app: island
-        component: web
+        component: api
     spec:
       containers:
-        - name: island-web
-          image: harbor1.zlibs.com/island/island-web:alpha
+        - name: island-api
+          image: harbor1.zlibs.com/island/island-api:alpha
           imagePullPolicy: Always
       restartPolicy: Always
-      serviceAccountName: island-web-user
+      serviceAccountName: island-api-user
   selector:
     matchLabels:
       app: island
-      component: web
+      component: api
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: island-web
+  name: island-api
 spec:
   selector:
     app: island
-    component: web
+    component: api
   type: ClusterIP
   ports:
     - name: http

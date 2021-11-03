@@ -1,20 +1,15 @@
 package utils
 
 const (
-	ErrBadRequestParam      = 10101
-	ErrInternalServer       = 10102
-	ErrBase64Decode         = 10103
-	ErrJSONMarshal          = 10104
-	//ErrYAMLMarshal          = 10105
+	// 01 表示代码本身的错误
+	ErrBadRequest      = 10101
+	ErrInternalServer  = 10102
 
-	ErrClusterClientApply   = 20101
-	ErrClusterClientPatch   = 20102
+	// 02 表示数据库的错误
+	ErrDatabaseBadRequest = 10201
+	ErrDatabaseInternalServer = 10201
 
-	ErrClusterGetConfigMap  = 20201
-	ErrClusterSetConfigMap  = 20202
-	ErrClusterUpdateConfigMap  = 20202
-
-	ErrClusterGetDeployment = 20301
-
-	ErrClusterGetSecret     = 20401
+	// 03 表示集群本身的错误
+	ErrClusterBadRequest = 10301
+	ErrClusterInternalServer = 10301
 )

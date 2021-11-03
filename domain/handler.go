@@ -14,7 +14,7 @@ func GetDomainHandlerFunc(c *gin.Context)  {
 		Get(context.Background(), "island-info", metav1.GetOptions{})
 	if err != nil {
 		klog.Errorln("获取根域失败", err.Error())
-		c.JSON(200, utils.ErrorResponse(utils.ErrClusterGetConfigMap, "获取根域失败"))
+		c.JSON(200, utils.ErrorResponse(utils.ErrClusterInternalServer, "获取根域失败"))
 		return
 	}
 	c.JSON(200, utils.SuccessResponse(domain.Data["root-domain"]))
@@ -26,7 +26,7 @@ func PutDomainHandlerFunc(c *gin.Context) {
 	}
 	err := c.ShouldBindJSON(&param)
 	if err != nil || param.Value == "" {
-		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequestParam, "参数错误"))
+		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "参数错误"))
 		return
 	}
 	status := struct {
@@ -60,7 +60,7 @@ func PutDomainHandlerFunc(c *gin.Context) {
 		klog.Errorln("获取根域的键值对失败", err.Error())
 		status.Status = 1
 		status.Message = "保存根域失败"
-		c.JSON(200, utils.ErrorResponse(utils.ErrClusterGetConfigMap, status))
+		c.JSON(200, utils.ErrorResponse(utils.ErrClusterInternalServer, status))
 		return
 	}
 	conf.Data["root-domain"] = param.Value
@@ -70,7 +70,7 @@ func PutDomainHandlerFunc(c *gin.Context) {
 		klog.Errorln("设置根域的键值对失败", err.Error())
 		status.Status = 1
 		status.Message = "保存根域失败"
-		c.JSON(200, utils.ErrorResponse(utils.ErrClusterSetConfigMap, status))
+		c.JSON(200, utils.ErrorResponse(utils.ErrClusterInternalServer, status))
 		return
 	}
 

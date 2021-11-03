@@ -174,6 +174,7 @@ metadata:
   namespace: island-system
 data:
   root-domain: example.com
+  mirror: https://github.com/GlobalSphare/workloads
 `
 	err = cluster.Client.Apply(context.Background(), []byte(yaml))
 	if err != nil {
@@ -195,7 +196,6 @@ data:
 	}
 	klog.Infoln("设置密码完成")
 
-	// TODO
 	klog.Infoln("开始部署应用")
 	files, err := ioutil.ReadDir("assets/island/")
 	if err != nil {

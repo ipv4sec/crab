@@ -3,13 +3,12 @@ package provider
 import (
 	"crab/aam/v1alpha1"
 	"encoding/json"
-	"fmt"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"testing"
 )
 
-func TestYaml(t *testing.T) {
+func TestExec(t *testing.T) {
 	yamls := []string{
 		"examples/github/manifest.yaml",
 		"examples/harbor/manifest.yaml",
@@ -41,6 +40,9 @@ func TestYaml(t *testing.T) {
 		if err != nil {
 			panic(err)
 		}
-		fmt.Println(result)
+		err = Exec("i233", result)
+		if err != nil {
+			panic(err)
+		}
 	}
 }
