@@ -38,6 +38,7 @@ type Params struct {
 	Userconfig map[string]string `json:"UserConfig"`
 	Dependencies []v1alpha1.Dependency `json:"Dependencies"`
 	RootDomain string `json:"RootDomain"`
+	WorkloadPath string `json:"WorkloadPath"`
 }
 
 //验证type,vendor返回的数据
@@ -78,7 +79,11 @@ func PostManifestHandlerFunc(c *gin.Context) {
 	//fmt.Printf("%+v\n", application)
 
 	//验证参数，返回参数json,返回vendor内容
-	workloadResource, err := checkParams(application)
+	//test
+	if p.WorkloadPath == "" {
+		p.WorkloadPath = "/Users/huanqiu/Desktop/uploads"
+	}
+	workloadResource, err := checkParams(application, p.WorkloadPath)
 	if err != nil {
 		c.JSON(200, err.Error())
 		return
@@ -297,10 +302,10 @@ spec:
 }
 
 //获取cue模板
-func modTemplate(workloadVendor, mod string) (string, error) {
+func modTemplate(workloadVendor, mod,vendorDir string) (string, error) {
 	var err error
 	pos := strings.LastIndex(workloadVendor, "/")
-	templatePath := DIR_WORKLOAD_VENDOR +"/" + workloadVendor[:pos+1]+mod+".cue"
+	templatePath := vendorDir +"/" + workloadVendor[:pos+1]+mod+".cue"
 	if !FileExist(templatePath) {
 		return "", errors.New(fmt.Sprintf("文件：%s 不存在", templatePath))
 	}
@@ -316,7 +321,7 @@ func modTemplate(workloadVendor, mod string) (string, error) {
 	matchResult := re.FindAllStringSubmatch(content, -1)
 	for _, v := range matchResult {
 		if len(matchResult) > 0 {
-			includeMod, err := modTemplate(workloadVendor, v[1])
+			includeMod, err := modTemplate(workloadVendor, v[1], vendorDir)
 			if err != nil {
 				klog.Errorln(err.Error())
 				return "", err
@@ -585,7 +590,7 @@ func ApiParse(uses map[string][]string) ([]v1alpha1.DependencyUseItem, error) {
 	return rtn,err
 }
 
-func checkParams(application v1alpha1.Application) (map[string]WorkloadParams, error) {
+func checkParams(application v1alpha1.Application, vendorDir string) (map[string]WorkloadParams, error) {
 	var err error
 	returnData := make(map[string]WorkloadParams, 0)
 	if len(application.Spec.Workloads) == 0 {
@@ -604,7 +609,7 @@ func checkParams(application v1alpha1.Application) (map[string]WorkloadParams, e
 			return returnData,err
 		}
 		var t v1alpha1.WorkloadType
-		t, err = GetWorkloadType(workload.Type)
+		t, err = GetWorkloadType(workload.Type,vendorDir)
 		if err != nil {
 			fmt.Println(err)
 			return returnData,err
@@ -673,7 +678,7 @@ func checkParams(application v1alpha1.Application) (map[string]WorkloadParams, e
 		_ = output
 
 		var v v1alpha1.WorkloadVendor
-		v,err = GetWorkloadVendor(workload.Vendor)
+		v,err = GetWorkloadVendor(workload.Vendor,vendorDir)
 		if err != nil {
 			return returnData, err
 		}
@@ -684,24 +689,23 @@ func checkParams(application v1alpha1.Application) (map[string]WorkloadParams, e
 }
 
 //获取WorkloadType
-func GetWorkloadType(typeName string) (v1alpha1.WorkloadType, error){
+func GetWorkloadType(typeName,vendorDir string) (v1alpha1.WorkloadType, error){
 	var t v1alpha1.WorkloadType
 	var err error
-	content, err := ioutil.ReadFile(DIR_WORKLOAD_TYPE + "/" + typeName + ".yaml")
+	content, err := ioutil.ReadFile(vendorDir + "/" + typeName + ".yaml")
 	if err != nil {
 		err = errors.New(fmt.Sprintf("workload.Type: %s 不存在\n", typeName))
 		return t, err
 	}
-	//fmt.Println(string(content))
 	//解析为结构体
 	err = yaml.Unmarshal(content, &t)
 	return t, err
 }
 //获取WorkloadVendor
-func GetWorkloadVendor(vendorName string) (v1alpha1.WorkloadVendor, error){
+func GetWorkloadVendor(vendorName,vendorDir string) (v1alpha1.WorkloadVendor, error){
 	var err error
 	var v v1alpha1.WorkloadVendor
-	content,err := ioutil.ReadFile(DIR_WORKLOAD_VENDOR+"/"+vendorName+".yaml")
+	content,err := ioutil.ReadFile(vendorDir+"/"+vendorName+".yaml")
 	if err != nil {
 		fmt.Println(err)
 		err = errors.New(fmt.Sprintf("workload.vendor: %s 不存在\n", vendorName))
@@ -714,7 +718,7 @@ func GetWorkloadVendor(vendorName string) (v1alpha1.WorkloadVendor, error){
 	matchResult := re.FindAllStringSubmatch(cuefile, -1)
 	for _, vv := range matchResult {
 		if len(matchResult) > 0 {
-			includeMod, err := modTemplate(vendorName, vv[1])
+			includeMod, err := modTemplate(vendorName, vv[1],vendorDir)
 			if err != nil {
 				klog.Errorln(err.Error())
 				return v, err

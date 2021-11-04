@@ -2,11 +2,6 @@ package parser
 
 import "crab/aam/v1alpha1"
 
-var (
-	DIR_WORKLOAD_TYPE = "/Users/huanqiu/Desktop/uploads"
-	DIR_WORKLOAD_VENDOR = "/Users/huanqiu/Desktop/uploads"
-)
-
 type VelaYaml struct {
 	Name     string                 `json:"name"`
 	Services map[string]interface{} `json:"services"`
