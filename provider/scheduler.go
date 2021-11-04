@@ -11,7 +11,7 @@ import (
 func Exec(id, value string) error {
 	v, err := json.Marshal(struct {
 		ID string `json:"InstanceId"`
-		Content string `json:"Yaml"`
+		Content string `json:"Deploy"`
 	}{
 		Content: value,
 		ID: id,

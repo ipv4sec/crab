@@ -58,7 +58,7 @@ func PostDeploymentHandlerFunc(c *gin.Context)  {
 	var deployment parser.ParserData
 	err = yaml.Unmarshal([]byte(param.Deploy), &deployment)
 	if err != nil {
-		// TODO
+		klog.Errorln("反序列化失败", err.Error())
 	}
 	for k, v := range deployment.Workloads {
 		var parameters map[string] interface{}
@@ -96,7 +96,7 @@ func PostDeploymentHandlerFunc(c *gin.Context)  {
 
 	ret := Result{
 		Code:   0,
-		Result: "开始部署",
+		Result: "ok",
 	}
 	c.JSON(200, ret)
 }

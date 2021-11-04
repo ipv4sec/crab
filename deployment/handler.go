@@ -77,13 +77,12 @@ func PutDeploymentHandlerFunc(c *gin.Context) {
 		return
 	}
 	mirror, _ := island.Data["mirror"]
-	err = utils.InitRepo("/usr/local/workloads/", mirror)
+	savedMirrorPath := "/usr/local/workloads/"
+	err = utils.InitRepo(savedMirrorPath, mirror)
 	if err != nil {
 		klog.Errorln("更新工作负载错误:", err.Error())
-		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "更新工作负载错误"))
-		return
 	}
-	val, err := provider.Yaml(string(manifestBytes), instance.ID, instance.Domain, instance.Configurations, dependencies)
+	val, err := provider.Yaml(string(manifestBytes), instance.ID, instance.Domain, instance.Configurations, dependencies, savedMirrorPath)
 	if err != nil {
 		klog.Errorln("连接到翻译器错误:", err.Error())
 		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "连接到翻译器错误"))
