@@ -10,11 +10,11 @@ setup:
 	docker build -f deployments/setup.Dockerfile -t harbor1.zlibs.com/island/island-setup:alpha .
 	docker push harbor1.zlibs.com/island/island-setup:alpha
 
-.PHONY: web
-web:
-	env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o assets/bin/web cmd/web/main.go
-	docker build -f deployments/web.Dockerfile -t harbor1.zlibs.com/island/island-web:alpha .
-	docker push harbor1.zlibs.com/island/island-web:alpha
+.PHONY: api
+api:
+	env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o assets/bin/api cmd/api/main.go
+	docker build -f deployments/api.Dockerfile -t harbor1.zlibs.com/island/island-api:alpha .
+	docker push harbor1.zlibs.com/island/island-api:alpha
 
 .PHONY: ui
 ui:

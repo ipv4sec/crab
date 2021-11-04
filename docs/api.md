@@ -497,21 +497,16 @@ GET /cluster/mirror HTTP/1.1
 
 ### 请求语法
 ```
-PUT /deployment/<id> HTTP/1.1
+PUT /deployment HTTP/1.1
+Content-Type: multipart/form-data; 
 ```
 ### 请求参数
-以下参数为URL PATH参数
 
 |名称|说明|默认值|是否必填|
 |---|---|---|---|
-|id|应用实例 id|无|是|
-#### 请求参数示例
-```json
-{
-    "deployment": "实例详情接口中的deployment字段信息",
-    "parameters": "参数待定"
-}
-```
+|manifest|应用描述文件|无|是|
+|instance|应用配置文件|无|是|
+
 
 ### 返回值
 ```json
@@ -589,6 +584,11 @@ PUT /status/<id>/<componentName>/<statusCode> HTTP/1.1
 |id|应用实例 id|无|是|
 |componentName|workload名称|无|是|
 |statusCode|状态代码, 数字|无|是|
+
+|  statusCode   | 意义  |
+|  ----  | ----  |
+| 0  | 部署失败 |
+| 1  | 部署成功 |
 
 以下参数为BODY参数
 

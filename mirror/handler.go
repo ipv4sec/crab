@@ -14,7 +14,7 @@ func GetMirrorHandlerFunc(c *gin.Context)  {
 		Get(context.Background(), "island-info", metav1.GetOptions{})
 	if err != nil {
 		klog.Errorln("获取根域失败", err.Error())
-		c.JSON(200, utils.ErrorResponse(utils.ErrClusterGetConfigMap, "获取根域失败"))
+		c.JSON(200, utils.ErrorResponse(utils.ErrClusterInternalServer, "获取根域失败"))
 		return
 	}
 	c.JSON(200, utils.SuccessResponse(domain.Data["mirror"]))
@@ -26,14 +26,14 @@ func PutMirrorHandlerFunc(c *gin.Context) {
 	}
 	err := c.ShouldBindJSON(&param)
 	if err != nil || param.Value == "" {
-		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequestParam, "参数错误"))
+		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "参数错误"))
 		return
 	}
 	conf, err := cluster.Client.Clientset.CoreV1().ConfigMaps("island-system").
 		Get(context.Background(),"island-info", metav1.GetOptions{})
 	if err != nil {
 		klog.Errorln("获取根域的键值对失败", err.Error())
-		c.JSON(200, utils.ErrorResponse(utils.ErrClusterGetConfigMap, "获取根域的键值对失败"))
+		c.JSON(200, utils.ErrorResponse(utils.ErrClusterInternalServer, "获取根域的键值对失败"))
 		return
 	}
 	conf.Data["mirror"] = param.Value
@@ -41,7 +41,7 @@ func PutMirrorHandlerFunc(c *gin.Context) {
 		Update(context.Background(),conf, metav1.UpdateOptions{})
 	if err != nil {
 		klog.Errorln("设置根域的键值对失败", err.Error())
-		c.JSON(200, utils.ErrorResponse(utils.ErrClusterSetConfigMap, "设置根域的键值对失败"))
+		c.JSON(200, utils.ErrorResponse(utils.ErrClusterInternalServer, "设置根域的键值对失败"))
 		return
 	}
 	c.JSON(200, utils.SuccessResponse("设置成功"))

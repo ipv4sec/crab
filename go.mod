@@ -8,6 +8,7 @@ require (
 	github.com/fatih/structs v1.1.0 // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/gin-gonic/gin v1.7.4
+	github.com/go-git/go-git/v5 v5.4.2 // indirect
 	github.com/gojek/heimdall/v7 v7.0.2
 	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/google/uuid v1.2.0

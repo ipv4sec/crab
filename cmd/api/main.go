@@ -44,17 +44,6 @@ func main() {
 		panic(err)
 	}
 
-	if false {
-		err = db.Client.AutoMigrate(&status.Status{})
-		if err != nil {
-			panic(err)
-		}
-		err = db.Client.AutoMigrate(&app.App{})
-		if err != nil {
-			panic(err)
-		}
-	}
-
 	klog.Infoln("开始集群认证")
 	err = cluster.Init()
 	if err != nil {
@@ -86,7 +75,7 @@ func main() {
 	routers.GET("/cluster/mirror", mirror.GetMirrorHandlerFunc)
 	routers.PUT("/cluster/mirror", mirror.PutMirrorHandlerFunc)
 
-	routers.PUT("/deployment/:id", deployment.PutDeploymentHandlerFunc)
+	routers.PUT("/deployment", deployment.PutDeploymentHandlerFunc)
 
 	routers.GET("/status/:id", status.GetStatusHandlerFunc)
 	routers.GET("/status/:id/:componentName", status.GetComponentStatusHandlerFunc)
