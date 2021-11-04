@@ -2,14 +2,13 @@ package main
 
 import (
 	"crab/cache"
-	"flag"
-	"fmt"
+	"crab/config"
 	"crab/scheduler"
+	"flag"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"k8s.io/klog/v2"
-	"crab/config"
 )
 
 func main()  {
@@ -31,12 +30,10 @@ func main()  {
 		panic(err)
 	}
 
-	fmt.Println("running")
-	//消费
 	go scheduler.Consumer()
 	
 	r := gin.Default()
-	r.POST("/", scheduler.PostDeployHandlerFunc)
+	r.POST("/", scheduler.PostDeploymentHandlerFunc)
 
 	err = r.Run(":3001")
 	if err != nil {

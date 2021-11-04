@@ -1,8 +1,11 @@
 package scheduler
 
 import (
+	"context"
 	"crab/cache"
+	"crab/exec"
 	"crab/parser"
+	"crab/provider"
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -10,9 +13,7 @@ import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"k8s.io/klog/v2"
-	"context"
 	"time"
-	"os/exec"
 )
 type Result struct {
 	Code   int    `json:"code"`
@@ -26,7 +27,7 @@ type Param struct {
 	Operate string `json:"operate"`
 }
 
-func PostDeployHandlerFunc(c *gin.Context)  {
+func PostDeploymentHandlerFunc(c *gin.Context)  {
 	var param Param
 	var err error
 	err = c.ShouldBind(&param)
@@ -53,28 +54,46 @@ func PostDeployHandlerFunc(c *gin.Context)  {
 	if param.Operate == "" {
 		param.Operate = "create"
 	}
-	str,err := json.Marshal(param)
-	if err != nil {
-		ret := Result{
-			Code:   100012,
-			Result: "序列化失败",
-		}
-		c.JSON(200, ret)
-		return
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second * 5)
-	defer cancel()
-	err = cache.Client.LPush(ctx, "crab", string(str)).Err()
+	//
+	var deployment parser.ParserData
+	err = yaml.Unmarshal([]byte(param.Deploy), &deployment)
 	if err != nil {
 		// TODO
-		ret := Result{
-			Code:   100010,
-			Result: err.Error(),
-		}
-		klog.Errorln("err")
-		c.JSON(200, ret)
-		return
 	}
+	for k, v := range deployment.Workloads {
+		var parameters map[string] interface{}
+		err = yaml.Unmarshal([]byte(v.Parameter), &parameters)
+		if err != nil {
+			klog.Errorln("反序列化Parameter失败:", err.Error())
+			continue
+		}
+		component := Component{
+			ID:    param.InstanceId,
+			Name:  k,
+		}
+		after, ok := parameters["after"]
+		if ok {
+			component.After = after.(string)
+		} else {
+			component.Deployment = deployment.Init
+		}
+		for _, v2 := range v.Construct {
+			component.Deployment += fmt.Sprintf("\n\n----\n\n%s", v2)
+		}
+		for _, v2 := range v.Traits {
+			component.Deployment += fmt.Sprintf("\n\n----\n\n%s", v2)
+		}
+		componentBytes, err := json.Marshal(component)
+		if err != nil {
+			klog.Errorln("序列化component失败:", err.Error())
+			continue
+		}
+		err = cache.Client.LPush(context.Background(), "crab:scheduler", string(componentBytes)).Err()
+		if err != nil {
+			klog.Errorln("保存到队列失败", err.Error())
+		}
+	}
+
 	ret := Result{
 		Code:   0,
 		Result: "开始部署",
@@ -84,8 +103,9 @@ func PostDeployHandlerFunc(c *gin.Context)  {
 
 func Consumer(){
 	klog.Infoln("开始消费队列", time.Now().UTC())
+	executor := exec.CommandExecutor{}
 	for {
-		value, err := cache.Client.LPop(context.Background(), "crab").Result()
+		value, err := cache.Client.RPop(context.Background(), "crab:scheduler").Result()
 		if err != nil {
 			if err != redis.Nil {
 				klog.Infoln("消费队列出现错误", err.Error())
@@ -94,34 +114,33 @@ func Consumer(){
 			time.Sleep(time.Second * 5)
 			continue
 		}
-		var m Param
-		err = json.Unmarshal([]byte(value), &m)
+		var component Component
+		err = json.Unmarshal([]byte(value), &component)
 		if err != nil {
 			klog.Infoln("反序列化错误", err.Error())
 			continue
 		}
-		var deploy parser.ParserData
-		err = yaml.Unmarshal([]byte(m.Deploy), &deploy)
+
+		err = provider.Query(component.ID, component.After)
 		if err != nil {
-			klog.Errorln("deploy反序列化失败")
+			klog.Errorln("查询上一个组件状态错误", err.Error())
+			err = cache.Client.LPush(context.Background(), "crab:scheduler", value).Err()
+			if err != nil {
+				klog.Errorln("保存到队列失败", err.Error())
+			}
+		}
+
+		saved := fmt.Sprintf("tmp/%s_%s.yaml", component.ID, component.Name)
+		err = ioutil.WriteFile(saved, []byte(component.Deployment),0777)
+		if err != nil {
+			klog.Errorln("保存文件错误", saved, err.Error())
 			continue
 		}
-		fmt.Println(deploy.Init)
-		if m.Operate == "create" || m.Operate == "update" {
-			saved := fmt.Sprintf("tmp/%s_%s.yaml", m.Operate, m.InstanceId)
-			err = ioutil.WriteFile(saved, []byte(deploy.Init),0777)
-			if err != nil {
-				klog.Errorln("保存文件错误", saved, err.Error())
-				continue
-			}
-			command := fmt.Sprintf("/usr/local/bin/kubectl apply -f %s", saved)
-			cmd := exec.Command("bash", "-c", command)
-			output, err := cmd.CombinedOutput()
-			if err != nil {
-				klog.Errorln("执行命令错误", err.Error())
-			}
-			fmt.Println(string(output))
+		command := fmt.Sprintf("/usr/local/bin/kubectl apply -f %s", saved)
+		output, err := executor.ExecuteCommandWithCombinedOutput("bash", "-c", command)
+		if err != nil {
+			klog.Errorln("执行命令错误", err.Error())
 		}
-		time.Sleep(time.Second * 2)
+		klog.Infoln("执行命令结果:", output)
 	}
 }
