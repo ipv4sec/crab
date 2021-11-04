@@ -9,3 +9,4 @@ mysql:
 redis:
   host: island-cache
   port: 6379
+  password:

@@ -11,7 +11,7 @@ func main() {
 	r := gin.Default()
 	r.POST("/", parser.PostManifestHandlerFunc)
 
-	err = r.Run(":3000")
+	err = r.Run(":4000")
 	if err != nil {
 		klog.Errorln("端口已被占用")
 		panic(err)

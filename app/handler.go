@@ -231,12 +231,12 @@ func PostAppHandlerFunc(c *gin.Context) {
 	klog.Info("此实例的配置:", manifest.Spec.Userconfigs)
 	klog.Info("此实例的依赖:", manifest.Spec.Dependencies)
 
-	configuration := map[string]interface{}{}
+	configurations := map[string]interface{}{}
 	if manifest.Spec.Userconfigs != nil {
-		configuration = manifest.Spec.Userconfigs
+		configurations = manifest.Spec.Userconfigs
 	}
 
-	configurationBytes, err := json.Marshal(configuration)
+	configurationsBytes, err := json.Marshal(configurations)
 	if err != nil {
 		klog.Errorln("序列化运行时配置字段错误:", err.Error())
 	}
@@ -252,7 +252,7 @@ func PostAppHandlerFunc(c *gin.Context) {
 
 		Name:          manifest.Metadata.Name,
 		Version:       manifest.Metadata.Version,
-		Configurations: string(configurationBytes),
+		Configurations: string(configurationsBytes),
 		Dependencies:  string(dependenciesBytes),
 
 		Manifest: string(bytes),
@@ -301,7 +301,7 @@ func PostAppHandlerFunc(c *gin.Context) {
 	}{
 		Dependencies:   dependencies,
 		ID:             app.ID,
-		Configurations: configuration,
+		Configurations: configurations,
 	}))
 }
 func PutAppHandlerFunc(c *gin.Context) {

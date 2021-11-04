@@ -1,6 +1,8 @@
 package v1alpha1
 
 type Properties map[string]interface{}
+
+
 type ConfigItem struct {
 	Path    string               `yaml:"path" json:"path"`
 	SubPath string               `yaml:"subPath" json:"subPath,omitempty"`

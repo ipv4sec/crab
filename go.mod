@@ -3,19 +3,14 @@ module crab
 go 1.16
 
 require (
-	cuelang.org/go v0.4.0 // indirect
 	github.com/blang/semver/v4 v4.0.0
-	github.com/fatih/structs v1.1.0 // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/gin-gonic/gin v1.7.4
-	github.com/go-git/go-git/v5 v5.4.2 // indirect
-	github.com/go-redis/redis/v8 v8.11.4 // indirect
+	github.com/go-git/go-git/v5 v5.4.2
+	github.com/go-redis/redis/v8 v8.11.4
 	github.com/gojek/heimdall/v7 v7.0.2
-	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/google/uuid v1.2.0
 	github.com/pkg/errors v0.9.1
-	github.com/rogpeppe/testscript v1.1.0 // indirect
-	go.opentelemetry.io/otel v0.11.0 // indirect
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5 // indirect
 	golang.org/x/net v0.0.0-20210520170846-37e1c6afe023
 	golang.org/x/oauth2 v0.0.0-20210819190943-2bc19b11175f // indirect
