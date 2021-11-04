@@ -1,12 +1,12 @@
 package v1alpha1
 
 type Workload struct {
-	Name       string
-	Type       string
-	Vendor     string
-	Properties Properties
+	Name       string	`yaml:"name"`
+	Type       string	`yaml:"type"`
+	Vendor     string	`yaml:"vendor"`
+	Properties Properties `yaml:"properties"`
 	Traits     []struct {
-		Type       string
-		Properties Properties
-	}
+		Type       string	`yaml:"type"`
+		Properties map[string]interface{} `yaml:"properties"`
+	} `yaml:"traits"`
 }

@@ -1,14 +1,14 @@
 package v1alpha1
 
 type WorkloadType struct {
-	ApiVersion string
-	Kind       string
+	ApiVersion string `yaml:"apiVersion"`
+	Kind       string `yaml:"kind"`
 	Metadata   struct{
-		Name string
-		Annotations map[string]string
-	}
+		Name string `yaml:"name"`
+		Annotations map[string]string `yaml:"annotations"`
+	} `yaml:"metadata"`
 	Spec struct{
-		Parameter interface{}
-		Traits []string
-	}
+		Parameter string `yaml:"parameter"`
+		Traits []string `yaml:"traits"`
+	} `yaml:"spec"`
 }
