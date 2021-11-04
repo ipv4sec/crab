@@ -7,6 +7,6 @@ type Workload struct {
 	Properties Properties `yaml:"properties"`
 	Traits     []struct {
 		Type       string	`yaml:"type"`
-		Properties map[string]interface{} `yaml:"properties"`
+		Properties Properties `yaml:"properties"`
 	} `yaml:"traits"`
 }

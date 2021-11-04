@@ -13,7 +13,7 @@ setup:
 .PHONY: api
 api:
 	env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o assets/bin/api cmd/api/main.go
-	docker build -f deployments/api.Dockerfile -t harbor1.zlibs.com/island/island-api:alpha .
+	docker build -f deployments/api/Dockerfile -t harbor1.zlibs.com/island/island-api:alpha .
 	docker push harbor1.zlibs.com/island/island-api:alpha
 
 .PHONY: ui

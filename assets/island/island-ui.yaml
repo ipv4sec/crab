@@ -60,6 +60,6 @@ data:
     {
         "webConfig": {
             "port": 3000,
-            "requestDomain": "http://island-web"
+            "requestDomain": "http://island-api"
         }
     }

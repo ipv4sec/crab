@@ -1,28 +1,5 @@
 
 apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: island-db-user
-  namespace: island-system
----
-
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: island-db-user-building
-  namespace: island-system
-subjects:
-  - kind: ServiceAccount
-    name: island-db-user
-    apiGroup: ""
-    namespace: island-system
-roleRef:
-  kind: ClusterRole
-  name: cluster-admin
-  apiGroup: rbac.authorization.k8s.io
----
-
-apiVersion: v1
 kind: Service
 metadata:
   name: island-db
@@ -72,7 +49,7 @@ spec:
           configMap:
             name: island-db
       restartPolicy: Always
-      serviceAccountName: island-db-user
+      serviceAccountName: crab
   selector:
     matchLabels:
       app: island
@@ -95,7 +72,7 @@ data:
       `status` tinyint(4) NOT NULL DEFAULT '0' COMMENT '实例状态',
       `name` varchar(128) COLLATE utf8mb4_bin NOT NULL DEFAULT '' COMMENT '应用名称',
       `version` varchar(128) COLLATE utf8mb4_bin NOT NULL DEFAULT '' COMMENT '应用版本',
-      `configuration` longtext COLLATE utf8mb4_bin NOT NULL COMMENT '应用配置',
+      `configurations` longtext COLLATE utf8mb4_bin NOT NULL COMMENT '应用配置',
       `dependencies` longtext COLLATE utf8mb4_bin NOT NULL COMMENT '应用依赖',
       `manifest` longtext COLLATE utf8mb4_bin NOT NULL COMMENT '应用描述',
       `parameters` longtext CHARACTER SET utf8mb4 NOT NULL COMMENT '配置参数',
@@ -110,5 +87,8 @@ data:
       `id` varchar(128) COLLATE utf8mb4_bin NOT NULL DEFAULT '' COMMENT '实例主键',
       `component` varchar(128) COLLATE utf8mb4_bin NOT NULL DEFAULT '' COMMENT '组件名称',
       `status` tinyint(4) NOT NULL DEFAULT '0' COMMENT '组件状态',
+      `message` longtext CHARACTER SET utf8mb4 NOT NULL COMMENT '应用部署',
+      `created_at` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT '创建时间',
+      `updated_at` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT '更新时间',
       PRIMARY KEY (`pk`) USING BTREE
     ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;

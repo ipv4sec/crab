@@ -19,8 +19,8 @@ func Contains(s []string, e string) bool {
 }
 
 func ContainsTrait(s []struct {
-	Type       string
-	Properties v1alpha1.Properties
+	Type       string `yaml:"type"`
+	Properties v1alpha1.Properties `yaml:"properties"`
 }, e string) bool {
 	for _, a := range s {
 		if a.Type == e {
