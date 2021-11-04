@@ -1,0 +1,44 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: island-scheduler
+  namespace: island-system
+  labels:
+    app: island
+    component: scheduler
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: island-scheduler
+      labels:
+        app: island
+        component: scheduler
+    spec:
+      containers:
+        - name: island-scheduler
+          image: harbor1.zlibs.com/island/island-scheduler:alpha
+          imagePullPolicy: Always
+      restartPolicy: Always
+      serviceAccountName: crab
+  selector:
+    matchLabels:
+      app: island
+      component: scheduler
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: island-scheduler
+  namespace: island-system
+spec:
+  selector:
+    app: island
+    component: scheduler
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000

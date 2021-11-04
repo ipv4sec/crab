@@ -35,7 +35,7 @@ func main()  {
 	r := gin.Default()
 	r.POST("/", scheduler.PostDeploymentHandlerFunc)
 
-	err = r.Run(":3001")
+	err = r.Run(":3000")
 	if err != nil {
 		klog.Errorln("端口已被占用")
 		panic(err)

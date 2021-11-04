@@ -8,7 +8,7 @@ import (
 	"k8s.io/klog/v2"
 )
 
-func Yaml(manifest, uuid, domain string, config interface{}, dependencies []Dependency) (string, error) {
+func Yaml(manifest, uuid, domain string, config interface{}, dependencies []Dependency, savedMirrorPath string) (string, error) {
 	v, err := json.Marshal(struct {
 		Content string `json:"Content"`
 		ID string `json:"InstanceId"`
@@ -22,14 +22,14 @@ func Yaml(manifest, uuid, domain string, config interface{}, dependencies []Depe
 		Configurations: config,
 		Dependencies: dependencies,
 		RootDomain: domain,
-		WorkloadPath: "",
+		WorkloadPath: savedMirrorPath,
 	})
 	if err != nil {
 		return "", fmt.Errorf("序列化参数错误:%w", err)
 	}
 
 	klog.Infoln("请求参数为:", string(v))
-	res, err := HTTPClient.Post("http://island-parser", bytes.NewBuffer(v), nil)
+	res, err := HTTPClient.Post("http://127.0.0.1:4000/", bytes.NewBuffer(v), nil)
 	if err != nil {
 		return "", fmt.Errorf("请求翻译器错误: %w", err)
 	}
