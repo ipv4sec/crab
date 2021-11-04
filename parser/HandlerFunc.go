@@ -2,7 +2,6 @@ package parser
 
 import (
 	"crab/aam/v1alpha1"
-	"crab/utils"
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
@@ -55,11 +54,19 @@ func PostManifestHandlerFunc(c *gin.Context) {
 	p := Params{}
 	err = c.BindJSON(&p)
 	if err != nil {
-		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequestParam, "参数格式错误"))
+		r := result{
+			Code:   100100,
+			Result: "参数格式错误",
+		}
+		c.JSON(200, r)
 		return
 	}
 	if p.Content == "" || p.Instanceid == "" || p.RootDomain == "" {
-		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequestParam, "参数错误"))
+		r := result{
+			Code:   100100,
+			Result: "参数格式错误",
+		}
+		c.JSON(200, r)
 		return
 	}
 	userconfigStr, err := json.Marshal(p.Userconfig)
@@ -72,11 +79,15 @@ func PostManifestHandlerFunc(c *gin.Context) {
 	err = yaml.Unmarshal([]byte(p.Content), &application)
 	if err != nil {
 		fmt.Println(err)
-		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequestParam, "文件解析失败"))
+		r := result{
+			Code:   100100,
+			Result: "文件解析失败",
+		}
+		c.JSON(200, r)
 		return
 	}
-	fmt.Println("---application---")
-	fmt.Printf("%+v\n", application)
+	//fmt.Println("---application---")
+	//fmt.Printf("%+v\n", application)
 
 	//for i := 0; i < len(application.Spec.Workloads); i++ {
 	//	for k, v := range application.Spec.Workloads[i].Properties {
@@ -92,13 +103,7 @@ func PostManifestHandlerFunc(c *gin.Context) {
 		p.WorkloadPath = "/Users/huanqiu/Desktop/uploads"
 	}
 
-
 	workloadResource, err := checkParams(application, p.WorkloadPath)
-	//_ = workloadResource
-	//if err != nil {
-	//	c.JSON(200, err.Error())
-	//	return
-	//}
 
 	//生成vale.yaml文件
 	vale, err := GenValeYaml(p.Instanceid, application, string(userconfigStr), p.RootDomain, p.Dependencies)
@@ -133,13 +138,13 @@ func PostManifestHandlerFunc(c *gin.Context) {
 		fmt.Println(err)
 		return
 	}
-	ioutil.WriteFile("tmp/k8s.yaml", k8s2, 0644)
+	//ioutil.WriteFile("tmp/k8s.yaml", k8s2, 0644)
 	returnData := struct {
 		Code   int    `json:"code"`
 		Result string `json:"result"`
 	}{
 		0,
-		"ok",
+		string(k8s2),
 	}
 	c.JSON(200, returnData)
 }
