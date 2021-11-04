@@ -15,6 +15,7 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"reflect"
 	"regexp"
 	"strings"
 	"strconv"
@@ -25,28 +26,48 @@ type contextObj struct {
 	ComponentName string `json:"componentName"`
 	Namespace string `json:"namespace"`
 }
-
 type result struct {
 	Code   int    `json:"code"`
 	Result string `json:"result"`
 }
-
+type Dependency struct {
+	Instanceid string `json:"InstanceId"`
+	Name string	`json:"name"`
+	Version string	`json:"version"`
+	Location string	`json:"location"`
+	Items map[string][]string `json:"items"`
+	EntryService string `json:"EntryService"`
+}
 type Params struct {
 	Content string 	`json:"Content"`
 	Instanceid string `json:"InstanceId"`
 	Userconfig map[string]string `json:"UserConfig"`
-	Dependencies []v1alpha1.Dependency `json:"Dependencies"`
+	Dependencies []Dependency `json:"Dependencies"`
 	RootDomain string `json:"RootDomain"`
 	WorkloadPath string `json:"WorkloadPath"`
 }
-
 //验证type,vendor返回的数据
 type WorkloadParams struct{
-	Parameter string `json:"parameter"`
+	Parameter map[string]interface{} `json:"parameter"`
 	Type string `json:"type"`
 	Vendor string `json:"vendor"`
 	VendorCue string `json:"vendorCue"`
 	Traits []string `json:"traits"`
+}
+type VelaYaml struct {
+	Name     string                 `json:"name"`
+	Services map[string]interface{} `json:"services"`
+}
+//返回的中间格式
+type ParserData struct {
+	Name string  `yaml:"name"`
+	Init string `yaml:"init"`
+	Workloads map[string]Workload `yaml:"workloads"`
+}
+type Workload struct {
+	Parameter  string `yaml:"parameter"`
+	Construct map[string]string `yaml:"construct"`
+	Traits map[string]string `yaml:"traits"`
 }
 
 func PostManifestHandlerFunc(c *gin.Context) {
@@ -61,10 +82,10 @@ func PostManifestHandlerFunc(c *gin.Context) {
 		c.JSON(200, r)
 		return
 	}
-	if p.Content == "" || p.Instanceid == "" || p.RootDomain == "" {
+	if p.Content == "" || p.Instanceid == "" || p.RootDomain == "" || p.WorkloadPath == "" {
 		r := result{
 			Code:   100100,
-			Result: "参数格式错误",
+			Result: "缺少参数",
 		}
 		c.JSON(200, r)
 		return
@@ -78,7 +99,6 @@ func PostManifestHandlerFunc(c *gin.Context) {
 	var application v1alpha1.Application
 	err = yaml.Unmarshal([]byte(p.Content), &application)
 	if err != nil {
-		fmt.Println(err)
 		r := result{
 			Code:   100100,
 			Result: "文件解析失败",
@@ -89,19 +109,11 @@ func PostManifestHandlerFunc(c *gin.Context) {
 	//fmt.Println("---application---")
 	//fmt.Printf("%+v\n", application)
 
-	//for i := 0; i < len(application.Spec.Workloads); i++ {
-	//	for k, v := range application.Spec.Workloads[i].Properties {
-	//		klog.Infoln(reflect.ValueOf(k))
-	//		klog.Infoln(reflect.ValueOf(v))
-	//	}
-	//}
-
-
 	//验证参数，返回参数json,返回vendor内容
 	//test
-	if p.WorkloadPath == "" {
-		p.WorkloadPath = "/Users/huanqiu/Desktop/uploads"
-	}
+	//if p.WorkloadPath == "" {
+	//	p.WorkloadPath = "/Users/huanqiu/Desktop/uploads"
+	//}
 
 	workloadResource, err := checkParams(application, p.WorkloadPath)
 
@@ -115,12 +127,12 @@ func PostManifestHandlerFunc(c *gin.Context) {
 		c.JSON(200, returnData)
 		return
 	}
-	str,err := json.Marshal(vale)
-	if err != nil {
-		klog.Errorln(err)
-		return
-	}
-	ioutil.WriteFile("/tmp/vela.json", str, 0644)
+	//str,err := json.Marshal(vale)
+	//if err != nil {
+	//	klog.Errorln(err)
+	//	return
+	//}
+	//ioutil.WriteFile("tmp/vela.json", str, 0644)
 
 	//生成k8s.yaml文件
 	k8s, err := GenK8sYaml(p.Instanceid, vale, workloadResource)
@@ -149,11 +161,11 @@ func PostManifestHandlerFunc(c *gin.Context) {
 	c.JSON(200, returnData)
 }
 //由manifest.yaml生成vale.yaml
-func GenValeYaml(instanceId string, application v1alpha1.Application, userconfig string, rootDomain string, dependencies []v1alpha1.Dependency) (VelaYaml, error) {
+func GenValeYaml(instanceId string, application v1alpha1.Application, userconfig string, rootDomain string, dependencies []Dependency) (VelaYaml, error) {
 	var vela = VelaYaml{"", make(map[string]interface{}, 0)}
 	var err error
 	vela.Name = application.Metadata.Name
-	fmt.Println("应用名称：", vela.Name)
+	//fmt.Println("应用名称：", vela.Name)
 
 	//Workloads
 	if len(application.Spec.Workloads) == 0 {
@@ -185,9 +197,9 @@ func GenValeYaml(instanceId string, application v1alpha1.Application, userconfig
 	}
 	//添加应用时填写的运行时配置
 	configItemData = append(configItemData, v1alpha1.ConfigItemDataItem{Name: "userconfig", Value: userconfig})
-	for _, svc := range application.Spec.Workloads {
-		service := serviceVela(svc, instanceId, authorizationData, serviceEntryData, configItemData, rootDomain, serviceEntryName)
-		vela.Services[svc.Name] = service
+	for _, workload := range application.Spec.Workloads {
+		service := serviceVela(workload, instanceId, authorizationData, serviceEntryData, configItemData, rootDomain, serviceEntryName)
+		vela.Services[workload.Name] = service
 	}
 
 	return vela, nil
@@ -361,103 +373,30 @@ func RandomString(str string) string {
 }
 
 //生成kubevela格式的service
-func serviceVela(svc v1alpha1.Workload, instanceid string, authorization []v1alpha1.Authorization, serviceentry []v1alpha1.ServiceEntry, configItemData []v1alpha1.ConfigItemDataItem, rootDomain string, serviceEntryName string) interface{} {
-	fmt.Println(svc.Type)
-	arr := strings.Split(svc.Type, "/")
-	workloadType := arr[len(arr)-1]
-	if workloadType == "webservice" {
-		service := WebserviceVela{
-			Workload:      svc.Type,
-			Type:          svc.Type,
-			Image:         svc.Properties.Image,
-			Configs: 	   append(svc.Properties.Configs, v1alpha1.ConfigItem{"/etc/configs", "", configItemData}),
-			Storage:       svc.Properties.Storage,
-			Init:          svc.Properties.Init,
-			After:         svc.Properties.After,
-			Port:          0,
-			Cmd:           svc.Properties.Cmd,
-			Args:          svc.Properties.Args,
-			Env:           make([]v1alpha1.EnvItem, 0),
-			Traits:        svc.Traits,
-			Authorization: authorization,
-			Serviceentry:  serviceentry,
-			Namespace:     instanceid,
-			Entry:         v1alpha1.Entry{},
-		}
-		if serviceEntryName == svc.Name {
-			path := make([]string, 0)
-			path = append(path, "/*")
-			service.Entry = v1alpha1.Entry{
-				fmt.Sprintf("%s.%s", instanceid, rootDomain),
-				path,
-			}
-		} else {
-			service.Entry = v1alpha1.Entry{
-				"",
-				make([]string, 0),
-			}
-		}
-		return service
-	} else if workloadType == "worker" {
-		service := WorkerVela{
-			Workload:      svc.Type,
-			Type:          svc.Type,
-			Image:         svc.Properties.Image,
-			Cmd:           svc.Properties.Cmd,
-			Args:          svc.Properties.Args,
-			Env:           make([]v1alpha1.EnvItem, 0),
-			After:         svc.Properties.After,
-			Init:          svc.Properties.Init,
-			Configs:       append(svc.Properties.Configs, v1alpha1.ConfigItem{"/etc/configs", "", configItemData}),
-			Storage:       svc.Properties.Storage,
-			Authorization: authorization,
-			Serviceentry:  serviceentry,
-			Namespace:     instanceid,
-		}
-		//service.Configs = append(service.Configs?, ConfigItem{"/etc/configs", "", configItemData})
-		if serviceEntryName == svc.Name {
-			path := make([]string, 0)
-			path = append(path, "/*")
-			service.Entry = Entry{
-				fmt.Sprintf("%s.%s", instanceid, rootDomain),
-				path,
-			}
-		} else {
-			service.Entry = Entry{
-				"",
-				make([]string, 0),
-			}
-		}
-		return service
-	} else if workloadType == "mysql" {
-		service := MysqlVela{
-			Workload:      svc.Type,
-			Type:          svc.Type,
-			Rootpwd:       svc.Properties.Rootpwd,
-			Storage:       svc.Properties.Storage,
-			Init:          svc.Properties.Init,
-			After:         svc.Properties.After,
-			Authorization: authorization,
-			Serviceentry:  serviceentry,
-			Namespace:     instanceid,
-		}
-		return service
-	} else if workloadType == "redis" {
-		service := RedisVela{
-			Workload:      svc.Type,
-			Type:          svc.Type,
-			After:         svc.Properties.After,
-			Authorization: authorization,
-			Serviceentry:  serviceentry,
-			Namespace:     instanceid,
-		}
-		return service
+func serviceVela(workload v1alpha1.Workload, instanceid string, authorization []v1alpha1.Authorization, serviceentry []v1alpha1.ServiceEntry, configItemData []v1alpha1.ConfigItemDataItem, rootDomain string, serviceEntryName string) interface{} {
+	properties := GetProperties(workload.Properties)
+	properties["authorization"] = authorization
+	properties["serviceentry"] = serviceentry
+	configs2 := make([]v1alpha1.ConfigItem, 0)
+	if configs,ok := properties["Configs"];ok {
+		configs2 = configs.([]v1alpha1.ConfigItem)
 	}
-	return nil
+	configs2 = append(configs2, v1alpha1.ConfigItem{"/etc/configs", "", configItemData})
+	properties["configs"] = configs2
+	if serviceEntryName == workload.Name {
+		path := make([]string, 0)
+		path = append(path, "/*")
+		entry := v1alpha1.Entry{
+			fmt.Sprintf("%s.%s", instanceid, rootDomain),
+			path,
+		}
+		properties["entry"] = entry
+	}
+	return properties
 }
 
 //处理依赖
-func parseDependencies(dependencies []v1alpha1.Dependency) ([]v1alpha1.Authorization, []v1alpha1.ServiceEntry, map[string]string, error) {
+func parseDependencies(dependencies []Dependency) ([]v1alpha1.Authorization, []v1alpha1.ServiceEntry, map[string]string, error) {
 	var err error
 	authorization := make([]v1alpha1.Authorization, 0)
 	serviceEntry := make([]v1alpha1.ServiceEntry, 0)
@@ -502,7 +441,7 @@ func dependendService(dependencyVelas []v1alpha1.DependencyVela) ([]v1alpha1.Aut
 			auth = append(auth, v1alpha1.Authorization{
 				v.Instanceid, v.EntryService, v.Resource,
 			})
-			cm[v.Name] = fmt.Sprintf("%s.%s.svc.cluster.local.", v.EntryService, v.Instanceid)
+			cm[v.Name] = fmt.Sprintf("%s.%s.svc.cluster.local", v.EntryService, v.Instanceid)
 		} else {
 			if v.Location == "" {
 				return auth, svcEntry, cm, errors.New("")
@@ -615,9 +554,7 @@ func checkParams(application v1alpha1.Application, vendorDir string) (map[string
 	}
 	for _, workload := range application.Spec.Workloads {
 		var workloadParams WorkloadParams
-		//fmt.Println("-----workload.Properties-----")
-		//fmt.Printf("%+v\n", workload.Properties)
-
+		properties := GetProperties(workload.Properties)
 
 		workloadParams.Traits = make([]string, 0)
 		if workload.Type == "" {
@@ -631,60 +568,21 @@ func checkParams(application v1alpha1.Application, vendorDir string) (map[string
 		var t v1alpha1.WorkloadType
 		t, err = GetWorkloadType(workload.Type,vendorDir)
 		if err != nil {
-			fmt.Println(err)
 			return returnData,err
 		}
 
 		workloadParams.Traits = t.Spec.Traits
 		workloadParams.Type = workload.Type
 		workloadParams.Vendor = workload.Vendor
+		workloadParams.Parameter = properties
 
-		var strJson []byte
-		var p interface{}
-		if t.Metadata.Name == "mysql" {
-			p = MysqlParam{
-				Init:    workload.Properties.Init,
-				Rootpwd: workload.Properties.Rootpwd,
-				Storage: struct {
-					Capacity string `json:"capacity"`
-				}{Capacity:workload.Properties.Storage.Capacity},
-				After: workload.Properties.After,
-			}
-		}else if t.Metadata.Name == "webservice" {
-			p = WebserviceParam{
-				Image: workload.Properties.Image,
-				Port:  workload.Properties.Port,
-				Cmd:   workload.Properties.Cmd,
-				Args:  workload.Properties.Args,
-				Cpu:   workload.Properties.Cpu,
-				Env:   workload.Properties.Env,
-				After: workload.Properties.After,
-			}
-		}else if t.Metadata.Name == "worker" {
-			p = WorkerParam{
-				Image: workload.Properties.Image,
-				Port:  workload.Properties.Port,
-				Cmd:   workload.Properties.Cmd,
-				Args:  workload.Properties.Args,
-				Cpu:   workload.Properties.Cpu,
-				Env:   workload.Properties.Env,
-				After: workload.Properties.After,
-			}
-
-		}else if t.Metadata.Name == "redis" {
-			p = RedisParam{
-				After: workload.Properties.After,
-			}
-		}
-		strJson,err = json.Marshal(p)
+		properties2, err := json.Marshal(properties)
 		if err != nil {
-			fmt.Println(err)
 			return returnData, err
 		}
-		workloadParams.Parameter = string(strJson)
 
 		//检查参数
-		parameterStr := fmt.Sprintf("parameter:{ \n%s\n}\nparameter:{\n%s\n}", t.Spec.Parameter, string(strJson))
+		parameterStr := fmt.Sprintf("parameter:{ \n%s\n}\nparameter:{\n%s\n}", t.Spec.Parameter, string(properties2))
 		fileName := RandomString(parameterStr)
 		path := fmt.Sprintf("/tmp/%s.cue", fileName)
 		ioutil.WriteFile(path, []byte(parameterStr),0644)
@@ -727,7 +625,6 @@ func GetWorkloadVendor(vendorName,vendorDir string) (v1alpha1.WorkloadVendor, er
 	var v v1alpha1.WorkloadVendor
 	content,err := ioutil.ReadFile(vendorDir+"/"+vendorName+".yaml")
 	if err != nil {
-		fmt.Println(err)
 		err = errors.New(fmt.Sprintf("workload.vendor: %s 不存在\n", vendorName))
 		return v, err
 	}
@@ -750,38 +647,34 @@ func GetWorkloadVendor(vendorName,vendorDir string) (v1alpha1.WorkloadVendor, er
 	return v, err
 }
 
-func trans(data map[string]interface{}) string {
-	var s = ""
-	for k,v := range data{
-		var key, value string
+func GetProperties(properties map[string]interface{}) map[string]interface{}{
+	ret := make(map[string]interface{}, 0)
+	for k, v := range properties {
 		switch v.(type) {
 		case string:
-			key = k
-			value = v.(string)
-		case interface{}:
-			key = k
-			var s2 = ""
-			for kk,vv := range v.(map[interface{}]interface{}){
-				var key, value string
-				switch kk.(type) {
-				case string:
-					key = k
-					fmt.Println("lkkkk", key)
+			ret[k] = v
+		case map[interface{}]interface{}:
+			sub := make(map[string]interface{}, 0)
+			var n interface{} = v
+			m := reflect.ValueOf(n)
+			if m.Kind() == reflect.Map {
+				res := reflect.MakeMap(m.Type())
+				keys := m.MapKeys()
+				for _, k := range keys {
+					key := k.Convert(res.Type().Key()) //.Convert(m.Type().Key())
+					value := m.MapIndex(key)
+					key2 := fmt.Sprintf("%s", key)
+					value2 := fmt.Sprintf("%s", value)
+					sub[key2] = value2
+					res.SetMapIndex(key, value)
 				}
-				switch vv.(type) {
-				case string:
-					value = vv.(string)
-				}
-				s2 = s2 + fmt.Sprintf("\"%s\":\"%s\",", key, value)
 			}
-			s2 = strings.Trim(s2,",")
-			value = "{" + s2 + "}"
+			ret[fmt.Sprintf("%s", k)] = sub
+		case int:
+			ret[k] = v
+		case interface{}:
+			klog.Errorln("特殊类型")
 		}
-		s = s + fmt.Sprintf("\"%s\":\"%s\",", key, value)
 	}
-	s = strings.Trim(s,",")
-	s = "{" + s + "}"
-	fmt.Println(s)
-	return s
+	return ret
 }
-

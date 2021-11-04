@@ -1,23 +1,6 @@
 package v1alpha1
 
-//type Properties map[string]interface{}
-type Properties struct {
-	Image         string          `yaml:"image" json:"image,omitempty"`
-	Port          int             `yaml:"port" json:"port,omitempty"`
-	Cmd           []string        `yaml:"cmd" json:"cmd,omitempty"`
-	Args          []string        `yaml:"args" json:"args,omitempty"`
-	Cpu           string          `yaml:"cpu" json:"cpu,omitempty"`
-	Init          string          `yaml:"init" json:"init,omitempty"`
-	Configs       []ConfigItem    `yaml:"configs" json:"configs,omitempty"`
-	Env       	  []EnvItem       `yaml:"env" json:"env,omitempty"`
-	After         string          `yaml:"after" json:"after"`
-	Rootpwd       string          `yaml:"rootpwd" json:"rootpwd"`
-	Storage       Storage         `yaml:"storage" json:"storage"`
-	Authorization []Authorization `yaml:"authorization" json:"authorization,omitempty"`
-	Serviceentry  []ServiceEntry  `yaml:"serviceentry" json:"serviceentry,omitempty"`
-	Entry         Entry           `yaml:"entry" json:"entry,omitempty"`
-}
-
+type Properties map[string]interface{}
 type ConfigItem struct {
 	Path    string               `yaml:"path" json:"path"`
 	SubPath string               `yaml:"subPath" json:"subPath,omitempty"`
