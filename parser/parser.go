@@ -1,5 +1,7 @@
 package parser
 
+import "crab/aam/v1alpha1"
+
 type VelaYaml struct {
 	Name     string                 `json:"name"`
 	Services map[string]interface{} `json:"services"`
@@ -10,7 +12,6 @@ type ManifestServiceOrigin struct {
 	Kind       string `yaml:"kind" json:"kind"`
 	Metadata   struct {
 		Name string `yaml:"name" json:"name"`
-		//Annotations Annotations `yaml:"annotations" json:"annotations"`
 	} `yaml:"metadata" json:"metadata"`
 	Spec struct {
 		Components []Component `yaml:"components" json:"components"`
@@ -90,20 +91,23 @@ type Storage struct {
 type WebserviceVela struct {
 	Workload      string          `json:"workload"`
 	Image         string          `json:"image"`
-	Configs       []ConfigItem    `json:"configs"`
-	Storage       Storage         `json:"storage"`
+	Configs       []v1alpha1.ConfigItem    `json:"configs"`
+	Storage       v1alpha1.Storage         `json:"storage"`
 	Init          string          `json:"init,omitempty"`
 	After         string          `json:"after,omitempty"`
 	Port          int             `json:"port,omitempty"`
 	Cmd           []string        `json:"cmd,omitempty"`
 	Args          []string        `json:"args,omitempty"`
-	Env           []EnvItem       `json:"env,omitempty"`
-	Traits        []Trait         `json:"traits,omitempty"`
-	Authorization []Authorization `json:"authorization,omitempty"`
-	Serviceentry  []ServiceEntry  `json:"serviceentry,omitempty"`
+	Env           []v1alpha1.EnvItem       `json:"env,omitempty"`
+	Traits        []struct {
+		Type       string            `yaml:"type"`
+		Properties map[string]interface{} `yaml:"properties"`
+	}`json:"traits,omitempty"`
+	Authorization []v1alpha1.Authorization `json:"authorization,omitempty"`
+	Serviceentry  []v1alpha1.ServiceEntry  `json:"serviceentry,omitempty"`
 	Namespace     string          `json:"namespace"`
 	Type          string          `json:"type"`
-	Entry         Entry           `json:"entry,omitempty"`
+	Entry         v1alpha1.Entry           `json:"entry,omitempty"`
 }
 
 //workload worker
@@ -112,13 +116,13 @@ type WorkerVela struct {
 	Image         string          `json:"image"`
 	Cmd           []string        `json:"cmd,omitempty"`
 	Args          []string        `json:"args,omitempty"`
-	Env           []EnvItem       `json:"env,omitempty"`
+	Env           []v1alpha1.EnvItem       `json:"env,omitempty"`
 	After         string          `json:"after,omitempty"`
 	Init          string          `json:"init,omitempty"`
-	Configs       []ConfigItem    `json:"configs"`
-	Storage       Storage         `json:"storage"`
-	Authorization []Authorization `json:"authorization,omitempty"`
-	Serviceentry  []ServiceEntry  `json:"serviceentry,omitempty"`
+	Configs       []v1alpha1.ConfigItem    `json:"configs"`
+	Storage       v1alpha1.Storage         `json:"storage"`
+	Authorization []v1alpha1.Authorization `json:"authorization,omitempty"`
+	Serviceentry  []v1alpha1.ServiceEntry  `json:"serviceentry,omitempty"`
 	Namespace     string          `json:"namespace"`
 	Type          string          `json:"type"`
 	Entry         Entry           `json:"entry,omitempty"`
@@ -128,25 +132,25 @@ type WorkerVela struct {
 type RedisVela struct {
 	Workload      string          `json:"workload"`
 	After         string          `json:"after,omitempty"`
-	Authorization []Authorization `json:"authorization,omitempty"`
-	Serviceentry  []ServiceEntry  `json:"serviceentry,omitempty"`
+	Authorization []v1alpha1.Authorization `json:"authorization,omitempty"`
+	Serviceentry  []v1alpha1.ServiceEntry  `json:"serviceentry,omitempty"`
 	Namespace     string          `json:"namespace"`
 	Type          string          `json:"type"`
-	Entry         Entry           `json:"entry,omitempty"`
+	Entry         v1alpha1.Entry           `json:"entry,omitempty"`
 }
 
 //workload mysql
 type MysqlVela struct {
 	Workload      string          `json:"workload"`
 	Rootpwd       string          `json:"rootpwd"`
-	Storage       Storage         `json:"storage"`
+	Storage       v1alpha1.Storage         `json:"storage"`
 	Init          string          `json:"init,omitempty"`
 	After         string          `json:"after,omitempty"`
-	Authorization []Authorization `json:"authorization,omitempty"`
-	Serviceentry  []ServiceEntry  `json:"serviceentry,omitempty"`
+	Authorization []v1alpha1.Authorization `json:"authorization,omitempty"`
+	Serviceentry  []v1alpha1.ServiceEntry  `json:"serviceentry,omitempty"`
 	Namespace     string          `json:"namespace"`
 	Type          string          `json:"type"`
-	Entry         Entry           `json:"entry,omitempty"`
+	Entry         v1alpha1.Entry           `json:"entry,omitempty"`
 }
 
 func (svc WebserviceVela) workload() string {
@@ -199,3 +203,16 @@ type ServiceEntry struct {
 	Port     int    `json:"port"`
 	Protocol string `json:"protocol"`
 }
+
+//返回的中间格式
+type ParserData struct {
+	Name string  `yaml:"name"`
+	Init string `yaml:"init"`
+	Workloads map[string]Workload `yaml:"workloads"`
+}
+type Workload struct {
+	Parameter  string `yaml:"parameter"`
+	Construct map[string]string `yaml:"construct"`
+	Traits map[string]string `yaml:"traits"`
+}
+

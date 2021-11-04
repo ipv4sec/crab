@@ -53,10 +53,10 @@ POST / HTTP/1.1
 |---|---|---|---|---|
 |Yaml|翻译器生成的文件内容|string|无|是|
 |InstanceId|实例id|string|无|是|
-|Level|环境|string|无|develop|
+|Level|环境|string|无|否|
 
 Yaml 翻译器生成的文件内容,中间格式, string，必填
-Level 部署的环境, string类型，非必填
+Level 部署的环境, string类型，非必填，默认develop
 
 ### 返回值
 ```

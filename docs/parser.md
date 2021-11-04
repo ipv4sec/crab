@@ -56,6 +56,7 @@ POST / HTTP/1.1
 |UserConfig|运行时配置|object|{}|否|
 |Dependencies|实例依赖|dependency数组|[]|否|
 |RootDomain|根域|string|无|是|
+|WorkloadPath|绝对路径|string|无|是|
 
 Dependencies.InstanceId 内部服务实例id，为string类型，选择内部服务时必填
 Dependencies.Location string类型，必填
