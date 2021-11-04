@@ -17,8 +17,8 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
-	"strconv"
 	"strings"
+	"strconv"
 )
 
 type contextObj struct {
@@ -75,19 +75,30 @@ func PostManifestHandlerFunc(c *gin.Context) {
 		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequestParam, "文件解析失败"))
 		return
 	}
+	fmt.Println("---application---")
+	fmt.Printf("%+v\n", application)
 
-	//fmt.Printf("%+v\n", application)
+	//for i := 0; i < len(application.Spec.Workloads); i++ {
+	//	for k, v := range application.Spec.Workloads[i].Properties {
+	//		klog.Infoln(reflect.ValueOf(k))
+	//		klog.Infoln(reflect.ValueOf(v))
+	//	}
+	//}
+
 
 	//验证参数，返回参数json,返回vendor内容
 	//test
 	if p.WorkloadPath == "" {
 		p.WorkloadPath = "/Users/huanqiu/Desktop/uploads"
 	}
+
+
 	workloadResource, err := checkParams(application, p.WorkloadPath)
-	if err != nil {
-		c.JSON(200, err.Error())
-		return
-	}
+	//_ = workloadResource
+	//if err != nil {
+	//	c.JSON(200, err.Error())
+	//	return
+	//}
 
 	//生成vale.yaml文件
 	vale, err := GenValeYaml(p.Instanceid, application, string(userconfigStr), p.RootDomain, p.Dependencies)
@@ -99,12 +110,12 @@ func PostManifestHandlerFunc(c *gin.Context) {
 		c.JSON(200, returnData)
 		return
 	}
-	//str,err := json.Marshal(vale)
-	//if err != nil {
-	//	klog.Errorln(err)
-	//	return
-	//}
-	//ioutil.WriteFile("/tmp/vela.json", str, 0644)
+	str,err := json.Marshal(vale)
+	if err != nil {
+		klog.Errorln(err)
+		return
+	}
+	ioutil.WriteFile("/tmp/vela.json", str, 0644)
 
 	//生成k8s.yaml文件
 	k8s, err := GenK8sYaml(p.Instanceid, vale, workloadResource)
@@ -122,13 +133,13 @@ func PostManifestHandlerFunc(c *gin.Context) {
 		fmt.Println(err)
 		return
 	}
-	//ioutil.WriteFile("tmp/k8s.yaml", k8s2, 0644)
+	ioutil.WriteFile("tmp/k8s.yaml", k8s2, 0644)
 	returnData := struct {
 		Code   int    `json:"code"`
 		Result string `json:"result"`
 	}{
 		0,
-		string(k8s2),
+		"ok",
 	}
 	c.JSON(200, returnData)
 }
@@ -188,23 +199,23 @@ func GenK8sYaml(instanceid string, vela VelaYaml, workloadParams map[string]Work
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: %s
-  labels:
-    istio-injection: enabled
+ name: %s
+ labels:
+   istio-injection: enabled
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: %s
-  namespace: %s
+ name: %s
+ namespace: %s
 ---
 apiVersion: "security.istio.io/v1beta1"
 kind: "AuthorizationPolicy"
 metadata:
-  name: %s
-  namespace: %s
+ name: %s
+ namespace: %s
 spec:
-  {}
+ {}
 `
 	ns = fmt.Sprintf(ns, instanceid, vela.Name, instanceid,instanceid,instanceid)
 	parserData.Init = ns
@@ -599,6 +610,10 @@ func checkParams(application v1alpha1.Application, vendorDir string) (map[string
 	}
 	for _, workload := range application.Spec.Workloads {
 		var workloadParams WorkloadParams
+		//fmt.Println("-----workload.Properties-----")
+		//fmt.Printf("%+v\n", workload.Properties)
+
+
 		workloadParams.Traits = make([]string, 0)
 		if workload.Type == "" {
 			err = errors.New("workload.Type 不能为空")

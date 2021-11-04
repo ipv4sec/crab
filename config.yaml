@@ -5,3 +5,7 @@ mysql:
   username: root
   password: 123456
   database: crab
+
+redis:
+  host: island-cache
+  port: 6379

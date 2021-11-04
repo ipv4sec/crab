@@ -51,12 +51,15 @@ POST / HTTP/1.1
 ### 请求参数
 |名称|说明|类型|默认值|是否必填|
 |---|---|---|---|---|
-|Yaml|翻译器生成的文件内容|string|无|是|
+|Deploy|翻译器生成的文件内容|string|无|是|
 |InstanceId|实例id|string|无|是|
-|Level|环境|string|无|否|
+|Level|环境|string|develop|否|
+|Operate|操作|string|create|是|
 
-Yaml 翻译器生成的文件内容,中间格式, string，必填
-Level 部署的环境, string类型，非必填，默认develop
+Deploy 翻译器生成的文件内容, string类型，必填
+InstanceId 应用的实例, string类型, 必填
+Level 部署的环境, string类型, 非必填, 默认develop
+Operate 操作, string类型,非必填, 默认值create, 选项create/update/delete
 
 ### 返回值
 ```

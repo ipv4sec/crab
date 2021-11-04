@@ -7,7 +7,12 @@ type Mysql struct {
 	Password string
 	Database string
 }
-
+type Redis struct {
+	Host     string
+	Port     int
+	Password string
+}
 type Config struct {
 	Mysql Mysql
+	Redis Redis
 }
