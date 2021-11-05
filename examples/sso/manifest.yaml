@@ -6,8 +6,8 @@ metadata:
 spec:
   workloads:
     - name: sso
-      type: webservice
-      vendor: webservice
+      type: globalsphare.com/v1alpha1/webservice
+      vendor: globalsphare.com/v1alpha1/webservice
       properties:
         image: nginx:1.21
         configs:
@@ -18,4 +18,4 @@ spec:
                 value: |
                   {"users":["zhangsan", "lisi"]}
       traits:
-        - type: ingress
+        - type: globalsphare.com/v1alpha1/ingress
