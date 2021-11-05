@@ -1,0 +1,19 @@
+.reset-container {
+    padding: 0 20px;
+
+    .input-item {
+        width: 400px;
+        height: 32px;
+        margin: 20px 0;
+    }
+
+    .form-btn {
+        width: 400px;
+        margin-top: 40px;
+        text-align: right;
+        .btn {
+            width: 80px;
+            height: 32px;
+        }
+    }
+}

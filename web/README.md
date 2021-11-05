@@ -1,44 +1,71 @@
-# appManager 相关说明
+# crab-front
 
-> 前端部分使用的是 react@16.3 + react-router + redux + sass ，使用webpack进行项目打包
-
-> 后端部分使用NodeJs 的 express框架。
-
-
-## 目录
-
-* [项目目录]
-    * code: 项目源码目录
-    * config: 项目配置文件目录
-    * docker: 项目的Dockerfile,用于docker镜像构建
-
-
-## 运行
-### 在docker中运行
-
-> 项目目录下进行执行： docker build -f ./docker/Dockerfile -t imageName:version .  创建镜像
-
-
-### 在服务器中使用pm2启动项目运行
-
-1、安装
+## 项目结构
 ```
-npm install -g pm2
+client // 前端部分
+    |-- build // 打包文件
+    |-- config // 配置文件
+    |-- src // 源码
+    |-- utils // 公共方法
+    |
+docker // docker配置文件
+    |-- config.json // 配置文件
+    |-- Dockerfile 
+    |
+node_modules // 依赖
+    |
+public // 前端打包后的文件，并包含图片、第三方插件 
+    |-- css // 打包后的css文件
+    |-- font // 字体文件
+    |-- images // 图片
+    |-- js // 打包后的js文件
+    |-- static // 放置第三方插件
+    |-- index.html // 入口html文件
+    |
+server // node服务端代码
+    |-- routers // 所有路由文件
+    |-- utils // 服务端公共方法
+    |-- views // ejs模版文件
+    |-- index.js // 入口文件
+    |
+babel.config.json // babel配置文件
+    |
+package.json 
+    |
+package-lock.json
+    |
+README.md
 ```
 
-2、建立软连接到全局运行环境
+
+## 主要的技术栈
+1. react@17 、 react-dom@17
+2. react-router-dom@5
+3. redux@4
+4. sass@1
+5. webpack@5
+6. express@4
+7. axios
+
+
+## 开发流程
 ```
-ln -s /usr/local/src/node-v6.5.0-linux-x64/bin/pm2 /usr/local/bin/pm2
+1. 拉取代码，执行npm install
+2. npm run dev 开启webpack-dev-server前端开发环境
+3. npm run serve 开启node服务端
+4. npm run build 执行前端打包
+5. 执行完打包后，将public>index.html 中script和link元素复制到 server>views>index.ejs对应的位置中 （该操作以后优化）
 ```
 
-3、进入项目路径(以 /opt/sites/appManager 为例),进行启动:
+## 部署方法
+### 仅部署前端静态代码
 ```
-cd /opt/sites/appManager
-pm2 start ./code/pm2.json
+将public文件夹下放到nginx的相应位置
 ```
 
-4、如需重启或者停止应用,可在进入项目目录后使用如下命令:
+### 部署node服务
 ```
-pm2 restart all
-pm2 stop all
+将server文件夹和public文件夹放到同一个文件目录下，可以使用pm2去管理进程
+
+或者使用docker去部署：在项目根目录下执行 docker build -f docker/Dockerfile -t imageName:version .  来创建镜像
 ```
