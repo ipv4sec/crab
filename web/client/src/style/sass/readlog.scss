@@ -1,0 +1,12 @@
+.log-list {
+    max-width: 50vw;
+
+    .log-item {
+        display: flex;
+        line-height: 30px;
+
+        .item-desc {
+            word-break: break-all;
+        }
+    }
+}

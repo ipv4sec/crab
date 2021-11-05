@@ -1,6 +1,0 @@
-export const SET_USERINFO = 'SET_USERINFO'
-export const SET_PERMISSION = 'SET_PERMISSION'
-
-export const SHOW_SNACKBAR = 'SHOW_SNACKBAR'
-
-export const SHOW_LOADING = 'SHOW_LOADING'
