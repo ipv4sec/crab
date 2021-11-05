@@ -6,8 +6,8 @@ metadata:
 spec:
   workloads:
     - name: ez
-      type: webservice
-      vendor: webservice
+      type: globalsphare.com/v1alpha1/webservice
+      vendor: globalsphare.com/v1alpha1/webservice
       properties:
         image: harbor1.zlibs.com/island/ez:alpha
         configs:
@@ -17,7 +17,7 @@ spec:
               - name: id.txt
                 value: "ez"
       traits:
-        - type: ingress
+        - type: globalsphare.com/v1alpha1/ingress
   dependencies:
     - name: sso
       version: ">=0.0.1"

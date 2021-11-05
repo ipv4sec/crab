@@ -108,11 +108,6 @@ func PostManifestHandlerFunc(c *gin.Context) {
 	}
 
 	//验证参数，返回参数json,返回vendor内容
-	//test
-	//if p.WorkloadPath == "" {
-	//	p.WorkloadPath = "/Users/huanqiu/Desktop/uploads"
-	//}
-
 	workloadResource, err := checkParams(application, p.WorkloadPath)
 
 	//生成vale.yaml文件
@@ -163,16 +158,13 @@ func GenValeYaml(instanceId string, application v1alpha1.Application, userconfig
 	var vela = VelaYaml{"", make(map[string]interface{}, 0)}
 	var err error
 	vela.Name = application.Metadata.Name
-	//fmt.Println("应用名称：", vela.Name)
 
-	//Workloads
 	if len(application.Spec.Workloads) == 0 {
 		return vela, errors.New("workloads不能为空")
 	}
 
 	//traits:ingress的组件
 	serviceEntryName := entryService(application.Spec.Workloads)
-	//fmt.Println("ingress：", serviceEntryName)
 	authorizationData, serviceEntryData, configmapData, err := parseDependencies(dependencies)
 	if err != nil {
 		return vela, err
@@ -199,7 +191,6 @@ func GenValeYaml(instanceId string, application v1alpha1.Application, userconfig
 		service := serviceVela(workload, instanceId, authorizationData, serviceEntryData, configItemData, rootDomain, serviceEntryName)
 		vela.Services[workload.Name] = service
 	}
-
 	return vela, nil
 }
 
@@ -257,7 +248,7 @@ spec:
 		}
 		content := fmt.Sprintf(finnnalCueFileContent, ctxObjData, serviceItem, template)
 		fileName := RandomString(content)
-		path := fmt.Sprintf("/tmp/%s.cue", fileName)
+		path := fmt.Sprintf("/tmp/test%s.cue", fileName)
 		err = ioutil.WriteFile(path, []byte(content), 0644)
 		if err != nil {
 			klog.Errorln(err.Error())
@@ -289,7 +280,7 @@ spec:
 			count++
 		}
 		if count == 0 {
-			err = errors.New("vendor中无construct")
+			err = errors.New("vendor未实现type")
 			return parserData, err
 		}
 		workload.Construct = construct
@@ -328,14 +319,14 @@ spec:
 }
 
 //获取cue模板
-func modTemplate(workloadVendor, mod,vendorDir string) (string, error) {
+func modTemplate(workloadVendor, mod, vendorDir string) (string, error) {
 	var err error
 	pos := strings.LastIndex(workloadVendor, "/")
-	templatePath := vendorDir +"/" + workloadVendor[:pos+1]+mod+".cue"
-	if !FileExist(templatePath) {
-		return "", errors.New(fmt.Sprintf("文件：%s 不存在", templatePath))
+	path := fmt.Sprintf("%s/%s/workloadVendor/%s.cue", vendorDir, workloadVendor[:pos+1],mod )
+	if !FileExist(path) {
+		return "", errors.New(fmt.Sprintf("文件：%s 不存在", path))
 	}
-	t, err := ioutil.ReadFile(templatePath)
+	t, err := ioutil.ReadFile(path)
 	if err != nil {
 		klog.Errorln(err.Error())
 		return "", err
@@ -375,9 +366,11 @@ func serviceVela(workload v1alpha1.Workload, instanceid string, authorization []
 	properties := GetProperties(workload.Properties)
 	properties["authorization"] = authorization
 	properties["serviceentry"] = serviceentry
-	configs2 := make([]v1alpha1.ConfigItem, 0)
-	if configs,ok := properties["Configs"];ok {
-		configs2 = configs.([]v1alpha1.ConfigItem)
+	configs2 := make([]interface{}, 0)
+	if configs,ok := properties["configs"];ok {
+		for _,v := range configs.([]interface{}) {
+			configs2 = append(configs2, v)
+		}
 	}
 	configs2 = append(configs2, v1alpha1.ConfigItem{"/etc/configs", "", configItemData})
 	properties["configs"] = configs2
@@ -494,7 +487,9 @@ func dependendService(dependencyVelas []v1alpha1.DependencyVela) ([]v1alpha1.Aut
 func entryService(workloads []v1alpha1.Workload) string {
 	for _, svc := range workloads {
 		for _, v := range svc.Traits {
-			if v.Type == "ingress" {
+			arr := strings.Split(v.Type, "/")
+			trait := arr[len(arr)-1]
+			if trait == "ingress" {
 				return svc.Name
 			}
 		}
@@ -553,6 +548,7 @@ func checkParams(application v1alpha1.Application, vendorDir string) (map[string
 	for _, workload := range application.Spec.Workloads {
 		var workloadParams WorkloadParams
 		properties := GetProperties(workload.Properties)
+		fmt.Println(properties)
 		workloadParams.Traits = make([]string, 0)
 		if workload.Type == "" {
 			err = errors.New("workload.Type 不能为空")
@@ -563,8 +559,9 @@ func checkParams(application v1alpha1.Application, vendorDir string) (map[string
 			return returnData,err
 		}
 		var t v1alpha1.WorkloadType
-		t, err = GetWorkloadType(workload.Type,vendorDir)
+		t, err = GetWorkloadType(workload.Type, vendorDir)
 		if err != nil {
+			fmt.Println(err.Error())
 			return returnData,err
 		}
 
@@ -605,22 +602,27 @@ func checkParams(application v1alpha1.Application, vendorDir string) (map[string
 
 //获取WorkloadType
 func GetWorkloadType(typeName,vendorDir string) (v1alpha1.WorkloadType, error){
-	var t v1alpha1.WorkloadType
 	var err error
-	content, err := ioutil.ReadFile(vendorDir + "/" + typeName + ".yaml")
+	var t v1alpha1.WorkloadType
+	pos := strings.LastIndex(typeName, "/")
+	path := fmt.Sprintf("%s/%s/workloadType/%s.yaml",vendorDir, typeName[:pos+1], typeName[pos+1:])
+	content, err := ioutil.ReadFile(path)
 	if err != nil {
 		err = errors.New(fmt.Sprintf("workload.Type: %s 不存在\n", typeName))
 		return t, err
 	}
 	//解析为结构体
 	err = yaml.Unmarshal(content, &t)
+
 	return t, err
 }
 //获取WorkloadVendor
-func GetWorkloadVendor(vendorName,vendorDir string) (v1alpha1.WorkloadVendor, error){
+func GetWorkloadVendor(vendorName, vendorDir string) (v1alpha1.WorkloadVendor, error){
 	var err error
 	var v v1alpha1.WorkloadVendor
-	content,err := ioutil.ReadFile(vendorDir+"/"+vendorName+".yaml")
+	pos := strings.LastIndex(vendorName, "/")
+	path := fmt.Sprintf("%s/%s/workloadVendor/%s.yaml",vendorDir, vendorName[:pos+1], vendorName[pos+1:])
+	content, err := ioutil.ReadFile(path)
 	if err != nil {
 		err = errors.New(fmt.Sprintf("workload.vendor: %s 不存在\n", vendorName))
 		return v, err
