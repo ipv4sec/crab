@@ -83,7 +83,7 @@ data:
     ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
     CREATE TABLE `t_status` (
-      `pk` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '自增主键',
+      `pk` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '自增主键',
       `id` varchar(128) COLLATE utf8mb4_bin NOT NULL DEFAULT '' COMMENT '实例主键',
       `component` varchar(128) COLLATE utf8mb4_bin NOT NULL DEFAULT '' COMMENT '组件名称',
       `status` tinyint(4) NOT NULL DEFAULT '0' COMMENT '组件状态',
