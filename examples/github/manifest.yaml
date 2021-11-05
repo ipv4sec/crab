@@ -7,8 +7,9 @@ metadata:
 spec:
   components:
     - name: ha
-      type: webservice
+      type: globalsphare.com/v1alpha1/webservice
+      vendor: globalsphare.com/v1alpha1/webservice
       properties:
         image: harbor1.zlibs.com/island/island-nginx:1.21
       traits:
-        - type: ingress
+        - type: globalsphare.com/v1alpha1/ingress

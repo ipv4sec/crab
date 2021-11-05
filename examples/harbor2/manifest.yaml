@@ -5,11 +5,13 @@ metadata:
   annotations:
     version: 2.0.0
 spec:
-  components:
+  workloads:
     - name: cache
-      type: redis
+      type: globalsphare.com/v1alpha1/redis
+      vendor: globalsphare.com/v1alpha1/redis
     - name: db
-      type: mysql
+      type: globalsphare.com/v1alpha1/mysql
+      vendor: globalsphare.com/v1alpha1/mysql
       properties:
         rootpwd: "123456"
         storage:
@@ -17,7 +19,8 @@ spec:
         init: "CREATE DATABASE island;"
         after: cache
     - name: api
-      type: webservice
+      type: globalsphare.com/v1alpha1/webservice
+      vendor: globalsphare.com/v1alpha1/webservice
       properties:
         image: harbor1.zlibs.com/island/island-nginx:1.21
         after: db
@@ -28,7 +31,7 @@ spec:
               - name: 1.txt
                 value: "111"
       traits:
-        - type: ingress
+        - type: globalsphare.com/v1alpha1/ingress
 
 
   dependencies:
