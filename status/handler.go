@@ -78,7 +78,7 @@ func PutStatusHandlerFunc(c *gin.Context) {
 	}
 	status := Status{
 		ID:        id,
-		Component: componentName,
+		Name: componentName,
 		Status:    statusCode,
 		Message:   param.Message,
 	}
