@@ -17,27 +17,9 @@ import (
 	"os/exec"
 	"reflect"
 	"regexp"
-	"strings"
 	"strconv"
+	"strings"
 )
-
-type contextObj struct {
-	AppName       string `json:"appName"`
-	ComponentName string `json:"componentName"`
-	Namespace string `json:"namespace"`
-}
-type result struct {
-	Code   int    `json:"code"`
-	Result string `json:"result"`
-}
-type Dependency struct {
-	Instanceid string `json:"InstanceId"`
-	Name string	`json:"name"`
-	Version string	`json:"version"`
-	Location string	`json:"location"`
-	Items map[string][]string `json:"items"`
-	EntryService string `json:"EntryService"`
-}
 type Params struct {
 	Content string 	`json:"Content"`
 	Instanceid string `json:"InstanceId"`
@@ -46,85 +28,42 @@ type Params struct {
 	RootDomain string `json:"RootDomain"`
 	WorkloadPath string `json:"WorkloadPath"`
 }
-//验证type,vendor返回的数据
-type WorkloadParams struct{
-	Parameter map[string]interface{} `json:"parameter"`
-	Type string `json:"type"`
-	Vendor string `json:"vendor"`
-	VendorCue string `json:"vendorCue"`
-	Traits []string `json:"traits"`
-}
-type VelaYaml struct {
-	Name     string                 `json:"name"`
-	Services map[string]interface{} `json:"services"`
-}
-//返回的中间格式
-type ParserData struct {
-	Name string  `yaml:"name"`
-	Init string `yaml:"init"`
-	Workloads map[string]Workload `yaml:"workloads"`
-}
-type Workload struct {
-	Parameter  string `yaml:"parameter"`
-	Construct map[string]string `yaml:"construct"`
-	Traits map[string]string `yaml:"traits"`
-}
-
 func PostManifestHandlerFunc(c *gin.Context) {
 	var err error
 	p := Params{}
 	err = c.BindJSON(&p)
 	if err != nil {
-		r := result{
-			Code:   100100,
-			Result: "参数格式错误",
-		}
-		c.JSON(200, r)
+		c.JSON(200, Result{100100, "参数格式错误"})
 		return
 	}
 	if p.Content == "" || p.Instanceid == "" || p.RootDomain == "" || p.WorkloadPath == "" {
-		r := result{
-			Code:   100100,
-			Result: "缺少参数",
-		}
-		c.JSON(200, r)
+		c.JSON(200, Result{10010, "缺少参数"})
 		return
 	}
 	userconfigStr, err := json.Marshal(p.Userconfig)
 	if err != nil {
-		c.JSON(200, result{10101,"序列化失败"})
+		c.JSON(200, Result{10101,"序列化失败"})
 		return
 	}
 	//解析描述文件
 	var application v1alpha1.Application
 	err = yaml.Unmarshal([]byte(p.Content), &application)
 	if err != nil {
-		r := result{
-			Code:   100100,
-			Result: "文件解析失败",
-		}
-		c.JSON(200, r)
+		c.JSON(200, Result{100100,"文件解析失败"})
 		return
 	}
-	//fmt.Println("---application---")
-	//fmt.Printf("%+v\n", application)
 
 	//验证参数，返回参数json,返回vendor内容
-	//test
-	//if p.WorkloadPath == "" {
-	//	p.WorkloadPath = "/Users/huanqiu/Desktop/uploads"
-	//}
-
 	workloadResource, err := checkParams(application, p.WorkloadPath)
+	if err != nil {
+		c.JSON(200, Result{100100,err.Error()})
+		return
+	}
 
 	//生成vale.yaml文件
 	vale, err := GenValeYaml(p.Instanceid, application, string(userconfigStr), p.RootDomain, p.Dependencies)
 	if err != nil {
-		returnData := result{
-			10101,
-			err.Error(),
-		}
-		c.JSON(200, returnData)
+		c.JSON(200, Result{10101,err.Error()})
 		return
 	}
 	//str,err := json.Marshal(vale)
@@ -137,12 +76,8 @@ func PostManifestHandlerFunc(c *gin.Context) {
 	//生成k8s.yaml文件
 	k8s, err := GenK8sYaml(p.Instanceid, vale, workloadResource)
 	if err != nil {
-		returnData := result{
-			10101,
-			err.Error(),
-		}
 		klog.Errorln(err.Error())
-		c.JSON(200, returnData)
+		c.JSON(200, Result{10101,err.Error()})
 		return
 	}
 	k8s2,err := yaml.Marshal(k8s)
@@ -151,57 +86,42 @@ func PostManifestHandlerFunc(c *gin.Context) {
 		return
 	}
 	//ioutil.WriteFile("tmp/k8s.yaml", k8s2, 0644)
-	returnData := struct {
-		Code   int    `json:"code"`
-		Result string `json:"result"`
-	}{
-		0,
-		string(k8s2),
-	}
-	c.JSON(200, returnData)
+	c.JSON(200, Result{0, string(k8s2)})
 }
 //由manifest.yaml生成vale.yaml
 func GenValeYaml(instanceId string, application v1alpha1.Application, userconfig string, rootDomain string, dependencies []Dependency) (VelaYaml, error) {
 	var vela = VelaYaml{"", make(map[string]interface{}, 0)}
 	var err error
 	vela.Name = application.Metadata.Name
-	//fmt.Println("应用名称：", vela.Name)
-
-	//Workloads
-	if len(application.Spec.Workloads) == 0 {
-		return vela, errors.New("workloads不能为空")
-	}
 
 	//traits:ingress的组件
 	serviceEntryName := entryService(application.Spec.Workloads)
-	//fmt.Println("ingress：", serviceEntryName)
 	authorizationData, serviceEntryData, configmapData, err := parseDependencies(dependencies)
 	if err != nil {
 		return vela, err
 	}
 
 	//为每个 service 创建一个 authorization，授权当前应用下的其他服务有访问的权限
-	for _, component := range application.Spec.Workloads {
+	for _, workload := range application.Spec.Workloads {
 		authorizationData = append(authorizationData,
-			v1alpha1.Authorization{
+			Authorization{
 				Namespace: instanceId,
-				Service:   component.Name,
-				Resources: make([]v1alpha1.DependencyUseItem, 0)},
+				Service:   workload.Name,
+				Resources: make([]DependencyUseItem, 0)},
 		)
 	}
 
 	//configmap
-	configItemData := make([]v1alpha1.ConfigItemDataItem, 0)
+	configItemData := make([]ConfigItemDataItem, 0)
 	for k, v := range configmapData {
-		configItemData = append(configItemData, v1alpha1.ConfigItemDataItem{Name: fmt.Sprintf("%s.host", k), Value: v})
+		configItemData = append(configItemData, ConfigItemDataItem{Name: fmt.Sprintf("%s.host", k), Value: v})
 	}
 	//添加应用时填写的运行时配置
-	configItemData = append(configItemData, v1alpha1.ConfigItemDataItem{Name: "userconfig", Value: userconfig})
+	configItemData = append(configItemData, ConfigItemDataItem{Name: "userconfig", Value: userconfig})
 	for _, workload := range application.Spec.Workloads {
 		service := serviceVela(workload, instanceId, authorizationData, serviceEntryData, configItemData, rootDomain, serviceEntryName)
 		vela.Services[workload.Name] = service
 	}
-
 	return vela, nil
 }
 
@@ -239,8 +159,8 @@ spec:
 	parserData.Name = vela.Name
 	//处理workload
 	for k, v := range vela.Services {
-		ctxObj := make(map[string]contextObj, 0)
-		ctxObj["context"] = contextObj{
+		ctxObj := make(map[string]ContextObj, 0)
+		ctxObj["context"] = ContextObj{
 			vela.Name,
 			k,
 			instanceid,
@@ -259,7 +179,7 @@ spec:
 		}
 		content := fmt.Sprintf(finnnalCueFileContent, ctxObjData, serviceItem, template)
 		fileName := RandomString(content)
-		path := fmt.Sprintf("/tmp/%s.cue", fileName)
+		path := fmt.Sprintf("/tmp/test%s.cue", fileName)
 		err = ioutil.WriteFile(path, []byte(content), 0644)
 		if err != nil {
 			klog.Errorln(err.Error())
@@ -291,7 +211,7 @@ spec:
 			count++
 		}
 		if count == 0 {
-			err = errors.New("vendor中无construct")
+			err = errors.New("vendor未实现type")
 			return parserData, err
 		}
 		workload.Construct = construct
@@ -330,14 +250,14 @@ spec:
 }
 
 //获取cue模板
-func modTemplate(workloadVendor, mod,vendorDir string) (string, error) {
+func modTemplate(workloadVendor, mod, vendorDir string) (string, error) {
 	var err error
 	pos := strings.LastIndex(workloadVendor, "/")
-	templatePath := vendorDir +"/" + workloadVendor[:pos+1]+mod+".cue"
-	if !FileExist(templatePath) {
-		return "", errors.New(fmt.Sprintf("文件：%s 不存在", templatePath))
+	path := fmt.Sprintf("%s/%s/workloadVendor/%s.cue", vendorDir, workloadVendor[:pos+1],mod )
+	if !FileExist(path) {
+		return "", errors.New(fmt.Sprintf("文件：%s 不存在", path))
 	}
-	t, err := ioutil.ReadFile(templatePath)
+	t, err := ioutil.ReadFile(path)
 	if err != nil {
 		klog.Errorln(err.Error())
 		return "", err
@@ -373,20 +293,22 @@ func RandomString(str string) string {
 }
 
 //生成kubevela格式的service
-func serviceVela(workload v1alpha1.Workload, instanceid string, authorization []v1alpha1.Authorization, serviceentry []v1alpha1.ServiceEntry, configItemData []v1alpha1.ConfigItemDataItem, rootDomain string, serviceEntryName string) interface{} {
+func serviceVela(workload v1alpha1.Workload, instanceid string, authorization []Authorization, serviceentry []ServiceEntry, configItemData []ConfigItemDataItem, rootDomain string, serviceEntryName string) interface{} {
 	properties := GetProperties(workload.Properties)
 	properties["authorization"] = authorization
 	properties["serviceentry"] = serviceentry
-	configs2 := make([]v1alpha1.ConfigItem, 0)
-	if configs,ok := properties["Configs"];ok {
-		configs2 = configs.([]v1alpha1.ConfigItem)
+	configs2 := make([]interface{}, 0)
+	if configs,ok := properties["configs"];ok {
+		for _,v := range configs.([]interface{}) {
+			configs2 = append(configs2, v)
+		}
 	}
-	configs2 = append(configs2, v1alpha1.ConfigItem{"/etc/configs", "", configItemData})
+	configs2 = append(configs2, ConfigItem{"/etc/configs", "", configItemData})
 	properties["configs"] = configs2
 	if serviceEntryName == workload.Name {
 		path := make([]string, 0)
 		path = append(path, "/*")
-		entry := v1alpha1.Entry{
+		entry := Entry{
 			fmt.Sprintf("%s.%s", instanceid, rootDomain),
 			path,
 		}
@@ -396,13 +318,13 @@ func serviceVela(workload v1alpha1.Workload, instanceid string, authorization []
 }
 
 //处理依赖
-func parseDependencies(dependencies []Dependency) ([]v1alpha1.Authorization, []v1alpha1.ServiceEntry, map[string]string, error) {
+func parseDependencies(dependencies []Dependency) ([]Authorization, []ServiceEntry, map[string]string, error) {
 	var err error
-	authorization := make([]v1alpha1.Authorization, 0)
-	serviceEntry := make([]v1alpha1.ServiceEntry, 0)
+	authorization := make([]Authorization, 0)
+	serviceEntry := make([]ServiceEntry, 0)
 	configmap := make(map[string]string, 0)
 	//解析uses
-	dependencyVelas := make([]v1alpha1.DependencyVela, 0)
+	dependencyVelas := make([]DependencyVela, 0)
 	for _, v := range dependencies {
 		if v.Instanceid != "" && v.EntryService == "" {
 			return authorization, serviceEntry, configmap, errors.New("dependencies.entryService不能为空")
@@ -411,7 +333,7 @@ func parseDependencies(dependencies []Dependency) ([]v1alpha1.Authorization, []v
 		if err != nil {
 			return authorization, serviceEntry, configmap, err
 		}
-		dependencyVelas = append(dependencyVelas, v1alpha1.DependencyVela{
+		dependencyVelas = append(dependencyVelas, DependencyVela{
 			v.Instanceid,
 			v.Name,
 			v.Location,
@@ -429,16 +351,16 @@ func parseDependencies(dependencies []Dependency) ([]v1alpha1.Authorization, []v
 }
 
 //依赖的服务,授权
-func dependendService(dependencyVelas []v1alpha1.DependencyVela) ([]v1alpha1.Authorization, []v1alpha1.ServiceEntry, map[string]string, error) {
-	auth := make([]v1alpha1.Authorization, 0)
+func dependendService(dependencyVelas []DependencyVela) ([]Authorization, []ServiceEntry, map[string]string, error) {
+	auth := make([]Authorization, 0)
 	//外部服务调用
-	svcEntry := make([]v1alpha1.ServiceEntry, 0)
+	svcEntry := make([]ServiceEntry, 0)
 	//运行时配置
 	cm := make(map[string]string, 0)
 
 	for _, v := range dependencyVelas {
 		if v.Instanceid != "" {
-			auth = append(auth, v1alpha1.Authorization{
+			auth = append(auth, Authorization{
 				v.Instanceid, v.EntryService, v.Resource,
 			})
 			cm[v.Name] = fmt.Sprintf("%s.%s.svc.cluster.local", v.EntryService, v.Instanceid)
@@ -456,7 +378,7 @@ func dependendService(dependencyVelas []v1alpha1.DependencyVela) ([]v1alpha1.Aut
 					return auth, svcEntry, cm, err
 				}
 				arr := strings.Split(u.Host, ".")
-				auth = append(auth, v1alpha1.Authorization{arr[0], arr[1], v.Resource})
+				auth = append(auth, Authorization{arr[0], arr[1], v.Resource})
 			} else {
 				arr, err := url.ParseRequestURI(v.Location)
 				if err != nil {
@@ -483,9 +405,7 @@ func dependendService(dependencyVelas []v1alpha1.DependencyVela) ([]v1alpha1.Aut
 						return auth, svcEntry, cm, errors.New("转int失败")
 					}
 				}
-				svcEntry = append(svcEntry,
-					v1alpha1.ServiceEntry{arr.Host, port, protocol},
-				)
+				svcEntry = append(svcEntry,ServiceEntry{arr.Host, port, protocol})
 			}
 		}
 	}
@@ -496,7 +416,9 @@ func dependendService(dependencyVelas []v1alpha1.DependencyVela) ([]v1alpha1.Aut
 func entryService(workloads []v1alpha1.Workload) string {
 	for _, svc := range workloads {
 		for _, v := range svc.Traits {
-			if v.Type == "ingress" {
+			arr := strings.Split(v.Type, "/")
+			trait := arr[len(arr)-1]
+			if trait == "ingress" {
 				return svc.Name
 			}
 		}
@@ -517,9 +439,9 @@ func inExCheck(location string) (string, error) {
 	return "external", nil
 }
 
-func ApiParse(uses map[string][]string) ([]v1alpha1.DependencyUseItem, error) {
+func ApiParse(uses map[string][]string) ([]DependencyUseItem, error) {
 	var err error
-	rtn := make([]v1alpha1.DependencyUseItem, 0)
+	rtn := make([]DependencyUseItem, 0)
 	for k, v := range uses {
 		count := 0
 		actions := make([]string, 0)
@@ -540,7 +462,7 @@ func ApiParse(uses map[string][]string) ([]v1alpha1.DependencyUseItem, error) {
 		if count == 0 {
 			return rtn, errors.New("依赖资源的操作类型不能为空")
 		}
-		rtn = append(rtn, v1alpha1.DependencyUseItem{k, actions})
+		rtn = append(rtn, DependencyUseItem{k, actions})
 	}
 	return rtn,err
 }
@@ -555,7 +477,6 @@ func checkParams(application v1alpha1.Application, vendorDir string) (map[string
 	for _, workload := range application.Spec.Workloads {
 		var workloadParams WorkloadParams
 		properties := GetProperties(workload.Properties)
-
 		workloadParams.Traits = make([]string, 0)
 		if workload.Type == "" {
 			err = errors.New("workload.Type 不能为空")
@@ -566,8 +487,9 @@ func checkParams(application v1alpha1.Application, vendorDir string) (map[string
 			return returnData,err
 		}
 		var t v1alpha1.WorkloadType
-		t, err = GetWorkloadType(workload.Type,vendorDir)
+		t, err = GetWorkloadType(workload.Type, vendorDir)
 		if err != nil {
+			fmt.Println(err.Error())
 			return returnData,err
 		}
 
@@ -608,22 +530,27 @@ func checkParams(application v1alpha1.Application, vendorDir string) (map[string
 
 //获取WorkloadType
 func GetWorkloadType(typeName,vendorDir string) (v1alpha1.WorkloadType, error){
-	var t v1alpha1.WorkloadType
 	var err error
-	content, err := ioutil.ReadFile(vendorDir + "/" + typeName + ".yaml")
+	var t v1alpha1.WorkloadType
+	pos := strings.LastIndex(typeName, "/")
+	path := fmt.Sprintf("%s/%s/workloadType/%s.yaml",vendorDir, typeName[:pos+1], typeName[pos+1:])
+	content, err := ioutil.ReadFile(path)
 	if err != nil {
 		err = errors.New(fmt.Sprintf("workload.Type: %s 不存在\n", typeName))
 		return t, err
 	}
 	//解析为结构体
 	err = yaml.Unmarshal(content, &t)
+
 	return t, err
 }
 //获取WorkloadVendor
-func GetWorkloadVendor(vendorName,vendorDir string) (v1alpha1.WorkloadVendor, error){
+func GetWorkloadVendor(vendorName, vendorDir string) (v1alpha1.WorkloadVendor, error){
 	var err error
 	var v v1alpha1.WorkloadVendor
-	content,err := ioutil.ReadFile(vendorDir+"/"+vendorName+".yaml")
+	pos := strings.LastIndex(vendorName, "/")
+	path := fmt.Sprintf("%s/%s/workloadVendor/%s.yaml",vendorDir, vendorName[:pos+1], vendorName[pos+1:])
+	content, err := ioutil.ReadFile(path)
 	if err != nil {
 		err = errors.New(fmt.Sprintf("workload.vendor: %s 不存在\n", vendorName))
 		return v, err
@@ -650,31 +577,40 @@ func GetWorkloadVendor(vendorName,vendorDir string) (v1alpha1.WorkloadVendor, er
 func GetProperties(properties map[string]interface{}) map[string]interface{}{
 	ret := make(map[string]interface{}, 0)
 	for k, v := range properties {
-		switch v.(type) {
-		case string:
-			ret[k] = v
-		case map[interface{}]interface{}:
-			sub := make(map[string]interface{}, 0)
-			var n interface{} = v
-			m := reflect.ValueOf(n)
-			if m.Kind() == reflect.Map {
-				res := reflect.MakeMap(m.Type())
-				keys := m.MapKeys()
-				for _, k := range keys {
-					key := k.Convert(res.Type().Key()) //.Convert(m.Type().Key())
-					value := m.MapIndex(key)
-					key2 := fmt.Sprintf("%s", key)
-					value2 := fmt.Sprintf("%s", value)
-					sub[key2] = value2
-					res.SetMapIndex(key, value)
-				}
-			}
-			ret[fmt.Sprintf("%s", k)] = sub
-		case int:
-			ret[k] = v
-		case interface{}:
-			klog.Errorln("特殊类型")
-		}
+		ret[k] = GetValue(v)
 	}
 	return ret
+}
+//解析数据
+func GetValue(v interface{}) interface{} {
+	vType := reflect.TypeOf(v)
+	if vType.Kind() == reflect.String {
+		after := v.(string)
+		return after
+	} else if vType.Kind() == reflect.Int {
+		after := v.(int)
+		return after
+	} else if vType.Kind() == reflect.Slice {
+		var after []interface{}
+		for _, item := range v.([]interface{}) {
+			itemValue := GetValue(item)
+			after = append(after, itemValue)
+		}
+		return after
+	} else if vType.Kind() == reflect.Struct {
+		//todo
+		var after interface{}
+		return after
+	} else if vType.Kind() == reflect.Map {
+		after := make(map[string]interface{}, 0)
+		for key, val := range v.(map[interface{}]interface{}) {
+			newKey := fmt.Sprintf("%s", key)
+			newValue := GetValue(val)
+			after[newKey] = newValue
+		}
+		return after
+	}
+	//todo
+	klog.Errorln("其他类型")
+	return nil
 }

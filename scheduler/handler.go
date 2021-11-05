@@ -29,8 +29,7 @@ type Param struct {
 
 func PostDeploymentHandlerFunc(c *gin.Context)  {
 	var param Param
-	var err error
-	err = c.ShouldBind(&param)
+	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		klog.Errorln(err)
 		ret := Result{
@@ -75,13 +74,13 @@ func PostDeploymentHandlerFunc(c *gin.Context)  {
 		if ok {
 			component.After = after.(string)
 		} else {
-			component.Deployment = deployment.Init
+			component.Deployment = fmt.Sprintf("%v\n", deployment.Init)
 		}
 		for _, v2 := range v.Construct {
-			component.Deployment += fmt.Sprintf("\n\n----\n\n%s", v2)
+			component.Deployment += fmt.Sprintf("---\n%s", v2)
 		}
 		for _, v2 := range v.Traits {
-			component.Deployment += fmt.Sprintf("\n\n----\n\n%s", v2)
+			component.Deployment += fmt.Sprintf("---\n%s", v2)
 		}
 		componentBytes, err := json.Marshal(component)
 		if err != nil {
@@ -129,8 +128,8 @@ func Consumer(){
 				klog.Errorln("保存到队列失败", err.Error())
 			}
 		}
-
-		saved := fmt.Sprintf("tmp/%s_%s.yaml", component.ID, component.Name)
+		klog.Infoln("要执行的文件内容为:", component.Deployment)
+		saved := fmt.Sprintf("/tmp/%s_%s.yaml", component.ID, component.Name)
 		err = ioutil.WriteFile(saved, []byte(component.Deployment),0777)
 		if err != nil {
 			klog.Errorln("保存文件错误", saved, err.Error())
