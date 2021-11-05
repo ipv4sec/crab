@@ -17,8 +17,8 @@ import (
 	"os/exec"
 	"reflect"
 	"regexp"
-	"strings"
 	"strconv"
+	"strings"
 )
 
 type contextObj struct {
@@ -106,8 +106,6 @@ func PostManifestHandlerFunc(c *gin.Context) {
 		c.JSON(200, r)
 		return
 	}
-	//fmt.Println("---application---")
-	//fmt.Printf("%+v\n", application)
 
 	//验证参数，返回参数json,返回vendor内容
 	//test
@@ -555,7 +553,6 @@ func checkParams(application v1alpha1.Application, vendorDir string) (map[string
 	for _, workload := range application.Spec.Workloads {
 		var workloadParams WorkloadParams
 		properties := GetProperties(workload.Properties)
-
 		workloadParams.Traits = make([]string, 0)
 		if workload.Type == "" {
 			err = errors.New("workload.Type 不能为空")
@@ -650,31 +647,40 @@ func GetWorkloadVendor(vendorName,vendorDir string) (v1alpha1.WorkloadVendor, er
 func GetProperties(properties map[string]interface{}) map[string]interface{}{
 	ret := make(map[string]interface{}, 0)
 	for k, v := range properties {
-		switch v.(type) {
-		case string:
-			ret[k] = v
-		case map[interface{}]interface{}:
-			sub := make(map[string]interface{}, 0)
-			var n interface{} = v
-			m := reflect.ValueOf(n)
-			if m.Kind() == reflect.Map {
-				res := reflect.MakeMap(m.Type())
-				keys := m.MapKeys()
-				for _, k := range keys {
-					key := k.Convert(res.Type().Key()) //.Convert(m.Type().Key())
-					value := m.MapIndex(key)
-					key2 := fmt.Sprintf("%s", key)
-					value2 := fmt.Sprintf("%s", value)
-					sub[key2] = value2
-					res.SetMapIndex(key, value)
-				}
-			}
-			ret[fmt.Sprintf("%s", k)] = sub
-		case int:
-			ret[k] = v
-		case interface{}:
-			klog.Errorln("特殊类型")
-		}
+		ret[k] = GetValue(v)
 	}
 	return ret
+}
+//解析数据
+func GetValue(v interface{}) interface{} {
+	vType := reflect.TypeOf(v)
+	if vType.Kind() == reflect.String {
+		after := v.(string)
+		return after
+	} else if vType.Kind() == reflect.Int {
+		after := v.(int)
+		return after
+	} else if vType.Kind() == reflect.Slice {
+		var after []interface{}
+		for _, item := range v.([]interface{}) {
+			itemValue := GetValue(item)
+			after = append(after, itemValue)
+		}
+		return after
+	} else if vType.Kind() == reflect.Struct {
+		//todo
+		var after interface{}
+		return after
+	} else if vType.Kind() == reflect.Map {
+		after := make(map[string]interface{}, 0)
+		for key, val := range v.(map[interface{}]interface{}) {
+			newKey := fmt.Sprintf("%s", key)
+			newValue := GetValue(val)
+			after[newKey] = newValue
+		}
+		return after
+	}
+	//todo
+	klog.Errorln("其他类型")
+	return nil
 }
