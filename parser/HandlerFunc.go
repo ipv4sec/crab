@@ -23,7 +23,7 @@ import (
 type Params struct {
 	Content string 	`json:"Content"`
 	Instanceid string `json:"InstanceId"`
-	Userconfig map[string]string `json:"UserConfig"`
+	Userconfig interface{} `json:"UserConfig"`
 	Dependencies []Dependency `json:"Dependencies"`
 	RootDomain string `json:"RootDomain"`
 	WorkloadPath string `json:"WorkloadPath"`
@@ -484,13 +484,13 @@ func checkParams(application v1alpha1.Application, vendorDir string) (map[string
 		}
 		if workload.Vendor == "" {
 			err = errors.New("workload.Vendor 不能为空")
-			return returnData,err
+			return returnData, err
 		}
 		var t v1alpha1.WorkloadType
 		t, err = GetWorkloadType(workload.Type, vendorDir)
 		if err != nil {
 			fmt.Println(err.Error())
-			return returnData,err
+			return returnData, err
 		}
 
 		workloadParams.Traits = t.Spec.Traits
@@ -503,7 +503,7 @@ func checkParams(application v1alpha1.Application, vendorDir string) (map[string
 			return returnData, err
 		}
 
-		//检查参数
+		//检查type参数
 		parameterStr := fmt.Sprintf("parameter:{ \n%s\n}\nparameter:{\n%s\n}", t.Spec.Parameter, string(properties2))
 		fileName := RandomString(parameterStr)
 		path := fmt.Sprintf("/tmp/%s.cue", fileName)
@@ -516,6 +516,28 @@ func checkParams(application v1alpha1.Application, vendorDir string) (map[string
 			return returnData, errors.New("参数错误")
 		}
 		_ = output
+		//fmt.Println("=======")
+		////检查trait参数
+		//if len(workload.Traits) > 0 {
+		//	for k,v := range workload.Traits {
+		//		fmt.Println(k)
+		//		fmt.Println(v.Type)
+		//		fmt.Println(v.Properties)
+		//		properties := GetProperties(v.Properties)
+		//		properties2, err := json.Marshal(properties)
+		//		if err != nil {
+		//			klog.Errorln(err)
+		//			return returnData, errors.New("trait参数序列化失败")
+		//		}
+		//		fmt.Println(string(properties2))
+		//		file, err := GetTrait(v.Type, vendorDir)
+		//		if err != nil {
+		//			klog.Errorln(err)
+		//			return returnData, err
+		//		}
+		//		fmt.Println(file.Spec.Parameter)
+		//	}
+		//}
 
 		var v v1alpha1.WorkloadVendor
 		v,err = GetWorkloadVendor(workload.Vendor,vendorDir)
@@ -574,6 +596,21 @@ func GetWorkloadVendor(vendorName, vendorDir string) (v1alpha1.WorkloadVendor, e
 	return v, err
 }
 
+//获取trait
+func GetTrait(name, vendorDir string) (v1alpha1.Trait, error){
+	var err error
+	var t v1alpha1.Trait
+	pos := strings.LastIndex(name, "/")
+	path := fmt.Sprintf("%s/%s/trait/%s.yaml",vendorDir, name[:pos+1], name[pos+1:])
+	content, err := ioutil.ReadFile(path)
+	if err != nil {
+		err = errors.New(fmt.Sprintf("trait: %s 不存在\n", name))
+		return t, err
+	}
+	//解析为结构体
+	err = yaml.Unmarshal(content, &t)
+	return t, err
+}
 func GetProperties(properties map[string]interface{}) map[string]interface{}{
 	ret := make(map[string]interface{}, 0)
 	for k, v := range properties {
