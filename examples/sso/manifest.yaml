@@ -6,8 +6,8 @@ metadata:
 spec:
   workloads:
     - name: sso
-      type: globalsphare.com/v1alpha1/webservice
-      vendor: globalsphare.com/v1alpha1/webservice
+      type: globalsphare.com/v1alpha1/workloadtype/webservice
+      vendor: globalsphare.com/v1alpha1/workloadvendor/webservice
       properties:
         image: nginx:1.21
         configs:
