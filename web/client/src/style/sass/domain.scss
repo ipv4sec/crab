@@ -1,0 +1,50 @@
+.domain-container {
+    padding: 0 20px;
+
+    .domain-desc {
+        width: 100%;
+        
+        .desc-text {
+            font-weight: 600;
+        }
+    }
+
+    .addr-list {
+        width: 100%;
+        display: flex;
+
+        .addr-item{
+            flex: 1;
+            list-style: none;
+
+            .item-li {
+                line-height: 36px;
+                text-align: center;
+            }
+        }
+    }
+
+    .domain-input {
+        min-width: 400px;
+        height: 32px;
+        margin-top: 40px;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+
+        .input {
+            flex: 1;
+            margin-right: 20px;
+            height: 32px;
+            padding: 0 10px;
+            border: 1px solid #dcdcdc;
+        }
+
+        .input-btn {
+            width: 100px;
+            height: 32px;
+            margin-left: 20px;
+            flex-shrink: 0;
+        }
+    }
+}
