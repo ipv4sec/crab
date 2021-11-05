@@ -1,0 +1,125 @@
+.manager-container {
+    padding: 0 20px;
+
+   .upload-file {
+       display: none;
+   }
+
+   .upload-btn {
+       padding: 0 30px;
+   }
+
+   .instance-list {
+       margin-top: 20px;
+   }
+
+
+   .table {
+        width: 100%;
+        overflow-x: hidden;
+        table-layout: fixed;
+        border-collapse: collapse;
+        margin-left: auto;
+        margin-right: auto;
+
+        tr {
+            height: 60px;
+        }
+        tr:hover {
+            background: #f0f0f0;
+            transition: all 0.3s ease-out;
+        }
+
+        td, th {
+            padding: 0 6px;
+            border-bottom: 1px solid #eee;
+            text-overflow: ellipsis; 
+            overflow: hidden;
+            white-space: nowrap;
+            color: #4a4a4a;
+            font-size: 14px;
+        }
+        td:last-child, th:last-child {
+            text-align: center;
+        }
+
+        th {
+            background: #fff;
+            color: #d2d2d2;
+            border-bottom: 1px solid #f3f3f3;
+            text-align: left;
+            font-weight: normal;
+        }
+
+        td {
+            p {
+                display: flex;
+                align-items: center;
+                i {
+                    font-size: 14px!important;
+                    margin-right: 4px;
+
+                }
+            }
+        }
+        
+
+    .published{
+            color: #4a90e2;
+            i {
+                color: #4a90e2;
+            }
+    }
+    .publishing{
+            color: #4a4a4a;
+            i {
+                color: #9B9B9B!important;
+            }
+    }
+
+        .app-td {
+            display: flex;
+            align-items: center;
+            .app-td-icon {
+                width: 32px;
+                height: 32px;
+                border-radius: 16px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                overflow: hidden;
+                margin-right: 10px;
+                i {
+                    color: white;
+                    font-size: 16px;
+                }  
+            }
+        
+        }
+
+        .list-entry {
+            a {
+                color: #4a4a4a;
+                text-decoration: none;
+            }
+        }   
+
+    }
+
+    .pagination-content {
+        display: flex;
+        justify-content: center;
+        margin-top: 30px;
+    }
+}
+
+
+.staticPopoverMenu {
+    color: #6a6a6a;
+    font-size: 14px;
+    i {
+        font-size: 14px;
+        margin-right: 10px;
+        color: #757575;
+    }
+}
