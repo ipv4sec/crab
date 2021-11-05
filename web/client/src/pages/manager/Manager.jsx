@@ -119,8 +119,8 @@ const Manager = (props) => {
             params: {offset: page*limit, limit: limit}
         }).then((res) => {
             if(res.data.code === 0) {
-                setAppList(res.data.result.rows)
-                setTotal(res.data.result.total)
+                setAppList(res.data.result.rows || [])
+                setTotal(res.data.result.total || 0)
             }else {
                 store.dispatch({
                     type: TYPE.SNACKBAR,
@@ -168,7 +168,7 @@ const Manager = (props) => {
         formData.append('file', file)
 
         axios({
-            url: '/upload',
+            url: '/api/app/upload',
             method: 'POST',
             data: formData,
             headers: {'Content-Type': 'multipart/form-data'}
@@ -186,6 +186,7 @@ const Manager = (props) => {
                 type: TYPE.LOADING,
                 val: false
             })
+            event.targe.value = ''
         }).catch((err) => {
             console.error(err)
             store.dispatch({
@@ -196,6 +197,7 @@ const Manager = (props) => {
                 type: TYPE.LOADING,
                 val: false
             })
+            event.targe.value = ''
         })
     }
 

@@ -28,7 +28,7 @@ const WorkLoad = (props) => {
             url: '/api/cluster/mirror'
         }).then((res) => {
             if(res.data.code === 0) {
-                setHost(res.data.result)
+                setInitHost(res.data.result)
             }else {
                 store.dispatch({
                     type: TYPE.SNACKBAR,

@@ -9,22 +9,22 @@ import axios from 'axios'
 let list = [
                 {
                     "name": "应用管理",
-                    "url": "/",
+                    "url": "/home",
                     "sub": [],
                 },
                 {
                     "name": "工作负载",
-                    "url": "/workload",
+                    "url": "/home/workload",
                     "sub": [],
                 },
                 {
                     "name": "根域设置",
-                    "url": "/domain",
+                    "url": "/home/domain",
                     "sub": [],
                 },
                 {
                     "name": "密码设置",
-                    "url": "/reset",
+                    "url": "/home/reset",
                     "sub": [],
                 },
                 // {

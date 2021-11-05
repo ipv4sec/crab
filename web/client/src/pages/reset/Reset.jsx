@@ -7,8 +7,6 @@ import "../../style/sass/reset.scss"
 import axios from 'axios'
 import store from '../../store/store'
 import * as TYPE from '../../store/actions'
-import Loading from '../../components/Loading'
-import SnackbarCmp from '../../components/Snackbar'
 
 const Reset = (props) => {
 
@@ -29,11 +27,11 @@ const Reset = (props) => {
     }
 
     function save() {
-        if(userName.trim() === ''){
+        if(originPassword.trim() === ''){
             setOriginPasswordErr('请输入原密码')
             return
         }
-        if(password.trim() === '') {
+        if(newPassword.trim() === '') {
             setNewPasswordErr('请输入新密码')
             return
         }

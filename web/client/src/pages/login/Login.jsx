@@ -54,10 +54,9 @@ const Login = (props) => {
                 password: password
             }
         }).then((res) => {
-            let data = res.data
-            if(data.code === 0) {
-                window.sessionStorage.setItem("token", res.data.result.token)
-                this.props.history.redirect('/')
+            if(res.data.code === 0) {
+                window.sessionStorage.setItem('user', res.data.result.username || '')
+                window.location.replace('/home')
             }else {
                 store.dispatch({
                     type: TYPE.SNACKBAR,

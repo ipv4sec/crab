@@ -11,7 +11,7 @@ import '../../style/sass/domain.scss'
 const Domain = (props) => {
     const [ hostErr, setHostErr ] = useState('')
     const [address, setAddress] = useState([])
-    const domainRef = useRef(null)
+    const [initDomain, setInitDomain] = useState('')
     let host = ''    
 
     useEffect(() => {
@@ -25,7 +25,8 @@ const Domain = (props) => {
             url: '/api/cluster/domain'
         }).then((res) => {
             if(res.data.code === 0) {
-                domainRef.current.setData(res.data.result)
+                setInitDomain(res.data.result)
+                host = res.data.result
             }
         }).catch((err) => {
             console.log(err)
@@ -130,7 +131,7 @@ const Domain = (props) => {
                 }
             </div> 
             <div className="domain-input">
-                <Input placeholder="请输入根域" ref={domainRef} onChange={changeHost} inputErr={hostErr} />
+                <Input placeholder="请输入根域" change={changeHost} inputErr={hostErr} set={initDomain}/>
                 <Button className="input-btn" variant="contained" color="primary" onClick={save}>检测并保存</Button>
             </div>
         </div>
