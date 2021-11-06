@@ -58,6 +58,15 @@ const Reset = (props) => {
                 type: TYPE.LOADING,
                 val: false
             })
+           
+            if(res.data.code === 0) {
+                setTimeout(() => {
+                    sessionStorage.setItem('user', '')
+                    window.location.replace('/')
+                })
+               
+            }
+           
         }).catch((err) => {
             console.log('err===', err)
             store.dispatch({

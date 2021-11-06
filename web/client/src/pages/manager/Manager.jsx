@@ -515,10 +515,10 @@ const Manager = (props) => {
                                         <tr key={item.id}>
                                             <td >
                                                 <div className="app-td">
-                                                    {item.name}
+                                                    {item.id}
                                                 </div>
                                             </td>
-                                            <td>{item.status}</td>
+                                            <td>{item.name}</td>
                                             <td>{item.version}</td>
                                             <td className="list-entry"><a href={item.entry} target="_blank">{item.entry}</a></td>
                                             <td>{item.status}</td>
