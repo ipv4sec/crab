@@ -1,7 +1,9 @@
 
     .instance-content{
-        max-width: 50vw;
+        max-width: 70vw;
+        min-width: 30vw;
         height: calc(100% - 28px);
+        min-height: 10vh;
         overflow: auto;
         padding: 0 20px;
         .app-item {
@@ -85,8 +87,9 @@
 
     .appconfig-content {
     
-        max-width: 50vw;
-        height: 50vh;
+        max-width: 70vw;
+        min-width: 10vw;
+        min-height: 10vh;
         overflow: auto;
     
         .config-item {

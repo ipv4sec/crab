@@ -26,10 +26,10 @@ const Home = (props) => {
             </div>
             <div className="content-right">
                 <Switch> 
-                    <Route path="/workload" component={WorkLoad} />
-                    <Route path="/domain" component={Domain} />
-                    <Route path="/reset" component={Reset} />
-                    <Route path="/" component={Manager} />
+                    <Route path="/home/workload" component={WorkLoad} />
+                    <Route path="/home/domain" component={Domain} />
+                    <Route path="/home/reset" component={Reset} />
+                    <Route path="/home" component={Manager} />
                 </Switch>
             </div>
 

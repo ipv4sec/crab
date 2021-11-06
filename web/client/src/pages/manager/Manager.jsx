@@ -28,7 +28,7 @@ const testConfigData = {
         "type": "immutable"
       }
     },
-    "userconfig": {
+    "userconfigs": {
       "properties": {
         "param1": {
           "type": "integer"
@@ -98,9 +98,9 @@ const Manager = (props) => {
     const [showLog, setShowLog] = useState(false)
     const [logTitle, setLogTitle] = useState('日志')
     const [logList, setLogList] = useState([])
-    const [page, setPage] = useState(1) // 当前页
+    const [page, setPage] = useState(0) // 当前页
     const limit = 10 // 每页多少条
-    let curInstance = null
+    const [curInstance, setCurInstance ]= useState()
     const onePageLength = 10
 
     useEffect(() => {
@@ -119,8 +119,8 @@ const Manager = (props) => {
             params: {offset: page*limit, limit: limit}
         }).then((res) => {
             if(res.data.code === 0) {
-                setAppList(res.data.result.rows)
-                setTotal(res.data.result.total)
+                setAppList(res.data.result.rows || [])
+                setTotal(res.data.result.total || 0)
             }else {
                 store.dispatch({
                     type: TYPE.SNACKBAR,
@@ -157,6 +157,7 @@ const Manager = (props) => {
 
     // 上传文件
     const uploadFileChange = () => {
+
         store.dispatch({
             type: TYPE.LOADING,
             val: true
@@ -168,7 +169,7 @@ const Manager = (props) => {
         formData.append('file', file)
 
         axios({
-            url: '/upload',
+            url: '/api/app/upload',
             method: 'POST',
             data: formData,
             headers: {'Content-Type': 'multipart/form-data'}
@@ -186,6 +187,7 @@ const Manager = (props) => {
                 type: TYPE.LOADING,
                 val: false
             })
+            uploadRef.current.value = ''
         }).catch((err) => {
             console.error(err)
             store.dispatch({
@@ -196,6 +198,7 @@ const Manager = (props) => {
                 type: TYPE.LOADING,
                 val: false
             })
+            uploadRef.current.value = ''
         })
     }
 
@@ -210,7 +213,7 @@ const Manager = (props) => {
             // 依赖中存在某些应用没有服务的情况
             store.dispatch({
                 type: TYPE.SNACKBAR,
-                val: data.notHadServe.join('、') + '已上应用中不存在服务，请创建'
+                val: data.notHadServe.join('、') + '以上应用中不存在服务，请创建'
             })
             return 
         }
@@ -218,7 +221,7 @@ const Manager = (props) => {
             // 依赖中存在没有选择服务的应用
             store.dispatch({
                 type: TYPE.SNACKBAR,
-                val: data.allAppSelectServe.join('、') + '已上应用未选择服务，请选择'
+                val: data.allAppSelectServe.join('、') + '以上应用未选择服务，请选择'
             })
             return
         }
@@ -310,14 +313,14 @@ const Manager = (props) => {
             })
 
         }
-        if(data.userconfig) {
-            configs(data.userconfig, 'userconfig', appConfig)
+        if(data.userconfigs) {
+            configs(data.userconfigs, 'userconfigs', appConfig)
         }
        
         return {
             instanceid: data.instanceid,
-            dependencies: JSON.stringify(selectData),
-            userconfig: JSON.stringify(appConfig.userconfig ? appConfig.userconfig : {})
+            dependencies: selectData,
+            userconfigs: appConfig.userconfigs || null
         }
     }
 
@@ -332,7 +335,8 @@ const Manager = (props) => {
     }
 
     const clickMenu = (item) => {
-        curInstance = item
+        setCurInstance(item)
+        console.log('sdlfjlksd===',curInstance)
         setAnchorEl(event.target)
 
     }
@@ -366,6 +370,8 @@ const Manager = (props) => {
             params: {id: curInstance.id}
         }).then((res) => {
             if(res.data.code === 0) {
+                setShowLog(true)
+                setLogTitle('实例 '+curInstance.name)
                 setLogList(res.data.result)
             }else {
                 store.dispatch({
@@ -394,24 +400,7 @@ const Manager = (props) => {
     // 导出配置
     const outputFile = () => {
         setAnchorEl(null)
-        axios({
-            method: "GET",
-            url: `/api/app/output`,
-            params: {id: curInstance.id}
-        }).then((res) => {
-            
-        }).catch((err) => {
-            store.dispatch({
-                type: TYPE.SNACKBAR,
-                val: '请求错误'
-            })
-            store.dispatch({
-                type: TYPE.LOADING,
-                val: false
-            })
-        })
-        
-
+        window.open('/api/app/output?id='+curInstance.id)
     }
 
     // 删除实例

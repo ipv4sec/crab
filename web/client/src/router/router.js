@@ -4,6 +4,7 @@ import CircularProgress from '@material-ui/core/CircularProgress'
 
 const Home = lazy(() => import('../pages/home/Home'))
 const Login = lazy(() => import('../pages/login/Login'))
+const Portal = lazy(() => import('../pages/portal/Portal'))
 
 const loading = () => (
     <div className="error-loading">
@@ -16,7 +17,8 @@ const RouterDOM = () => (
         <Suspense fallback={loading()}>
             <Switch>
                 <Route path="/login" component={Login} />
-                <Route path="/" component={Home} />
+                <Route path="/home" component={Home} />
+                <Route path="/" component={Portal} />
             </Switch>
         </Suspense>
     </BrowserRouter>
