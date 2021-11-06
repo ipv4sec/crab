@@ -2,22 +2,26 @@ apiVersion: ami.globalsphare.com/v1alpha1
 kind: Application
 metadata:
   name: wstunnel
-  annotations:
-    version: 0.1.0
+  version: 0.1.0
 spec:
   workloads:
     - name: api
       type: globalsphare.com/v1alpha1/webservice
-      vendor: globalsphare.com/v1alpha1/webservice
+      vendor: globalsphare.com/v1alpha1/webservice]
+      traits:
+        - type: globalsphare.com/v1alpha1/ingress
       properties:
         image: harbor1.zlibs.com/island/island-wstunnel:0.1.0
         configs:
           - path: /app
-            subPath: robots.txt
+            subPath: index.html
             data:
-              - name: robots.txt
+              - name: index.html
                 value: |
-                  User-agent: *
-                  Disallow: *
-      traits:
-        - type: globalsphare.com/v1alpha1/ingress
+                  .__SSH Running .
+                  _______ __ __  ____   ____ |__| ____    ____
+                  \_  __ \  |  \/    \ /    \|  |/    \  / ___\
+                   |  | \/  |  /   |  \   |  \  |   |  \/ /_/  >
+                   |__|  |____/|___|  /___|  /__|___|  /\___  /
+                                    \/     \/        \//_____/
+
