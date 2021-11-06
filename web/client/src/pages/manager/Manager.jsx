@@ -28,7 +28,7 @@ const testConfigData = {
         "type": "immutable"
       }
     },
-    "userconfig": {
+    "userconfigs": {
       "properties": {
         "param1": {
           "type": "integer"
@@ -98,7 +98,7 @@ const Manager = (props) => {
     const [showLog, setShowLog] = useState(false)
     const [logTitle, setLogTitle] = useState('日志')
     const [logList, setLogList] = useState([])
-    const [page, setPage] = useState(1) // 当前页
+    const [page, setPage] = useState(0) // 当前页
     const limit = 10 // 每页多少条
     let curInstance = null
     const onePageLength = 10
@@ -157,6 +157,7 @@ const Manager = (props) => {
 
     // 上传文件
     const uploadFileChange = () => {
+
         store.dispatch({
             type: TYPE.LOADING,
             val: true
@@ -186,7 +187,7 @@ const Manager = (props) => {
                 type: TYPE.LOADING,
                 val: false
             })
-            event.targe.value = ''
+            uploadRef.current.value = ''
         }).catch((err) => {
             console.error(err)
             store.dispatch({
@@ -197,7 +198,7 @@ const Manager = (props) => {
                 type: TYPE.LOADING,
                 val: false
             })
-            event.targe.value = ''
+            uploadRef.current.value = ''
         })
     }
 
@@ -212,7 +213,7 @@ const Manager = (props) => {
             // 依赖中存在某些应用没有服务的情况
             store.dispatch({
                 type: TYPE.SNACKBAR,
-                val: data.notHadServe.join('、') + '已上应用中不存在服务，请创建'
+                val: data.notHadServe.join('、') + '以上应用中不存在服务，请创建'
             })
             return 
         }
@@ -220,7 +221,7 @@ const Manager = (props) => {
             // 依赖中存在没有选择服务的应用
             store.dispatch({
                 type: TYPE.SNACKBAR,
-                val: data.allAppSelectServe.join('、') + '已上应用未选择服务，请选择'
+                val: data.allAppSelectServe.join('、') + '以上应用未选择服务，请选择'
             })
             return
         }
@@ -312,14 +313,14 @@ const Manager = (props) => {
             })
 
         }
-        if(data.userconfig) {
-            configs(data.userconfig, 'userconfig', appConfig)
+        if(data.userconfigs) {
+            configs(data.userconfigs, 'userconfigs', appConfig)
         }
        
         return {
             instanceid: data.instanceid,
-            dependencies: JSON.stringify(selectData),
-            userconfig: JSON.stringify(appConfig.userconfig ? appConfig.userconfig : {})
+            dependencies: selectData,
+            userconfigs: appConfig.userconfigs || null
         }
     }
 

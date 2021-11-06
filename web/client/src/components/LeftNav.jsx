@@ -52,7 +52,7 @@ let list = [
 
 const LeftNav = (props) => {
     if(!sessionStorage.getItem('curNav')) {
-        sessionStorage.setItem('curNav', '1.0')
+        sessionStorage.setItem('curNav', '/home')
     }
     const [curNav, setCurNav] = useState(sessionStorage.getItem('curNav'))
     const [navList, setNavList] = useState([])
@@ -133,8 +133,8 @@ const LeftNav = (props) => {
             find(newList, id)
             setNavList(newList)
         }else {
-            setCurNav(id)
-            sessionStorage.setItem('curNav', id)
+            setCurNav(path)
+            sessionStorage.setItem('curNav', path)
            
             if(path.indexOf('.') > -1) {
                 props.change('/system')
@@ -158,7 +158,7 @@ const LeftNav = (props) => {
                     navList.map((item, index) => {
                         return (
                             <div className="list-item" key={item.id}>
-                                <div className={`item-content ${curNav == item.id ? "blueBorder" :""}`}  data-id={item.id} data-path={item.url} onClick={changeNav}>
+                                <div className={`item-content ${curNav == item.url ? "blueBorder" :""}`}  data-id={item.id} data-path={item.url} onClick={changeNav}>
                                     <i className={`iconfont ${item.icon || ''}`}></i>
                                     <span >{item.name}</span> 
                                 </div>
@@ -167,7 +167,7 @@ const LeftNav = (props) => {
                                         item.sub.map((ele, i) => {
                                             return (
                                                 <div className="list-item"  key={ele.id}>
-                                                    <div className={`item-content item-content-child ${curNav == ele.id ? "blueBorder" :""}`} data-id={ele.id} data-path={ele.url} data-href={ele.url || ''} onClick={changeNav}>
+                                                    <div className={`item-content item-content-child ${curNav == item.url ? "blueBorder" :""}`} data-id={ele.id} data-path={ele.url} data-href={ele.url || ''} onClick={changeNav}>
                                                         <i className={`iconfont ${ele.icon || ''}`}></i>
                                                         <span >{ele.name}</span> 
                                                     </div>

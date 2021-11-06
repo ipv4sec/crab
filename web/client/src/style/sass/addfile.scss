@@ -1,7 +1,9 @@
 
     .instance-content{
         max-width: 50vw;
+        min-width: 30vw;
         height: calc(100% - 28px);
+        min-height: 10vh;
         overflow: auto;
         padding: 0 20px;
         .app-item {

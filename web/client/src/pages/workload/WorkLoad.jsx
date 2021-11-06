@@ -8,9 +8,8 @@ import { connect } from 'react-redux'
 import '../../style/sass/workload.scss'
 
 const WorkLoad = (props) => {
-    let host = ''
-    const [initHost, setInitHost] = useState('')
-    const [inputErr, setInputErr] = useState(false)
+    const [host, setHost] = useState('')
+    const [inputErr, setInputErr] = useState('')
 
     useEffect(() => {
         getClusterMirror()
@@ -28,7 +27,7 @@ const WorkLoad = (props) => {
             url: '/api/cluster/mirror'
         }).then((res) => {
             if(res.data.code === 0) {
-                setInitHost(res.data.result)
+                setHost(res.data.result)
             }else {
                 store.dispatch({
                     type: TYPE.SNACKBAR,
@@ -48,16 +47,17 @@ const WorkLoad = (props) => {
         })
     }
 
-    function change(data) {
-        setInputErr(false)
-        if(data !== '' && data.trim() !== '') {
-            host = data
-        }else {
-            setInputErr(true)
-        }
+    function changeHost(data) {
+        setInputErr('')
+        setHost(data)
     }
 
     function changeOrigin(){
+        if(host.trim() == '') {
+            setInputErr('请输入')
+            return
+        }
+
         store.dispatch({
             type: TYPE.LOADING,
             val: true
@@ -96,7 +96,7 @@ const WorkLoad = (props) => {
 
             <div className="workload-content">
                 <div className="host-input">
-                    <Input change={change} inputErr={inputErr} set={initHost} />
+                    <Input change={changeHost} inputErr={inputErr} value={host} />
                 </div> 
                 <div className="host-btn">
                     <Button variant="contained" color="primary" className="btn-item" onClick={changeOrigin}>保存</Button>

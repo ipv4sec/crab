@@ -9,10 +9,9 @@ import store from '../../store/store'
 import '../../style/sass/domain.scss'
 
 const Domain = (props) => {
-    const [ hostErr, setHostErr ] = useState('')
+    const [ domainErr, setDomainErr ] = useState('')
     const [address, setAddress] = useState([])
-    const [initDomain, setInitDomain] = useState('')
-    let host = ''    
+    const [domain, setDomain] = useState('')
 
     useEffect(() => {
         getDomain()
@@ -25,8 +24,7 @@ const Domain = (props) => {
             url: '/api/cluster/domain'
         }).then((res) => {
             if(res.data.code === 0) {
-                setInitDomain(res.data.result)
-                host = res.data.result
+                setDomain(res.data.result)
             }
         }).catch((err) => {
             console.log(err)
@@ -38,6 +36,11 @@ const Domain = (props) => {
     }
 
     function getAddr(){
+        if(domain.trim() === '') {
+            setDomainErr('请输入')
+            return
+        }
+
         store.dispatch({
             type: TYPE.LOADING,
             val: true
@@ -66,9 +69,9 @@ const Domain = (props) => {
         })
     }
 
-    function changeHost(value) {
-        host = value
-        setHostErr('')
+    function changeDomain(value) {
+        setDomain(value)
+        setDomainErr('')
     }
 
     function save() {
@@ -80,7 +83,7 @@ const Domain = (props) => {
             method: 'POST',
             url: '/api/cluster/domain',
             headers: {'Content-Type': 'application/json'},
-            data: {domain: host}
+            data: {domain}
         }).then((res) => {
             store.dispatch({
                 type: TYPE.SNACKBAR,
@@ -131,7 +134,7 @@ const Domain = (props) => {
                 }
             </div> 
             <div className="domain-input">
-                <Input placeholder="请输入根域" change={changeHost} inputErr={hostErr} set={initDomain}/>
+                <Input placeholder="请输入根域" value={domain} change={changeDomain} inputErr={domainErr} />
                 <Button className="input-btn" variant="contained" color="primary" onClick={save}>检测并保存</Button>
             </div>
         </div>

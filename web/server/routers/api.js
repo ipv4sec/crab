@@ -5,24 +5,20 @@ const fs = require('fs')
 const path = require('path')
 const multiparty = require('multiparty')
 const FormData = require('form-data')
-// 登录 废弃
-// router.post('/user/login', (req, res) => {
-//     request.post('/user/login',req.body, req.headers, function(response) {
-//         res.set(response.headers)
-//         res.send(response.data)
-//     })
-// })
 
 // 登录
-router.post('/user/login', (req, res) => {
-    request.get('/user/'+req.body.userName, '', req.headers, function(response) {
-        if(response.data.code === 0 && response.data.result.password === req.body.password) {
+router.get('/user/login', (req, res) => {
+    request.get('/user/'+req.query.username, '', req.headers, function(response) {
+        if(response.data.code === 0 && response.data.result.password === req.query.password) {
             res.send({
                 code: 0,
-                result: '登陆成功'
+                result: {
+                    username: req.query.username,
+                    message: '登陆成功'
+                }
             })
         }else {
-            res.send(response)
+            res.send(response.data)
         }
     })
 })

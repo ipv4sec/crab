@@ -10,20 +10,19 @@ import * as TYPE from '../../store/actions'
 
 const Reset = (props) => {
 
+    const [originPassword, setOriginPassword] = useState('')
     const [originPasswordErr, setOriginPasswordErr] = useState('')
+    const [newPassword, setNewPassword] = useState('')
     const [newPasswordErr, setNewPasswordErr] = useState('')
-
-    let originPassword = ''
-    let newPassword = ''
 
     function changeOriginPassword(value) {
         setOriginPasswordErr('')
-        originPassword = value
+        setOriginPassword(value)
     }
 
     function changeNewPassword(value) {
         setNewPasswordErr('')
-        newPassword = value
+        setNewPassword(value)
     }
 
     function save() {
@@ -76,11 +75,11 @@ const Reset = (props) => {
                 <p>密码设置</p>
             </div>
             <div className="input-item">
-                <Input type="password" label="原密码：" placeholder="请输入原密码" change={changeOriginPassword} inputErr={originPasswordErr}/>
+                <Input type="password" label="原密码：" value={originPassword} placeholder="请输入原密码" change={changeOriginPassword} inputErr={originPasswordErr}/>
             </div>
            
             <div className="input-item">
-                <Input type="password" label="新密码：" placeholder="请输入新密码" change={changeNewPassword} inputErr={newPasswordErr}/>
+                <Input type="password" label="新密码：" value={newPassword} placeholder="请输入新密码" change={changeNewPassword} inputErr={newPasswordErr}/>
             </div>
            
             <div className="form-btn">
