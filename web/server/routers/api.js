@@ -18,7 +18,7 @@ router.get('/user/login', (req, res) => {
                 }
             })
         }else {
-            res.send(response.data)
+            res.send({code: 500, result: '登陆失败'})
         }
     })
 })
@@ -33,7 +33,7 @@ router.get('/user/root', (req, res) => {
 
 
 // 修改管理员密码
-router.post('/user/root', (req, res) => {
+router.post('/user/reset', (req, res) => {
     request.put('/user/root', req.body, req.headers, function(response) {
         res.set(response.headers)
         res.send(response.data)
