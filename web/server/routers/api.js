@@ -93,10 +93,10 @@ router.get('/app/list', (req, res) => {
 router.post('/app/run', (req, res) => {
     let newData = {
         dependencies: req.body.dependencies,
-        userconfig: req.body.userconfig,
+        userconfigs: req.body.userconfigs,
         status: req.body.status
     }
-    request.put('/app/'+req.body.instanceid, newData, req.headers, function(response) {
+    request.put('/app/'+req.body.id, newData, req.headers, function(response) {
         res.set(response.headers)
         res.send(response.data)
     })
