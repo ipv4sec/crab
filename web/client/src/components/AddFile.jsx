@@ -19,6 +19,7 @@ const AddFile = (props) => {
         // 判断应用是否都选择了服务
         let hadNoAppSelectServe = checkAllAppSelectServe(appInfo.dependencies || {})
         
+        console.log('--getData-0', appInfo)
         return { 
             appInfo: appInfo, 
             notHadServe: allAppHadServe(appInfo.dependencies || []) || [], //notHadServe,
@@ -107,7 +108,9 @@ const AddFile = (props) => {
 
         })
 
+        console.log('data===',data)
         setAppInfo(data)
+
 
         if(data.userconfigs && Object.keys(data.userconfigs).length) {
             // 获取所有config配置字段
@@ -232,8 +235,7 @@ const AddFile = (props) => {
                                                     <i style={{color: dependences[key].type === 'mutable' ? '#54CACB' : '#e0e0e0'}} className={`${v.selected ? "iconfont icon_d-pass" : ""}`}></i> 
                                                 </span>
                                                 <span className="label-name" style={{color: dependences[key].type === 'mutable' ? '#262626' : 'gray'}} >
-                                                    {/* 实例：{v.instance.instanceid || ''} {v.instance.version} */}
-                                                    实例：{v.name|| ''} {v.id}
+                                                    实例：{v.instance && v.instance.id ? v.instance.id : ''}  {v.instance && v.instance.name ? 'v'+ v.instance.name : ''}
                                                 </span>
                                             </div>
                                         </div>

@@ -53,6 +53,7 @@ function postForm(url, data, header, callback) {
 
 
 function put(url, data,header, callback) {
+    // console.log(url, data)
     let newHeader = Object.assign({}, header, {"Content-Type": "application/json"})
     axios({
         method: 'PUT',
