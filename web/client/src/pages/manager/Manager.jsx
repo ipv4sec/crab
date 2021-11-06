@@ -102,7 +102,7 @@ const Manager = (props) => {
     const [page, setPage] = useState(0) // 当前页
     const limit = 10 // 每页多少条
     const [curInstance, setCurInstance ]= useState()
-    const onePageLength = 10
+    const onePageLength = 6
     const [hadDomain, setHadDomain] = useState(-1)
 
     useEffect(() => {
@@ -259,6 +259,8 @@ const Manager = (props) => {
 
         console.log('selectData===',selectData)
 
+        // return
+
         axios({
             method: "POST",
             url: `api/app/run`,
@@ -326,8 +328,8 @@ const Manager = (props) => {
                     data.dependencies[key].instances.forEach((item) => {
                         if(item.selected) {
                             selectData.push({
-                                "name": key,
-                                "instanceid": item.instance.instanceid
+                                "name": item.instance.name,
+                                "id": item.instance.id
                             })
                         }
                     })
@@ -340,12 +342,12 @@ const Manager = (props) => {
         }
        
         return {
-            instanceid: data.instanceid,
+            id: data.id,
             dependencies: selectData,
             userconfigs: appConfig.userconfigs || null
         }
     }
-
+ 
     const closePopover = () => {
         // if(auto) {
         //     this.setState({
