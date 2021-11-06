@@ -87,7 +87,11 @@ type DependencyVela struct {
 	Instanceid   string              `json:"instanceid"`
 	Name         string              `json:"name"`
 	Location     string              `json:"location"`
-	Version      string              `json:"version"`
 	EntryService string              `json:"entryservice"`
 	Resource     []DependencyUseItem `json:"resource"`
 }
+
+const (
+	ErrBadRequest      = 10201
+	ErrInternalServer  = 10202
+)
