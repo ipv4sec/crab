@@ -2,7 +2,8 @@ import * as TYPE from '../actions'
 
 const initState = {
     loading: false,
-    snackbar: ''//{open: false, message: ''}
+    snackbar: '',
+    curNav: sessionStorage.getItem('curNav') || ''
 }
 
 function commonReducer (state = initState, action) {
@@ -11,6 +12,8 @@ function commonReducer (state = initState, action) {
             return Object.assign({}, state, {loading: action.val})
         case TYPE.SNACKBAR:
             return Object.assign({}, state, {snackbar: action.val})
+        case TYPE.CUR_NAV:
+            return Object.assign({}, state, {curNav: action.val})
         default:
             return state;
     }
