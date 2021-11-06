@@ -8,6 +8,7 @@ import (
 	"crab/deployment"
 	"crab/exec"
 	"crab/provider"
+	"crab/status"
 	"crab/utils"
 	"encoding/json"
 	"fmt"
@@ -35,10 +36,10 @@ type DTO struct {
 	Configurations map[string]interface{} `json:"userconfigs"`
 }
 
-type Status struct {
-	Name string `json:"name"`
-	Message string `json:"message"`
-}
+//type Status struct {
+//	Name string `json:"name"`
+//	Message string `json:"message"`
+//}
 
 func GetAppsHandlerFunc(c *gin.Context) {
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
@@ -184,7 +185,7 @@ func GetAppStatusHandlerFunc(c *gin.Context) {
 		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "参数错误"))
 		return
 	}
-	var val []Status
+	var val []status.Status
 	err := db.Client.Find(&val).Where("id = ?", id).Error
 	if err != nil {
 		klog.Errorln("数据库查询错误:", err.Error())
@@ -198,6 +199,7 @@ func GetAppStatusHandlerFunc(c *gin.Context) {
 func PostAppHandlerFunc(c *gin.Context) {
 	file, err := c.FormFile("file")
 	if err != nil {
+		klog.Errorln("接收文件错误", err.Error())
 		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "接收文件错误"))
 		return
 	}
@@ -275,7 +277,7 @@ func PostAppHandlerFunc(c *gin.Context) {
 		d.Type, d.Link = Link(manifest.Spec.Dependencies[i].Location)
 		if d.Type == Mutable {
 			var apps []App
-			err = db.Client.Where("name = ?", manifest.Spec.Dependencies[i].Name).Find(&apps).Error
+			err = db.Client.Where("name = ? AND status > 0 AND status < 4", manifest.Spec.Dependencies[i].Name).Find(&apps).Error
 			if err != nil {
 				klog.Errorln("数据库查询错误:", err.Error())
 				continue
