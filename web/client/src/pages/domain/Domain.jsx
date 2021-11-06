@@ -9,7 +9,7 @@ import store from '../../store/store'
 import '../../style/sass/domain.scss'
 
 const Domain = (props) => {
-    const [ domainErr, setDomainErr ] = useState('')
+    const [domainErr, setDomainErr] = useState('')
     const [address, setAddress] = useState([])
     const [domain, setDomain] = useState('')
 
@@ -25,6 +25,7 @@ const Domain = (props) => {
         }).then((res) => {
             if(res.data.code === 0) {
                 setDomain(res.data.result)
+                setDomainErr('')
             }
         }).catch((err) => {
             console.log(err)
@@ -36,11 +37,6 @@ const Domain = (props) => {
     }
 
     function getAddr(){
-        if(domain.trim() === '') {
-            setDomainErr('请输入')
-            return
-        }
-
         store.dispatch({
             type: TYPE.LOADING,
             val: true
@@ -75,6 +71,12 @@ const Domain = (props) => {
     }
 
     function save() {
+
+        if(domain.trim() === '') {
+            setDomainErr('请输入')
+            return
+        }
+
         store.dispatch({
             type: TYPE.LOADING,
             val: true

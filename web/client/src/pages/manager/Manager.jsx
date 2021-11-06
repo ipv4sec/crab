@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { connect } from 'react-redux'
+import { withRouter } from 'react-router-dom'
 import store from '../../store/store'
 import * as TYPE from '../../store/actions'
 import Button from '@material-ui/core/Button'
@@ -102,10 +103,31 @@ const Manager = (props) => {
     const limit = 10 // 每页多少条
     const [curInstance, setCurInstance ]= useState()
     const onePageLength = 10
+    const [hadDomain, setHadDomain] = useState(-1)
 
     useEffect(() => {
-        getAppList()
+        getDomain()
     }, [])
+
+    const getDomain = () => {
+        axios({
+            method: 'GET',
+            url: '/api/cluster/domain'
+        }).then((res) => {
+            if(res.data.code === 0 && res.data.result !== '') {
+                setHadDomain(1)
+                getAppList()
+            }else {
+                setHadDomain(0)
+            }
+        }).catch((err) => {
+            console.log(err)
+            store.dispatch({
+                type: TYPE.SNACKBAR,
+                val: '请求错误'
+            })
+        })
+    }
 
     const getAppList = () => {
         store.dispatch({
@@ -443,76 +465,98 @@ const Manager = (props) => {
         setShowLog(false)
     }
 
+    const moveto = () => {
+        props.history.push('/home/domain')
+        store.dispatch({
+            type: TYPE.CUR_NAV,
+            val: '/home/domain'
+        })
+    }
+
 
     
     return (
         <div className="page-container manager-container">
             <div className="page-title">应用管理</div>
-            <div className="upload-content">
-                <Button className="input-btn" variant="contained" color="primary" onClick={upload}>上传</Button>
-                <input className="upload-file" type="file" ref={uploadRef} onChange={uploadFileChange}/>
-            </div>
-
-            <div className="instance-list">
-                <table className="table">
-                    <thead>
-                        <tr>
-                            <th width="12%">实例名称</th>
-                            <th width="10%">所属应用</th>
-                            <th width="8%">版本</th>
-                            <th width="25%">访问链接</th>
-                            <th width="10%">状态</th>
-                            <th width="15%">创建时间</th>
-                            <th width="15%">更新时间</th>
-                            <th width="5%">操作</th>
-                        </tr>
-                    </thead>
-                    <tbody style={{position: 'relative'}}>
-                    {
-                        appList.map((item, index) => {
-                            return (    
-                                <tr key={item.id}>
-                                    <td >
-                                        <div className="app-td">
-                                            {item.name}
-                                        </div>
-                                    </td>
-                                    <td>{item.status}</td>
-                                    <td>{item.version}</td>
-                                    <td className="list-entry"><a href={item.entry} target="_blank">{item.entry}</a></td>
-                                    <td>{item.status}</td>
-                                    <td>{moment(item.created_at).format('YYYY-MM-DD hh:mm:ss')}</td>
-                                    <td>{moment(item.updated_at).format('YYYY-MM-DD hh:mm:ss')}</td>
-                                    <td data-item={item} onClick={() => {clickMenu(item)}}><i className="iconfont icon_navigation_more" style={{cursor: "pointer"}}></i></td>
+           
+            {
+                hadDomain === 0 ? (
+                    <div className="move-to-domain">
+                        <p className="move-text">未设置根域，跳转设置页面</p>
+                        <Button className="input-btn" variant="contained" color="primary" onClick={moveto}>点击跳转</Button>
+                    </div> 
+                ) : null
+            }
+            {
+                hadDomain === 1 ? (
+                    <React.Fragment>
+                    <div className="upload-content">
+                        <Button className="input-btn" variant="contained" color="primary" onClick={upload}>上传</Button>
+                        <input className="upload-file" type="file" ref={uploadRef} onChange={uploadFileChange}/>
+                    </div>
+                    <div className="instance-list">
+                        <table className="table">
+                            <thead>
+                                <tr>
+                                    <th width="12%">实例名称</th>
+                                    <th width="10%">所属应用</th>
+                                    <th width="8%">版本</th>
+                                    <th width="25%">访问链接</th>
+                                    <th width="10%">状态</th>
+                                    <th width="15%">创建时间</th>
+                                    <th width="15%">更新时间</th>
+                                    <th width="5%">操作</th>
                                 </tr>
-                            )
-                        })
-                    }
-                    {/* {
-                            showTipPop ? (
-                                <div
-                                    className="showTablePop"
-                                    style={{
-                                        left: tableTipEl.x + 10 + 'px',
-                                        top: tableTipEl.y - 20 + 'px',
-                                    }}
-                                >
-                                {tableTipDesc}
-                                </div>
-                            ) : null
-                        } */}
-                    </tbody>
-                </table>
-
-                <div className="pagination-content">
-                    <Pagination 
-                        count={Math.ceil(total/onePageLength)} 
-                        page={page} 
-                        shape="rounded" 
-                        onChange={changePage} />
-                </div>
-               
-            </div>
+                            </thead>
+                            <tbody style={{position: 'relative'}}>
+                            {
+                                appList.map((item, index) => {
+                                    return (    
+                                        <tr key={item.id}>
+                                            <td >
+                                                <div className="app-td">
+                                                    {item.name}
+                                                </div>
+                                            </td>
+                                            <td>{item.status}</td>
+                                            <td>{item.version}</td>
+                                            <td className="list-entry"><a href={item.entry} target="_blank">{item.entry}</a></td>
+                                            <td>{item.status}</td>
+                                            <td>{moment(item.created_at).format('YYYY-MM-DD hh:mm:ss')}</td>
+                                            <td>{moment(item.updated_at).format('YYYY-MM-DD hh:mm:ss')}</td>
+                                            <td data-item={item} onClick={() => {clickMenu(item)}}><i className="iconfont icon_navigation_more" style={{cursor: "pointer"}}></i></td>
+                                        </tr>
+                                    )
+                                })
+                            }
+                            {/* {
+                                    showTipPop ? (
+                                        <div
+                                            className="showTablePop"
+                                            style={{
+                                                left: tableTipEl.x + 10 + 'px',
+                                                top: tableTipEl.y - 20 + 'px',
+                                            }}
+                                        >
+                                        {tableTipDesc}
+                                        </div>
+                                    ) : null
+                                } */}
+                            </tbody>
+                        </table>
+        
+                        <div className="pagination-content">
+                            <Pagination 
+                                count={Math.ceil(total/onePageLength)} 
+                                page={page} 
+                                shape="rounded" 
+                                onChange={changePage} />
+                        </div>
+                    
+                    </div>
+                    </React.Fragment>
+                ) : null
+            }
 
             <Popover
                 open={openMenu}
@@ -536,6 +580,7 @@ const Manager = (props) => {
 
             <AddFile open={showConfigDialog} title="配置实例" data={configData} close={closeDialog} submit={submitDialog}/>
             <ReadLog open={showLog} title={logTitle} data={logList} close={closeLog} />
+        
         </div>
     )
 }
@@ -544,4 +589,4 @@ function mapPropsToState(state) {
     return state
 }
 
-export default connect(mapPropsToState)(Manager)
+export default connect(mapPropsToState)(withRouter(Manager))
