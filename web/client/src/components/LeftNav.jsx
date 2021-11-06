@@ -57,13 +57,16 @@ const LeftNav = (props) => {
     const [curNav, setCurNav] = useState(sessionStorage.getItem('curNav'))
     const [navList, setNavList] = useState([])
 
+    console.log('leftNav props=',props)
     useEffect(() => {
         let menus = handleMenu(list)
         setNavList(menus)
-
-        // getMenus()
-
     }, [])
+
+    useEffect(() => {
+        sessionStorage.setItem('curNav', props.common.curNav)
+        setCurNav(props.common.curNav)
+    }, [props.common.curNav])
 
     function getMenus() {
         axios({

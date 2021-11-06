@@ -1,6 +1,18 @@
 .manager-container {
     padding: 0 20px;
 
+    .move-to-domain {
+        width: 100%;
+        margin-top: 50vh;
+        text-align: center;
+        transform: translate(0, -150%);
+
+        .move-text {
+            line-height: 100px;
+            font-size: 16px;
+        }
+    }
+
    .upload-file {
        display: none;
    }
