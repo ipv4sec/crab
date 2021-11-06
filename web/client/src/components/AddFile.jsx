@@ -26,7 +26,7 @@ const AddFile = (props) => {
         }
     }
 
-    const checkAllAppSelectServe = () => {
+    const checkAllAppSelectServe = (dependencies) => {
         let hadNoAppSelectServe = []
         const findNoSelect = (app) => {
            if(Object.keys(app).length) {
@@ -109,44 +109,48 @@ const AddFile = (props) => {
 
         setAppInfo(data)
 
-        // 获取所有config配置字段
-        let allConfigs = []
-        let level = -1
-        const configs = (config, attr, required, level) => {
-            if(config) {
-                if(config.type == 'object' && config.properties) {
-                    if(attr !== 'userconfig') { 
+        if(data.userconfigs && Object.keys(data.userconfigs).length) {
+            // 获取所有config配置字段
+            let allConfigs = []
+            let level = -1
+            const configs = (config, attr, required, level) => {
+                if(config) {
+                    if(config.type == 'object' && config.properties) {
+                        if(attr !== 'userconfigs') { 
+                            allConfigs.push({
+                                key: attr,
+                                type: config.type,
+                                val: '',
+                                required: false,
+                                error: '',
+                                level: level
+                            })
+                        }
+                        
+                        level += 1
+                        Object.keys(config.properties).forEach((key) => {
+                            configs(config.properties[key], key, config.required, level)
+                        })
+                    }else {
                         allConfigs.push({
                             key: attr,
                             type: config.type,
                             val: '',
-                            required: false,
+                            required: required ? required.indexOf(attr) !== -1 : false,
                             error: '',
                             level: level
                         })
                     }
-                    
-                    level += 1
-                    Object.keys(config.properties).forEach((key) => {
-                        configs(config.properties[key], key, config.required, level)
-                    })
-                }else {
-                    allConfigs.push({
-                        key: attr,
-                        type: config.type,
-                        val: '',
-                        required: required ? required.indexOf(attr) !== -1 : false,
-                        error: '',
-                        level: level
-                    })
                 }
             }
+
+            configs(data.userconfigs, 'userconfigs', false, level)
+
+
+            setOpenConfig(true)
+            setCurAppConfig(allConfigs)
         }
-
-        configs(data.userconfig, 'userconfig', false, level)
-
-        setOpenConfig(true)
-        setCurAppConfig(allConfigs)
+       
         
     }
 
@@ -305,7 +309,7 @@ const AddFile = (props) => {
                     }
                 }
             }
-            configs(newAppInfo.userconfig, 'userconfig') 
+            configs(newAppInfo.userconfigs, 'userconfigs') 
 
             console.log('--newAppInfo--', newAppInfo)
 

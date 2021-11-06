@@ -18,42 +18,56 @@
 .input-cmp-container {
     width: 100%;
     height: 100%;
-    position: relative;
     .input-cmp-content {
         width: 100%;
         height: 100%;
         display: flex;
         justify-content: center;
         align-items: center;
+
+        .input-cmp-label {
+            width: 80px;
+            flex-shrink: 0;
+            margin-right: 10px;
+
+            .input-label {
+                width: 100%;
+                text-align: right;
+            }
+        }
+
+        .input-context {
+            position: relative;
+            flex: 1;
+            height: 100%;
+            .input-cmp-input {
+                width: 100%;
+                height: 100%;
+                border: none;
+                background-color: transparent;
+                outline: none;
+                padding: 0 14px;
+                border: 1px solid #dcdcdc;
+                border-radius: 4px;
+                font-size: 14px;
+                box-sizing: border-box;
+            }
+            .input-border-hl {
+                border-color: red;
+            }
+            .input-cmp-error {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                line-height: 20px;
+                color: red;
+                font-size: 12px;
+            }
+        }
+
     }
-    .input-cmp-label {
-        text-align: right;
-        width: 80px;
-        flex-shrink: 0;
-        margin-right: 10px;
-    }
-    .input-cmp-input {
-        flex: 1;
-        height: 100%;
-        border: none;
-        background-color: transparent;
-        outline: none;
-        padding: 0 14px;
-        border: 1px solid #dcdcdc;
-        border-radius: 4px;
-        font-size: 14px;
-    }
-    .input-border-hl {
-        border-color: red;
-    }
-    .input-cmp-error {
-        position: absolute;
-        top: 100%;
-        left: 90px;
-        line-height: 20px;
-        color: red;
-        font-size: 12px;
-    }
+   
+    
 
 }
 /* ------- input 组件 end ---------*/

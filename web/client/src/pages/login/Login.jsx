@@ -12,34 +12,30 @@ import SnackbarCmp from '../../components/Snackbar'
 
 const Login = (props) => {
 
-    const [nameErr, setNameErr] = useState(false)
-    const [passwordErr, setPasswordErr] = useState(false)
-
-    let userName = ''
-    let password = ''
-
+    const [name, setName] = useState('')
+    const [nameErr, setNameErr] = useState('')
+    const [password, setPassword] = useState('')
+    const [passwordErr, setPasswordErr] = useState('')
 
     function changeName(value) {
-        setNameErr(false)
-        userName = value
+        setNameErr('')
+        setName(value)
     }
 
     function changePassword(value) {
-        setPasswordErr(false)
-        password = value
+        setPasswordErr('')
+        setPassword(value)
     }
 
     function login() {
-        if(userName.trim() === ''){
-            setNameErr(true)
+        if(name.trim() === ''){
+            setNameErr('请输入')
             return
         }
         if(password.trim() === '') {
-            setPasswordErr(true)
+            setPasswordErr('请输入')
             return
         }
-
-        console.log(userName, '-----' ,password)
 
         store.dispatch({
             type: TYPE.LOADING,
@@ -47,21 +43,21 @@ const Login = (props) => {
         })
 
         axios({
-            method: "POST",
+            method: "GET",
             url: "/api/user/login",
-            data: {
-                userName: userName,
+            params: {
+                username: name,
                 password: password
             }
         }).then((res) => {
-            let data = res.data
-            if(data.code === 0) {
-                window.sessionStorage.setItem("token", res.data.result.token)
-                this.props.history.redirect('/')
+            if(res.data.code === 0) {
+                window.sessionStorage.setItem('user', res.data.result.username || '')
+                window.sessionStorage.setItem('curNav', '/home')
+                window.location.replace('/home')
             }else {
                 store.dispatch({
                     type: TYPE.SNACKBAR,
-                    val: data.result || ''
+                    val: res.data.result || ''
                 })
             }
             
@@ -83,21 +79,24 @@ const Login = (props) => {
 
     return (
         <div className="login-container">
-            <div className="input-item">
-                <Input label="用户名：" change={changeName} inputErr={nameErr}/>
-            </div>
-           
-            <div className="input-item">
-                <Input type="password" label="密码：" change={changePassword} inputErr={passwordErr}/>
-            </div>
-           
-            <div className="form-btn">
-                <Button variant="contained" className="btn" color="primary" onClick={login}>登陆</Button>
+            <div className="login-content">
+                <div className="input-item">
+                    <Input label="用户名：" value={name} change={changeName} inputErr={nameErr}/>
+                </div>
+            
+                <div className="input-item">
+                    <Input type="password" label="密码：" value={password} change={changePassword} inputErr={passwordErr}/>
+                </div>
+            
+                <div className="form-btn">
+                    <Button variant="contained" className="btn" color="primary" onClick={login}>登陆</Button>
+                </div>
             </div>
 
             <Loading />
             <SnackbarCmp />
         </div>
+       
     )
 }
 

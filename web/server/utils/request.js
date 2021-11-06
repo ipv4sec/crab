@@ -14,7 +14,7 @@ function get(url, params, header, callback){
     }).catch((err) => {
         console.log('--- request error ---')
         console.log(err)
-        callback({data:{ code: 400, result: '请求错误'}})
+        callback({ code: 400, result: '请求错误'})
     })
 }
 
@@ -30,7 +30,24 @@ function post(url, data, header, callback) {
     }).catch((error) => {
         console.log('--- request error ---')
         console.log(error)
-        callback({data:{ code: 400, result: '请求错误'}})
+        callback({ code: 400, result: '请求错误'})
+    })
+}
+
+
+function postForm(url, data, header, callback) {
+    let newHeader = Object.assign({}, header, {"Content-Type": "multipart/form-data"})
+    axios({
+        method: 'POST',
+        url: url,
+        headers: newHeader,
+        data: data
+    }).then((res) => {
+        callback(res)
+    }).catch((error) => {
+        console.log('--- request error ---')
+        console.log(error.message)
+        callback({ code: 400, result: '请求错误'})
     })
 }
 
@@ -47,7 +64,7 @@ function put(url, data,header, callback) {
     }).catch((error) => {
         console.log('--- request error ---')
         console.log(error)
-        callback({data:{ code: 400, result: '请求错误'}})
+        callback({ code: 400, result: '请求错误'})
     })
 }
 
@@ -63,7 +80,7 @@ function del(url, data, header, callback) {
     }).catch((error) => {
         console.log('--- request error ---')
         console.log(error)
-        callback({data:{ code: 400, result: '请求错误'}})
+        callback({ code: 400, result: '请求错误'})
     })
 }
 
@@ -72,6 +89,7 @@ module.exports = {
     get,
     post,
     put, 
-    del
+    del,
+    postForm
 }
 
