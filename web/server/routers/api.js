@@ -130,27 +130,27 @@ router.get('/app/detail', (req, res) => {
 // 导出实例配置文件
 router.get('/app/output', (req, res) => {
     request.get('/app/'+req.query.id,'', req.headers, function(response) {
-        const dirPath = path.resolve(__dirname,'../tempfiles')
-        const filePath = path.resolve(__dirname,'../tempfiles/'+response.data.id+'.yaml')
-        if (!fs.existsSync(dirPath)) {
-            fs.mkdirSync(dirPath,{ recursive: true })
+        // console.log('----',response.data)
+        if(response.data.code === 0) {
+            const dirPath = path.resolve(__dirname,'../tempfiles')
+            const filePath = path.resolve(__dirname,'../tempfiles/'+response.data.result.id+'.yaml')
+            if (!fs.existsSync(dirPath)) {
+                fs.mkdirSync(dirPath,{ recursive: true })
+            }
+    
+            fs.writeFileSync(filePath, response.data.result.deployment, 'utf8')
+
+            res.download(filePath, response.data.result.id+'.yaml', (err) => {
+                console.log(err)
+            })
+           
+            fs.rm(filePath, (err) => {
+                console.log('---remove file error ---', err)
+            })
+        }else {
+            res.send(response)
         }
 
-        fs.writeFileSync(filePath, response.data.deployment, 'utf8')
-    
-        res.download(filePath)
-    
-        fs.rm(filePath, (err) => {
-            console.log('---remove file error ---', err)
-        })
-        // fs.access(dirPath, (err) => {
-        //     console.log('=====',err)
-        //     if(err) {
-        //         fs.mkdirSync(dirPath,{ recursive: true })
-        //     }
-    
-            
-        // })
     })
 })
 

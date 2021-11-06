@@ -34,8 +34,7 @@ const ReadLog = (props) => {
                 </div>
            </DialogContent>
            <DialogActions>
-                {/* <Button className="common-btn" color="primary" onClick={submitDialog}>确定</Button> */}
-                <Button className="common-btn" color="primary" onClick={closeDialog}>取消</Button>
+                <Button className="common-btn" color="primary" onClick={closeDialog}>关闭</Button>
             </DialogActions>
         </Dialog>
     )

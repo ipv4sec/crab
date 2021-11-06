@@ -100,7 +100,7 @@ const Manager = (props) => {
     const [logList, setLogList] = useState([])
     const [page, setPage] = useState(0) // 当前页
     const limit = 10 // 每页多少条
-    let curInstance = null
+    const [curInstance, setCurInstance ]= useState()
     const onePageLength = 10
 
     useEffect(() => {
@@ -335,7 +335,8 @@ const Manager = (props) => {
     }
 
     const clickMenu = (item) => {
-        curInstance = item
+        setCurInstance(item)
+        console.log('sdlfjlksd===',curInstance)
         setAnchorEl(event.target)
 
     }
@@ -369,6 +370,8 @@ const Manager = (props) => {
             params: {id: curInstance.id}
         }).then((res) => {
             if(res.data.code === 0) {
+                setShowLog(true)
+                setLogTitle('实例 '+curInstance.name)
                 setLogList(res.data.result)
             }else {
                 store.dispatch({
@@ -397,24 +400,7 @@ const Manager = (props) => {
     // 导出配置
     const outputFile = () => {
         setAnchorEl(null)
-        axios({
-            method: "GET",
-            url: `/api/app/output`,
-            params: {id: curInstance.id}
-        }).then((res) => {
-            
-        }).catch((err) => {
-            store.dispatch({
-                type: TYPE.SNACKBAR,
-                val: '请求错误'
-            })
-            store.dispatch({
-                type: TYPE.LOADING,
-                val: false
-            })
-        })
-        
-
+        window.open('/api/app/output?id='+curInstance.id)
     }
 
     // 删除实例
