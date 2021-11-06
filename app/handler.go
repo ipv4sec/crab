@@ -199,6 +199,7 @@ func GetAppStatusHandlerFunc(c *gin.Context) {
 func PostAppHandlerFunc(c *gin.Context) {
 	file, err := c.FormFile("file")
 	if err != nil {
+		klog.Errorln("接收文件错误", err.Error())
 		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "接收文件错误"))
 		return
 	}
