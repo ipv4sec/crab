@@ -23,7 +23,7 @@ func ContainsTrait(s []struct {
 	Properties v1alpha1.Properties `yaml:"properties"`
 }, e string) bool {
 	for _, a := range s {
-		if strings.Contains(a.Type, e) {
+		if a.Type == e {
 			return true
 		}
 	}

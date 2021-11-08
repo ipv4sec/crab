@@ -18,4 +18,4 @@ spec:
                 value: |
                   {"users":["zhangsan", "lisi"]}
       traits:
-        - type: globalsphare.com/v1alpha1/ingress
+        - type: ingress

@@ -7,7 +7,7 @@ spec:
   workloads:
     - name: api
       type: globalsphare.com/v1alpha1/webservice
-      vendor: globalsphare.com/v1alpha1/webservice]
+      vendor: globalsphare.com/v1alpha1/webservice
       traits:
         - type: globalsphare.com/v1alpha1/ingress
       properties:
@@ -27,7 +27,7 @@ spec:
 
                   ------------------------------------------------
 
-                  SSH Over Websocket
+                  SSH Over Websocket Example Application
 
                   本地执行
                   npm install -g wstunnel

@@ -10,10 +10,10 @@ import (
 
 func Exec(id, value string) error {
 	v, err := json.Marshal(struct {
-		ID string `json:"InstanceId"`
-		Content string `json:"Deploy"`
+		ID string `json:"id"`
+		Deployment string `json:"deployment"`
 	}{
-		Content: value,
+		Deployment: value,
 		ID: id,
 	})
 	if err != nil {
@@ -38,7 +38,7 @@ func Exec(id, value string) error {
 	if err != nil {
 		return fmt.Errorf("调度器返回序列化错误: %w", err)
 	}
-	if reply.Code != 0 || reply.Result != "ok"{
+	if reply.Code != 0 {
 		return fmt.Errorf("调度器返回错误: %v %v", reply.Code, reply.Result)
 	}
 	return nil

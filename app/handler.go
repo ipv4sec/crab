@@ -316,8 +316,11 @@ func PutAppHandlerFunc(c *gin.Context) {
 		Status         int                     `json:"status"`
 		Configurations interface{}             `json:"userconfigs"`
 		Dependencies   []struct {
-			ID string `json:"id"`
 			Name string `json:"name"`
+
+			ID string `json:"id"`
+			Location string `json:"location"`
+
 			EntryService string
 		} `json:"dependencies"`
 	}

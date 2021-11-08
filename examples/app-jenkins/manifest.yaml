@@ -1,9 +1,8 @@
 apiVersion: ami.globalsphare.com/v1alpha1
 kind: Application
 metadata:
-  name: harbor
-  annotations:
-    version: 2.0.0
+  name: jenkins
+  version: 3.0.0
 spec:
   workloads:
     - name: cache
@@ -15,7 +14,7 @@ spec:
       properties:
         rootpwd: "123456"
         storage:
-            capacity: 1Gi
+          capacity: 1Gi
         init: "CREATE DATABASE island;"
         after: cache
     - name: api
@@ -31,44 +30,32 @@ spec:
               - name: 1.txt
                 value: "111"
       traits:
-        - type: globalsphare.com/v1alpha1/ingress
+        - type: ingress
+
 
   dependencies:
     - name: github
-      version: ">=0.0.1"
-      location: https://www.github.com
+      version: ">=0.5.1"
+      location: user-defined
       uses:
         /*:
           - create
           - read
           - update
           - delete
-
+    - name: harbor
+      version: ">=2.0.0"
+      location: user-defined(https://www.github.com)
+      uses:
+        /*:
+          - create
+          - read
+          - update
+          - delete
   userconfigs:
-    "$schema": http://json-schema.org/draft-07/schema#
-    "$id": http://example.com/product.schema.json
-    title: Product
-    description: A product from Acme's catalog
     type: object
     properties:
-      param1:
-        type: integer
-      param2:
+      param:
         type: string
-      param3:
-        type: object
-        properties:
-          param3_1:
-            type: number
-          param3_2:
-            type: number
-        required:
-          - param3_1
-      param4:
-        type: array
-        items:
-          type: string
-        minItems: 1
-        uniqueItems: true
     required:
-      - param2
+      - param
