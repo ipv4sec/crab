@@ -12,12 +12,17 @@ type Result struct {
 	Result string `json:"result"`
 }
 type Dependency struct {
+	Internal []InternalDependency `json:"Internal"`
+	External []ExternalDependency `json:"External"`
+}
+type InternalDependency struct {
+	Name         string              `json:"Name"`
 	Instanceid   string              `json:"InstanceId"`
-	Name         string              `json:"name"`
-	Version      string              `json:"version"`
-	Location     string              `json:"location"`
-	Items        map[string][]string `json:"items"`
 	EntryService string              `json:"EntryService"`
+}
+type ExternalDependency struct {
+	Name         string              `json:"Name"`
+	Location     string              `json:"Location"`
 }
 
 //验证type,vendor返回的数据
