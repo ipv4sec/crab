@@ -363,9 +363,6 @@ func serviceVela(workload v1alpha1.Workload, instanceid string, authorization []
 //处理依赖
 func parseDependencies(application v1alpha1.Application, dependencies Dependency) ([]Authorization, []ServiceEntry, map[string]string, error) {
 	var err error
-	//authorization := make([]Authorization, 0)
-	//serviceEntry := make([]ServiceEntry, 0)
-	//configmap := make(map[string]string, 0)
 	auth := make([]Authorization, 0)
 	//外部服务调用
 	svcEntry := make([]ServiceEntry, 0)
@@ -378,7 +375,6 @@ func parseDependencies(application v1alpha1.Application, dependencies Dependency
 			klog.Errorln(err)
 			return auth, svcEntry, cm, err
 		}
-		fmt.Printf("%+v\n", resource)
 		allDependency[j.Name] = resource
 	}
 
@@ -433,19 +429,6 @@ func entryService(workloads []v1alpha1.Workload) string {
 		}
 	}
 	return ""
-}
-
-//是不是内部服务
-func inExCheck(location string) (string, error) {
-	u, err := url.Parse(location)
-	if err != nil {
-		return "", err
-	}
-	arr := strings.Split(u.Host, ".")
-	if arr[len(arr)-1] == "local" {
-		return "internal", nil
-	}
-	return "external", nil
 }
 
 func ApiParse(uses map[string][]string) ([]DependencyUseItem, error) {
