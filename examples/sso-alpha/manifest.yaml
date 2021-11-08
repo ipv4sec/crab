@@ -1,11 +1,11 @@
 apiVersion: ami.globalsphare.com/v1alpha1
 kind: Application
 metadata:
-  name: sso
+  name: sso-alpha
   version: 3.0.0
 spec:
   workloads:
-    - name: sso
+    - name: nginx
       type: globalsphare.com/v1alpha1/workloadType/webservice
       vendor: globalsphare.com/v1alpha1/workloadVendor/webservice
       properties:

@@ -21,8 +21,9 @@ spec:
           image: harbor1.zlibs.com/island/island-ui:alpha
           imagePullPolicy: Always
           volumeMounts:
-            - mountPath: /appManager/config/
+            - mountPath: /crab-front/server/config.json
               name: conf
+              subPath: config.json
       restartPolicy: Always
       volumes:
         - name: conf
@@ -58,8 +59,6 @@ metadata:
 data:
   config.json: |
     {
-        "webConfig": {
-            "port": 3000,
-            "requestDomain": "http://island-api"
-        }
+        "domain": "http://island-api",
+        "port": 3000
     }

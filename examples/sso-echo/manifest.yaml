@@ -1,7 +1,7 @@
 apiVersion: ami.globalsphare.com/v1alpha1
 kind: Application
 metadata:
-  name: ez
+  name: sso-echo
   version: 3.0.0
 spec:
   workloads:
@@ -19,7 +19,7 @@ spec:
       traits:
         - type: globalsphare.com/v1alpha1/trait/ingress
   dependencies:
-    - name: sso
+    - name: sso-alpha
       version: ">=0.0.1"
       location: user-defined
       items:

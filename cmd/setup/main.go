@@ -173,7 +173,7 @@ metadata:
   name: island-info
   namespace: island-system
 data:
-  root-domain: example.com
+  root-domain: ""
   mirror: https://github.com/GlobalSphare/workloads
 `
 	err = cluster.Client.Apply(context.Background(), []byte(yaml))

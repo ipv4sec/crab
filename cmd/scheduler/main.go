@@ -5,14 +5,13 @@ import (
 	"crab/config"
 	"crab/scheduler"
 	"flag"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
-	"k8s.io/klog/v2"
 )
 
 func main()  {
-	var err error
 	var conf string
 	flag.StringVar(&conf, "config", "config.yaml", "配置文件")
 	flag.Parse()
@@ -30,14 +29,13 @@ func main()  {
 		panic(err)
 	}
 
-	go scheduler.Consumer()
+	go scheduler.Consumption()
 	
 	r := gin.Default()
 	r.POST("/", scheduler.PostDeploymentHandlerFunc)
 
 	err = r.Run(":3000")
 	if err != nil {
-		klog.Errorln("端口已被占用")
-		panic(err)
+		panic(fmt.Errorf("端口被占用: %w", err))
 	}
 }

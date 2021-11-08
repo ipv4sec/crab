@@ -110,7 +110,7 @@ func GetAppsHandlerFunc(c *gin.Context) {
 					}
 					ra, err := semver.ParseRange(manifest.Spec.Dependencies[i].Version)
 					if ra(v) {
-						d.Instances = append(d.Instances, Instance{ID: apps[j].ID, Version: apps[j].Version})
+						d.Instances = append(d.Instances, Instance{ID: apps[j].ID, Name: apps[j].Name})
 					}
 				}
 			}
@@ -289,7 +289,7 @@ func PostAppHandlerFunc(c *gin.Context) {
 				}
 				ra, err := semver.ParseRange(manifest.Spec.Dependencies[i].Version)
 				if ra(v) {
-					d.Instances = append(d.Instances, Instance{ID: apps[j].ID, Version: apps[j].Version})
+					d.Instances = append(d.Instances, Instance{ID: apps[j].ID, Name: apps[j].Name})
 				}
 			}
 		}
@@ -316,8 +316,11 @@ func PutAppHandlerFunc(c *gin.Context) {
 		Status         int                     `json:"status"`
 		Configurations interface{}             `json:"userconfigs"`
 		Dependencies   []struct {
-			ID string `json:"id"`
 			Name string `json:"name"`
+
+			ID string `json:"id"`
+			Location string `json:"location"`
+
 			EntryService string
 		} `json:"dependencies"`
 	}
@@ -359,7 +362,7 @@ func PutAppHandlerFunc(c *gin.Context) {
 					continue
 				}
 				for j := 0; j < len(manifest.Spec.Workloads); j++ {
-					if utils.ContainsTrait(manifest.Spec.Workloads[j].Traits, "ingress") {
+					if utils.ContainsTrait(manifest.Spec.Workloads[j].Traits, "globalsphare.com/v1alpha1/trait/ingress") {
 						param.Dependencies[i].EntryService = manifest.Spec.Workloads[j].Name
 					}
 				}

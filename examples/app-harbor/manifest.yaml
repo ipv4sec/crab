@@ -2,8 +2,7 @@ apiVersion: ami.globalsphare.com/v1alpha1
 kind: Application
 metadata:
   name: harbor
-  annotations:
-    version: 2.0.0
+  version: 2.0.0
 spec:
   workloads:
     - name: cache
@@ -33,8 +32,18 @@ spec:
       traits:
         - type: globalsphare.com/v1alpha1/trait/ingress
 
+
   dependencies:
     - name: github
+      version: ">=0.0.1"
+      location: https://www.github.com
+      uses:
+        /*:
+          - create
+          - read
+          - update
+          - delete
+    - name: gitlab
       version: ">=0.0.1"
       location: https://www.github.com
       uses:
@@ -55,15 +64,6 @@ spec:
         type: integer
       param2:
         type: string
-      param3:
-        type: object
-        properties:
-          param3_1:
-            type: number
-          param3_2:
-            type: number
-        required:
-          - param3_1
       param4:
         type: array
         items:

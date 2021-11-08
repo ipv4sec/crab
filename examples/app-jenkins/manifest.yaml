@@ -1,21 +1,20 @@
 apiVersion: ami.globalsphare.com/v1alpha1
 kind: Application
 metadata:
-  name: harbor
-  annotations:
-    version: 2.0.0
+  name: jenkins
+  version: 3.0.0
 spec:
   workloads:
     - name: cache
-      type: globalsphare.com/v1alpha1/workloadType/redis
-      vendor: globalsphare.com/v1alpha1/workloadVendor/redis
+      type: globalsphare.com/v1alpha1/redis
+      vendor: globalsphare.com/v1alpha1/redis
     - name: db
-      type: globalsphare.com/v1alpha1/workloadType/mysql
-      vendor: globalsphare.com/v1alpha1/workloadVendor/mysql
+      type: globalsphare.com/v1alpha1/mysql
+      vendor: globalsphare.com/v1alpha1/mysql
       properties:
         rootpwd: "123456"
         storage:
-            capacity: 1Gi
+          capacity: 1Gi
         init: "CREATE DATABASE island;"
         after: cache
     - name: api
@@ -36,31 +35,27 @@ spec:
 
   dependencies:
     - name: github
-      version: ">=0.0.1"
-      location: https://www.github.com
+      version: ">=0.5.1"
+      location: user-defined
       uses:
         /*:
           - create
           - read
           - update
           - delete
-
+    - name: harbor
+      version: ">=2.0.0"
+      location: user-defined(https://www.github.com)
+      uses:
+        /*:
+          - create
+          - read
+          - update
+          - delete
   userconfigs:
-    "$schema": http://json-schema.org/draft-07/schema#
-    "$id": http://example.com/product.schema.json
-    title: Product
-    description: A product from Acme's catalog
     type: object
     properties:
-      param1:
-        type: integer
-      param2:
+      param:
         type: string
-      param4:
-        type: array
-        items:
-          type: string
-        minItems: 1
-        uniqueItems: true
     required:
-      - param2
+      - param

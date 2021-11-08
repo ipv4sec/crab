@@ -2,10 +2,9 @@ apiVersion: ami.globalsphare.com/v1alpha1
 kind: Application
 metadata:
   name: github
-  annotations:
-    version: 1.0.0
+  version: 1.0.0
 spec:
-  components:
+  workloads:
     - name: ha
       type: globalsphare.com/v1alpha1/workloadType/webservice
       vendor: globalsphare.com/v1alpha1/workloadVendor/webservice
