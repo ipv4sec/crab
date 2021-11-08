@@ -6,8 +6,8 @@ metadata:
 spec:
   workloads:
     - name: nginx
-      type: globalsphare.com/v1alpha1/webservice
-      vendor: globalsphare.com/v1alpha1/webservice
+      type: globalsphare.com/v1alpha1/workloadType/webservice
+      vendor: globalsphare.com/v1alpha1/workloadVendor/webservice
       properties:
         image: nginx:1.21
         configs:
@@ -18,4 +18,4 @@ spec:
                 value: |
                   {"users":["zhangsan", "lisi"]}
       traits:
-        - type: ingress
+        - type: globalsphare.com/v1alpha1/trait/ingress
