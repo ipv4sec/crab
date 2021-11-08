@@ -163,45 +163,6 @@ spec:
 	parserData.Name = vela.Name
 	//处理workload
 	for k, v := range vela.Services {
-		//ctxObj := make(map[string]ContextObj, 0)
-		//ctxObj["context"] = ContextObj{
-		//	vela.Name,
-		//	k,
-		//	instanceid,
-		//}
-		//finnnalCueFileContent := "%s\nparameter:%s\n%s"
-		//template := workloadParams[k].VendorCue
-		//ctxObjData, err := json.Marshal(ctxObj)
-		//if err != nil {
-		//	klog.Errorln("ctxObj 序列化失败")
-		//	return parserData, errors.New("ctxObj 序列化失败")
-		//}
-		//serviceItem, err := json.Marshal(v)
-		//if err != nil {
-		//	klog.Errorln("vela.Services 序列化失败")
-		//	return parserData, errors.New("vela.Services 序列化失败")
-		//}
-		//content := fmt.Sprintf(finnnalCueFileContent, ctxObjData, serviceItem, template)
-		//fileName := RandomString(content)
-		//path := fmt.Sprintf("/tmp/test%s.cue", fileName)
-		//err = ioutil.WriteFile(path, []byte(content), 0644)
-		//if err != nil {
-		//	klog.Errorln(err.Error())
-		//	return parserData, err
-		//}
-		//command := fmt.Sprintf("/usr/local/bin/cue export -f %s", path)
-		//cmd := exec.Command("bash", "-c", command)
-		//output, err := cmd.CombinedOutput()
-		//if err != nil {
-		//	klog.Errorln("执行命令错误", err.Error())
-		//	return parserData, err
-		//}
-		//var cmdResult map[string]map[string]interface{}
-		//err = json.Unmarshal(output, &cmdResult)
-		//if err != nil {
-		//	klog.Errorln(err.Error())
-		//	return parserData, err
-		//}
 		ctxObj := make(map[string]ContextObj, 0)
 		ctxObj["context"] = ContextObj{
 			vela.Name,
