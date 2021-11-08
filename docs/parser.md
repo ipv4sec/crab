@@ -59,13 +59,15 @@ POST / HTTP/1.1
 |WorkloadPath|绝对路径|string|无|是|
 
 Dependencies.Internal 内部的服务, 数组类型, 非必填, 内容如下：
-Dependencies.Internal.[i].Name 应用的name string类型, 非必填
-Dependencies.Internal.[i].InstanceId 内部服务实例id，string类型, 必填
-Dependencies.Internal.[i].EntryService 服务暴露的组件的名称，string类型, 必填
+
+* Dependencies.Internal.[i].Name 应用的name string类型, 必填
+* Dependencies.Internal.[i].InstanceId 内部服务实例id，string类型, 必填
+* Dependencies.Internal.[i].EntryService 服务暴露的组件的名称，string类型, 必填
 
 Dependencies.External 外部的服务, 数组类型, 非必填, 内容如下：
-Dependencies.External[i].Name 应用的name string类型, 必填
-Dependencies.External[i].Location string类型，必填
+
+* Dependencies.External[i].Name 应用的name string类型, 必填
+* Dependencies.External[i].Location string类型，必填
 
 ### 返回值
 ```
