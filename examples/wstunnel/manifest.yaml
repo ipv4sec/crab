@@ -18,10 +18,22 @@ spec:
             data:
               - name: index.html
                 value: |
-                  .__SSH Running .
+                  .__
                   _______ __ __  ____   ____ |__| ____    ____
                   \_  __ \  |  \/    \ /    \|  |/    \  / ___\
                    |  | \/  |  /   |  \   |  \  |   |  \/ /_/  >
                    |__|  |____/|___|  /___|  /__|___|  /\___  /
                                     \/     \/        \//_____/
+
+                  ------------------------------------------------
+
+                  SSH Over Websocket
+
+                  本地执行
+                  npm install -g wstunnel
+                  wstunnel -t 65522 ws://prefix.example.com/3dbacfd76b0a040ccad1eacb20def4c8
+                  ssh root@127.0.0.1 -p 65522
+
+                  其中, prefix.example.com 为当前应用分配的域名
+                  登录时, 默认用户名`root` 默认密码 `toor`
 

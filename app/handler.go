@@ -110,7 +110,7 @@ func GetAppsHandlerFunc(c *gin.Context) {
 					}
 					ra, err := semver.ParseRange(manifest.Spec.Dependencies[i].Version)
 					if ra(v) {
-						d.Instances = append(d.Instances, Instance{ID: apps[j].ID, Version: apps[j].Version})
+						d.Instances = append(d.Instances, Instance{ID: apps[j].ID, Name: apps[j].Name})
 					}
 				}
 			}
@@ -289,7 +289,7 @@ func PostAppHandlerFunc(c *gin.Context) {
 				}
 				ra, err := semver.ParseRange(manifest.Spec.Dependencies[i].Version)
 				if ra(v) {
-					d.Instances = append(d.Instances, Instance{ID: apps[j].ID, Version: apps[j].Version})
+					d.Instances = append(d.Instances, Instance{ID: apps[j].ID, Name: apps[j].Name})
 				}
 			}
 		}
