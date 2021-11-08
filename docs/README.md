@@ -5,8 +5,6 @@
 
 在现有集群上执行
 `curl -fsSL http://island-resource.develenv.com/crab.sh | bash`
-然后执行
-`source /etc/profile` 更新环境变量
 再执行
 `kubectl get svc -n island-system`, 查看暴露的端口号
 

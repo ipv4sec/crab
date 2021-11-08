@@ -345,24 +345,16 @@ func serviceVela(workload v1alpha1.Workload, instanceid string, authorization []
 			if trait.Type == "globalsphare.com/v1alpha1/trait/ingress" {
 				traitProperties := make(map[string]interface{}, 0)
 				traitProperties["host"] = fmt.Sprintf("%s.%s", instanceid, rootDomain)
+				path := make([]string, 0)
+				traitProperties["path"] = append(path, "/*")
 				traits[trait.Type] = traitProperties
 				//添加一个外部依赖的trait
-				traits["dependency"] = ApplicationDependency
+				traits["globalsphare.com/v1alpha1/trait/dependency"] = ApplicationDependency
 			}else{
 				traits[trait.Type] =  GetProperties(trait.Properties)
 			}
 		}
 		properties["traits"] = traits
-	}
-
-	if serviceEntryName == workload.Name {
-		path := make([]string, 0)
-		path = append(path, "/*")
-		entry := Entry{
-			fmt.Sprintf("%s.%s", instanceid, rootDomain),
-			path,
-		}
-		properties["entry"] = entry
 	}
 	return properties
 }
