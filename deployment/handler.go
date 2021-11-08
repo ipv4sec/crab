@@ -62,7 +62,7 @@ func PutDeploymentHandlerFunc(c *gin.Context) {
 		return
 	}
 
-	var dependencies []provider.Dependency
+	var dependencies provider.Dependencies
 	err = yaml.Unmarshal([]byte(instance.Dependencies), &dependencies)
 	if err != nil {
 		klog.Errorln("解析描述文件错误:", err.Error())

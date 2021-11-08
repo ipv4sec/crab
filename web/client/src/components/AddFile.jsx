@@ -235,7 +235,7 @@ const AddFile = (props) => {
                                                     <i style={{color: dependences[key].type === 'mutable' ? '#54CACB' : '#e0e0e0'}} className={`${v.selected ? "iconfont icon_d-pass" : ""}`}></i> 
                                                 </span>
                                                 <span className="label-name" style={{color: dependences[key].type === 'mutable' ? '#262626' : 'gray'}} >
-                                                    实例：{v.instance && v.instance.id ? v.instance.id : ''}  {v.instance && v.instance.name ? 'v'+ v.instance.name : ''}
+                                                    实例：{v.instance && v.instance.id ? v.instance.id : ''}  {v.instance && v.instance.name ? v.instance.name : ''}
                                                 </span>
                                             </div>
                                         </div>

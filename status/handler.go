@@ -19,7 +19,7 @@ func GetComponentStatusHandlerFunc(c *gin.Context) {
 		return
 	}
 	var status Status
-	err := db.Client.Where("id = ? AND component = ?", id, componentName).Find(&status).Error
+	err := db.Client.Where("id = ? AND name = ?", id, componentName).Find(&status).Error
 	if err != nil {
 		klog.Errorln("数据库查询错误:", err.Error())
 		c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseInternalServer, "数据库查询错误"))

@@ -6,11 +6,11 @@ metadata:
 spec:
   workloads:
     - name: cache
-      type: globalsphare.com/v1alpha1/redis
-      vendor: globalsphare.com/v1alpha1/redis
+      type: globalsphare.com/v1alpha1/workloadType/redis
+      vendor: globalsphare.com/v1alpha1/workloadVendor/redis
     - name: db
-      type: globalsphare.com/v1alpha1/mysql
-      vendor: globalsphare.com/v1alpha1/mysql
+      type: globalsphare.com/v1alpha1/workloadType/mysql
+      vendor: globalsphare.com/v1alpha1/workloadVendor/mysql
       properties:
         rootpwd: "123456"
         storage:
