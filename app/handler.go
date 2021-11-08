@@ -362,7 +362,7 @@ func PutAppHandlerFunc(c *gin.Context) {
 					continue
 				}
 				for j := 0; j < len(manifest.Spec.Workloads); j++ {
-					if utils.ContainsTrait(manifest.Spec.Workloads[j].Traits, "ingress") {
+					if utils.ContainsTrait(manifest.Spec.Workloads[j].Traits, "globalsphare.com/v1alpha1/trait/ingress") {
 						param.Dependencies[i].EntryService = manifest.Spec.Workloads[j].Name
 					}
 				}
