@@ -17,7 +17,7 @@ spec:
               - name: id.txt
                 value: "ez"
       traits:
-        - type: globalsphare.com/v1alpha1/ingress
+        - type: globalsphare.com/v1alpha1/trait-ingress
   dependencies:
     - name: sso
       version: ">=0.0.1"
