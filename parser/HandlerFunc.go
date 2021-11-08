@@ -130,7 +130,7 @@ func GenValeYaml(instanceId string, application v1alpha1.Application, userconfig
 }
 
 //由vale.yaml生成k8s
-func GenK8sYaml(instanceid string, vela VelaYaml, workloadParams map[string]WorkloadParams) (ParserData, error) {
+func GenK8sYaml(instanceid string, vela VelaYaml, workloadParam map[string]WorkloadParam) (ParserData, error) {
 	parserData := ParserData{
 		Init:      "",
 		Name:      "",
@@ -169,37 +169,9 @@ spec:
 			k,
 			instanceid,
 		}
-		finnnalCueFileContent := "%s\nparameter:%s\n%s"
-		template := workloadParams[k].VendorCue
-		ctxObjData, err := json.Marshal(ctxObj)
+		cmdResult,err := GenWorkloadCue(ctxObj, workloadParam[k], v)
 		if err != nil {
-			klog.Errorln("ctxObj 序列化失败")
-			return parserData, errors.New("ctxObj 序列化失败")
-		}
-		serviceItem, err := json.Marshal(v)
-		if err != nil {
-			klog.Errorln("vela.Services 序列化失败")
-			return parserData, errors.New("vela.Services 序列化失败")
-		}
-		content := fmt.Sprintf(finnnalCueFileContent, ctxObjData, serviceItem, template)
-		fileName := RandomString(content)
-		path := fmt.Sprintf("/tmp/test%s.cue", fileName)
-		err = ioutil.WriteFile(path, []byte(content), 0644)
-		if err != nil {
-			klog.Errorln(err.Error())
-			return parserData, err
-		}
-		command := fmt.Sprintf("/usr/local/bin/cue export -f %s", path)
-		cmd := exec.Command("bash", "-c", command)
-		output, err := cmd.CombinedOutput()
-		if err != nil {
-			klog.Errorln("执行命令错误", err.Error())
-			return parserData, err
-		}
-		var cmdResult map[string]map[string]interface{}
-		err = json.Unmarshal(output, &cmdResult)
-		if err != nil {
-			klog.Errorln(err.Error())
+			klog.Errorln(err)
 			return parserData, err
 		}
 		var workload Workload
@@ -220,8 +192,8 @@ spec:
 		}
 		workload.Construct = construct
 		traits := make(map[string]string, 0)
-		if len(workloadParams[k].Traits) > 0 { //有trait
-			for _, v := range workloadParams[k].Traits {
+		if len(workloadParam[k].Traits) > 0 { //有trait
+			for _, v := range workloadParam[k].Traits {
 				count = 0
 				arr := strings.Split(v, "/")
 				v = arr[len(arr)-1]
@@ -251,6 +223,43 @@ spec:
 		parserData.Workloads[k] = workload
 	}
 	return parserData, nil
+}
+
+func GenWorkloadCue(ctxObj map[string]ContextObj, workloadParam WorkloadParam, workload interface{}) (map[string]map[string]interface{}, error){
+	var cmdResult map[string]map[string]interface{}
+	finnnalCueFileContent := "%s\nparameter:%s\n%s"
+	template := workloadParam.VendorCue
+	ctxObjData, err := json.Marshal(ctxObj)
+	if err != nil {
+		klog.Errorln("ctxObj 序列化失败")
+		return cmdResult, errors.New("ctxObj 序列化失败")
+	}
+	serviceItem, err := json.Marshal(workload)
+	if err != nil {
+		klog.Errorln("vela.Services 序列化失败")
+		return cmdResult, errors.New("vela.Services 序列化失败")
+	}
+	content := fmt.Sprintf(finnnalCueFileContent, ctxObjData, serviceItem, template)
+	fileName := RandomString(content)
+	path := fmt.Sprintf("/tmp/test%s.cue", fileName)
+	err = ioutil.WriteFile(path, []byte(content), 0644)
+	if err != nil {
+		klog.Errorln(err.Error())
+		return cmdResult, err
+	}
+	command := fmt.Sprintf("/usr/local/bin/cue export -f %s", path)
+	cmd := exec.Command("bash", "-c", command)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		klog.Errorln("执行命令错误", err.Error())
+		return cmdResult, err
+	}
+	err = json.Unmarshal(output, &cmdResult)
+	if err != nil {
+		klog.Errorln(err.Error())
+		return cmdResult, err
+	}
+	return cmdResult, nil
 }
 
 //获取cue模板
@@ -470,92 +479,38 @@ func ApiParse(uses map[string][]string) ([]DependencyUseItem, error) {
 	return rtn, err
 }
 
-func checkParams(application v1alpha1.Application, vendorDir string) (map[string]WorkloadParams, error) {
+func checkParams(application v1alpha1.Application, vendorDir string) (map[string]WorkloadParam, error) {
 	var err error
-	returnData := make(map[string]WorkloadParams, 0)
+	returnData := make(map[string]WorkloadParam, 0)
 	if len(application.Spec.Workloads) == 0 {
 		err = errors.New("application.Spec.Workloads 不能为空")
 		return returnData, err
 	}
 	for _, workload := range application.Spec.Workloads {
-		var workloadParams WorkloadParams
-		properties := GetProperties(workload.Properties)
-		workloadParams.Traits = make([]string, 0)
-		if workload.Type == "" {
-			err = errors.New("workload.Type 不能为空")
-			return returnData, err
-		}
-		if workload.Vendor == "" {
-			err = errors.New("workload.Vendor 不能为空")
-			return returnData, err
-		}
-		var t v1alpha1.WorkloadType
-		t, err = GetWorkloadType(workload.Type, vendorDir)
-		if err != nil {
-			fmt.Println(err.Error())
-			return returnData, err
-		}
-
-		workloadParams.Traits = t.Spec.Traits
-		workloadParams.Type = workload.Type
-		workloadParams.Vendor = workload.Vendor
-		workloadParams.Parameter = properties
-
-		properties2, err := json.Marshal(properties)
-		if err != nil {
-			return returnData, err
-		}
-
 		//检查type参数
-		parameterStr := fmt.Sprintf("parameter:{ \n%s\n}\nparameter:{\n%s\n}", t.Spec.Parameter, string(properties2))
-		fileName := RandomString(parameterStr)
-		path := fmt.Sprintf("/tmp/%s.cue", fileName)
-		ioutil.WriteFile(path, []byte(parameterStr), 0644)
-		command := fmt.Sprintf("/usr/local/bin/cue vet -c %s", path)
-		cmd := exec.Command("bash", "-c", command)
-		var stderr bytes.Buffer
-		var stdout bytes.Buffer
-		cmd.Stderr = &stderr
-		cmd.Stdout = &stdout
-		err = cmd.Run()
+		err = CheckTypeParam(workload, vendorDir)
 		if err != nil {
-			klog.Errorln("type参数校验失败: " + stderr.String())
-			return nil, errors.New("type参数校验失败: " + stderr.String())
+			klog.Errorln(err)
+			return returnData, err
 		}
 		//检查trait参数
 		if len(workload.Traits) > 0 {
-			for _, v := range workload.Traits {
-				properties := GetProperties(v.Properties)
-				properties2, err := json.Marshal(properties)
+			for _, trait := range workload.Traits {
+				err = CheckTraitParam(trait, vendorDir)
 				if err != nil {
-					klog.Errorln(err)
-					return returnData, errors.New("trait参数序列化失败")
-				}
-				file, err := GetTrait(v.Type, vendorDir)
-				if err != nil {
-					klog.Errorln(err)
 					return returnData, err
-				}
-				tmpcue := fmt.Sprintf("parameter: \n%s\nparameter: {\n%s\n}", string(properties2), file.Spec.Parameter)
-				path = fmt.Sprintf("/tmp/%s.cue", RandomString(tmpcue))
-				err = ioutil.WriteFile(path, []byte(tmpcue), 0644)
-				if err != nil {
-					klog.Errorln(err)
-					return nil, err
-				}
-				command := fmt.Sprintf("/usr/local/bin/cue vet -c %s", path)
-				cmd := exec.Command("bash", "-c", command)
-				var stderr bytes.Buffer
-				var stdout bytes.Buffer
-				cmd.Stderr = &stderr
-				cmd.Stdout = &stdout
-				err = cmd.Run()
-				if err != nil {
-					klog.Errorln("trait参数校验失败: " + stderr.String())
-					return nil, errors.New("trait参数校验失败: " + stderr.String())
 				}
 			}
 		}
+		var workloadParams WorkloadParam
+		workloadParams.Type = workload.Type
+		workloadParams.Vendor = workload.Vendor
+
+		properties := GetProperties(workload.Properties)
+		workloadParams.Parameter = properties
+
+		t, _ := GetWorkloadType(workload.Type, vendorDir)
+		workloadParams.Traits = t.Spec.Traits
 
 		var v v1alpha1.WorkloadVendor
 		v, err = GetWorkloadVendor(workload.Vendor, vendorDir)
@@ -636,6 +591,82 @@ func GetProperties(properties map[string]interface{}) map[string]interface{} {
 		ret[k] = GetValue(v)
 	}
 	return ret
+}
+
+//校验type参数
+func CheckTypeParam (workload v1alpha1.Workload, vendorDir string) error{
+	var t v1alpha1.WorkloadType
+	var err error
+	properties := GetProperties(workload.Properties)
+	if workload.Type == "" {
+		err = errors.New("workload.Type 不能为空")
+		return err
+	}
+	if workload.Vendor == "" {
+		err = errors.New("workload.Vendor 不能为空")
+		return err
+	}
+	t, err = GetWorkloadType(workload.Type, vendorDir)
+	if err != nil {
+		fmt.Println(err.Error())
+		return err
+	}
+	t, err = GetWorkloadType(workload.Type, vendorDir)
+	if err != nil {
+		fmt.Println(err.Error())
+		return err
+	}
+	properties2, err := json.Marshal(properties)
+	if err != nil {
+		return err
+	}
+	parameterStr := fmt.Sprintf("parameter:{ \n%s\n}\nparameter:{\n%s\n}", t.Spec.Parameter, string(properties2))
+	fileName := RandomString(parameterStr)
+	path := fmt.Sprintf("/tmp/%s.cue", fileName)
+	ioutil.WriteFile(path, []byte(parameterStr), 0644)
+	command := fmt.Sprintf("/usr/local/bin/cue vet -c %s", path)
+	cmd := exec.Command("bash", "-c", command)
+	var stderr bytes.Buffer
+	var stdout bytes.Buffer
+	cmd.Stderr = &stderr
+	cmd.Stdout = &stdout
+	err = cmd.Run()
+	if err != nil {
+		klog.Errorln("type参数校验失败: " + stderr.String())
+		return errors.New("type参数校验失败: " + stderr.String())
+	}
+	return nil
+}
+//校验trait参数
+func CheckTraitParam (workloadTrait Trait, vendorDir string) error {
+	properties := GetProperties(workloadTrait.Properties)
+	properties2, err := json.Marshal(properties)
+	if err != nil {
+		klog.Errorln(err)
+		return errors.New("trait参数序列化失败")
+	}
+	file, err := GetTrait(workloadTrait.Type, vendorDir)
+	if err != nil {
+		klog.Errorln(err)
+		return err
+	}
+	tmpcue := fmt.Sprintf("parameter: \n%s\nparameter: {\n%s\n}", string(properties2), file.Spec.Parameter)
+	path := fmt.Sprintf("/tmp/%s.cue", RandomString(tmpcue))
+	err = ioutil.WriteFile(path, []byte(tmpcue), 0644)
+	if err != nil {
+		klog.Errorln(err)
+		return err
+	}
+	command := fmt.Sprintf("/usr/local/bin/cue vet -c %s", path)
+	cmd := exec.Command("bash", "-c", command)
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+	err = cmd.Run()
+	if err != nil {
+		klog.Errorln("trait参数校验失败: " + stderr.String())
+		return errors.New("trait参数校验失败: " + stderr.String())
+	}
+	return nil
 }
 
 //解析数据
