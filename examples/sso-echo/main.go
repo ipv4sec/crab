@@ -14,7 +14,7 @@ var (
 )
 func main() {
 
-	bytes, err := ioutil.ReadFile("/etc/configs/sso.host")
+	bytes, err := ioutil.ReadFile("/etc/configs/sso-alpha.host")
 	if err != nil {
 		klog.Errorln("读取依赖地址错误:", err.Error())
 	}

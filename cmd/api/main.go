@@ -20,7 +20,6 @@ import (
 )
 
 func main() {
-	var err error
 	var conf string
 	flag.StringVar(&conf,"config", "config.yaml", "配置文件")
 	flag.Parse()
@@ -77,7 +76,6 @@ func main() {
 
 	routers.PUT("/deployment", deployment.PutDeploymentHandlerFunc)
 
-	routers.GET("/status/:id", status.GetStatusHandlerFunc)
 	routers.GET("/status/:id/:componentName", status.GetComponentStatusHandlerFunc)
 	routers.PUT("/status/:id/:componentName/:statusCode", status.PutStatusHandlerFunc)
 

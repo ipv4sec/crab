@@ -77,12 +77,13 @@ func Consumption(){
 	klog.Infoln("开始消费队列", time.Now().UTC())
 	executor := exec.CommandExecutor{}
 	for {
+		time.Sleep(time.Second * 5)
+
 		value, err := cache.Client.RPop(context.Background(), "crab:scheduler").Result()
 		if err != nil {
 			if err != redis.Nil {
 				panic(fmt.Errorf("消费队列出现错误: %w", err))
 			}
-			time.Sleep(time.Second * 5)
 			continue
 		}
 		var component Component

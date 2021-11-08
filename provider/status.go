@@ -11,7 +11,7 @@ func Query(id, component string) error {
 	if component == "" {
 		return nil
 	}
-	res, err := HTTPClient.Get(fmt.Sprintf("http://island-status/status/%s/%s", id, component), nil)
+	res, err := HTTPClient.Get(fmt.Sprintf("http://island-api/status/%s/%s", id, component), nil)
 	if err != nil {
 		return fmt.Errorf("请求组件状态错误: %w", err)
 	}
@@ -22,14 +22,17 @@ func Query(id, component string) error {
 	klog.Info("读取组件状态返回:", string(bodyBytes))
 	var reply struct{
 		Code int `json:"code"`
-		Result int `json:"result"`
+		Result interface{} `json:"result"`
 	}
 	err = json.Unmarshal(bodyBytes, &reply)
 	if err != nil {
 		return fmt.Errorf("组件状态返回序列化错误: %w", err)
 	}
-	if reply.Code != 0 || reply.Result != 1 {
+	if reply.Code != 0 {
 		return fmt.Errorf("组件状态返回错误: %v %v", reply.Code, reply.Result)
+	}
+	if reply.Result != 1 {
+		return fmt.Errorf("组件状态未就绪: %v",reply.Result)
 	}
 	return nil
 }

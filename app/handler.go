@@ -8,7 +8,6 @@ import (
 	"crab/deployment"
 	"crab/exec"
 	"crab/provider"
-	"crab/status"
 	"crab/utils"
 	"encoding/json"
 	"fmt"
@@ -185,8 +184,12 @@ func GetAppStatusHandlerFunc(c *gin.Context) {
 		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "参数错误"))
 		return
 	}
-	var val []status.Status
-	err := db.Client.Find(&val).Where("id = ?", id).Error
+	var val []struct{
+		Name string `json:"name"`
+		Message string `json:"message"`
+	}
+	// TODO
+	err := db.Client.Table("t_status").Find(&val).Where("id = ?", id).Error
 	if err != nil {
 		klog.Errorln("数据库查询错误:", err.Error())
 		c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseBadRequest, "数据库查询错误"))
