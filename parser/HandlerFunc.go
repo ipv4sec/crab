@@ -74,7 +74,11 @@ func PostManifestHandlerFunc(c *gin.Context) {
 	//	klog.Errorln(err)
 	//	return
 	//}
-	//ioutil.WriteFile("tmp/vela.json", str, 0644)
+	//err = ioutil.WriteFile("tmp/vela.json", str, 0644)
+	//if err != nil {
+	//	fmt.Println(err.Error())
+	//	return
+	//}
 
 	//生成k8s.yaml文件
 	k8s, err := GenK8sYaml(p.Instanceid, vale, workloadResource)
@@ -192,6 +196,7 @@ spec:
 		}
 		workload.Construct = construct
 		traits := make(map[string]string, 0)
+		//fmt.Println(workloadParam[k])
 		if len(workloadParam[k].Traits) > 0 { //有trait
 			for _, v := range workloadParam[k].Traits {
 				count = 0
@@ -234,14 +239,14 @@ func GenWorkloadCue(ctxObj map[string]ContextObj, workloadParam WorkloadParam, w
 		klog.Errorln("ctxObj 序列化失败")
 		return cmdResult, errors.New("ctxObj 序列化失败")
 	}
-	serviceItem, err := json.Marshal(workload)
+	serviceData, err := json.Marshal(workload)
 	if err != nil {
 		klog.Errorln("vela.Services 序列化失败")
 		return cmdResult, errors.New("vela.Services 序列化失败")
 	}
-	content := fmt.Sprintf(finnnalCueFileContent, ctxObjData, serviceItem, template)
+	content := fmt.Sprintf(finnnalCueFileContent, ctxObjData, serviceData, template)
 	fileName := RandomString(content)
-	path := fmt.Sprintf("/tmp/test%s.cue", fileName)
+	path := fmt.Sprintf("/tmp/%s.cue", fileName)
 	err = ioutil.WriteFile(path, []byte(content), 0644)
 	if err != nil {
 		klog.Errorln(err.Error())
@@ -318,6 +323,26 @@ func serviceVela(workload v1alpha1.Workload, instanceid string, authorization []
 	}
 	configs2 = append(configs2, ConfigItem{"/etc/configs", "", configItemData})
 	properties["configs"] = configs2
+
+	//整合trait参数
+	type Trait struct {
+		Type       string	`json:"type"`
+		Properties v1alpha1.Properties `json:"properties"`
+	}
+	var traits = make(map[string]interface{}, 0)
+	if len(workload.Traits) > 0 {
+		for _, trait:= range workload.Traits {
+			traitProperties := make(map[string]interface{}, 0)
+			if trait.Type == "globalsphare.com/v1alpha1/trait-ingress" {
+				traitProperties["host"] = fmt.Sprintf("%s.%s", instanceid, rootDomain)
+				traits[trait.Type] = traitProperties
+			}else{
+				traits[trait.Type] =  GetProperties(trait.Properties)
+			}
+		}
+		properties["traits"] = traits
+	}
+
 	if serviceEntryName == workload.Name {
 		path := make([]string, 0)
 		path = append(path, "/*")
@@ -575,7 +600,10 @@ func GetTrait(name, vendorDir string) (v1alpha1.Trait, error) {
 	var err error
 	var t v1alpha1.Trait
 	pos := strings.LastIndex(name, "/")
-	path := fmt.Sprintf("%s/%s/trait/%s.yaml", vendorDir, name[:pos+1], name[pos+1:])
+	allTraitName := name[pos+1:]
+	namePos := strings.Index(allTraitName,"-")
+	traitName := allTraitName[namePos+1:]
+	path := fmt.Sprintf("%s/%s/trait/%s.yaml", vendorDir, name[:pos], traitName)
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
 		err = errors.New(fmt.Sprintf("trait: %s 不存在\n", name))

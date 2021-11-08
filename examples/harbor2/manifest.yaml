@@ -31,7 +31,7 @@ spec:
               - name: 1.txt
                 value: "111"
       traits:
-        - type: globalsphare.com/v1alpha1/ingress
+        - type: globalsphare.com/v1alpha1/trait-ingress
 
 
   dependencies:
