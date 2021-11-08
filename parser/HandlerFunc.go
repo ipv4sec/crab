@@ -95,6 +95,11 @@ func PostManifestHandlerFunc(c *gin.Context) {
 	//ioutil.WriteFile("tmp/k8s.yaml", k8s2, 0644)
 	c.JSON(200, Result{0, string(k8s2)})
 }
+//应用之间的依赖
+type ApplicationDependency struct {
+	Authorization []Authorization `json:"authorization"`
+	ServiceEntry []ServiceEntry `json:"serviceEntry"`
+}
 
 //由manifest.yaml生成vale.yaml
 func GenValeYaml(instanceId string, application v1alpha1.Application, userconfig string, rootDomain string, dependencies []Dependency) (VelaYaml, error) {
@@ -108,14 +113,20 @@ func GenValeYaml(instanceId string, application v1alpha1.Application, userconfig
 	if err != nil {
 		return vela, err
 	}
+	var applicationDependency ApplicationDependency
+	applicationDependency.Authorization = authorizationData
+	applicationDependency.ServiceEntry = serviceEntryData
 
+	//应用内部的授权
+	authorization := make([]Authorization, 0)
 	//为每个 service 创建一个 authorization，授权当前应用下的其他服务有访问的权限
 	for _, workload := range application.Spec.Workloads {
-		authorizationData = append(authorizationData,
+		authorization = append(authorization,
 			Authorization{
 				Namespace: instanceId,
 				Service:   workload.Name,
-				Resources: make([]DependencyUseItem, 0)},
+				Resources: make([]DependencyUseItem, 0),
+			},
 		)
 	}
 
@@ -127,7 +138,7 @@ func GenValeYaml(instanceId string, application v1alpha1.Application, userconfig
 	//添加应用时填写的运行时配置
 	configItemData = append(configItemData, ConfigItemDataItem{Name: "userconfig", Value: userconfig})
 	for _, workload := range application.Spec.Workloads {
-		service := serviceVela(workload, instanceId, authorizationData, serviceEntryData, configItemData, rootDomain, serviceEntryName)
+		service := serviceVela(workload, instanceId, authorization, applicationDependency, configItemData, rootDomain, serviceEntryName)
 		vela.Services[workload.Name] = service
 	}
 	return vela, nil
@@ -271,7 +282,7 @@ func GenWorkloadCue(ctxObj map[string]ContextObj, workloadParam WorkloadParam, w
 func modTemplate(workloadVendor, mod, vendorDir string) (string, error) {
 	var err error
 	pos := strings.LastIndex(workloadVendor, "/")
-	path := fmt.Sprintf("%s/%s/workloadVendor/%s.cue", vendorDir, workloadVendor[:pos+1], mod)
+	path := fmt.Sprintf("%s/%s/%s.cue", vendorDir, workloadVendor[:pos+1], mod)
 	if !FileExist(path) {
 		return "", errors.New(fmt.Sprintf("文件：%s 不存在", path))
 	}
@@ -311,10 +322,9 @@ func RandomString(str string) string {
 }
 
 //生成kubevela格式的service
-func serviceVela(workload v1alpha1.Workload, instanceid string, authorization []Authorization, serviceentry []ServiceEntry, configItemData []ConfigItemDataItem, rootDomain string, serviceEntryName string) interface{} {
+func serviceVela(workload v1alpha1.Workload, instanceid string, authorization []Authorization, ApplicationDependency ApplicationDependency, configItemData []ConfigItemDataItem, rootDomain string, serviceEntryName string) interface{} {
 	properties := GetProperties(workload.Properties)
 	properties["authorization"] = authorization
-	properties["serviceentry"] = serviceentry
 	configs2 := make([]interface{}, 0)
 	if configs, ok := properties["configs"]; ok {
 		for _, v := range configs.([]interface{}) {
@@ -332,10 +342,12 @@ func serviceVela(workload v1alpha1.Workload, instanceid string, authorization []
 	var traits = make(map[string]interface{}, 0)
 	if len(workload.Traits) > 0 {
 		for _, trait:= range workload.Traits {
-			traitProperties := make(map[string]interface{}, 0)
-			if trait.Type == "globalsphare.com/v1alpha1/trait-ingress" {
+			if trait.Type == "globalsphare.com/v1alpha1/trait/ingress" {
+				traitProperties := make(map[string]interface{}, 0)
 				traitProperties["host"] = fmt.Sprintf("%s.%s", instanceid, rootDomain)
 				traits[trait.Type] = traitProperties
+				//添加一个外部依赖的trait
+				traits["dependency"] = ApplicationDependency
 			}else{
 				traits[trait.Type] =  GetProperties(trait.Properties)
 			}
@@ -518,14 +530,24 @@ func checkParams(application v1alpha1.Application, vendorDir string) (map[string
 			klog.Errorln(err)
 			return returnData, err
 		}
+		//trait:ingress只能有一个
 		//检查trait参数
+		traitCount := 0
 		if len(workload.Traits) > 0 {
 			for _, trait := range workload.Traits {
 				err = CheckTraitParam(trait, vendorDir)
 				if err != nil {
 					return returnData, err
 				}
+				arr := strings.Split(trait.Type, "/")
+				if arr[len(arr)-1] == "ingress" {
+					traitCount++
+				}
 			}
+		}
+		if traitCount > 1 {
+			err = errors.New("检测到多个ingress")
+			return returnData, err
 		}
 		var workloadParams WorkloadParam
 		workloadParams.Type = workload.Type
@@ -552,11 +574,10 @@ func checkParams(application v1alpha1.Application, vendorDir string) (map[string
 func GetWorkloadType(typeName, vendorDir string) (v1alpha1.WorkloadType, error) {
 	var err error
 	var t v1alpha1.WorkloadType
-	pos := strings.LastIndex(typeName, "/")
-	path := fmt.Sprintf("%s/%s/workloadType/%s.yaml", vendorDir, typeName[:pos+1], typeName[pos+1:])
+	path := fmt.Sprintf("%s/%s.yaml", vendorDir, typeName)
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
-		err = errors.New(fmt.Sprintf("workload.Type: %s 不存在\n", typeName))
+		err = errors.New(fmt.Sprintf("workload.Type: %s 不存在\n", path))
 		return t, err
 	}
 	//解析为结构体
@@ -569,11 +590,10 @@ func GetWorkloadType(typeName, vendorDir string) (v1alpha1.WorkloadType, error) 
 func GetWorkloadVendor(vendorName, vendorDir string) (v1alpha1.WorkloadVendor, error) {
 	var err error
 	var v v1alpha1.WorkloadVendor
-	pos := strings.LastIndex(vendorName, "/")
-	path := fmt.Sprintf("%s/%s/workloadVendor/%s.yaml", vendorDir, vendorName[:pos+1], vendorName[pos+1:])
+	path := fmt.Sprintf("%s/%s.yaml", vendorDir, vendorName)
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
-		err = errors.New(fmt.Sprintf("workload.vendor: %s 不存在\n", vendorName))
+		err = errors.New(fmt.Sprintf("workload.vendor: %s 不存在\n", path))
 		return v, err
 	}
 	err = yaml.Unmarshal(content, &v)
@@ -599,14 +619,10 @@ func GetWorkloadVendor(vendorName, vendorDir string) (v1alpha1.WorkloadVendor, e
 func GetTrait(name, vendorDir string) (v1alpha1.Trait, error) {
 	var err error
 	var t v1alpha1.Trait
-	pos := strings.LastIndex(name, "/")
-	allTraitName := name[pos+1:]
-	namePos := strings.Index(allTraitName,"-")
-	traitName := allTraitName[namePos+1:]
-	path := fmt.Sprintf("%s/%s/trait/%s.yaml", vendorDir, name[:pos], traitName)
+	path := fmt.Sprintf("%s/%s.yaml", vendorDir, name)
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
-		err = errors.New(fmt.Sprintf("trait: %s 不存在\n", name))
+		err = errors.New(fmt.Sprintf("trait: %s 不存在\n", path))
 		return t, err
 	}
 	//解析为结构体

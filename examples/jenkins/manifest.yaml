@@ -19,8 +19,8 @@ spec:
         init: "CREATE DATABASE island;"
         after: cache
     - name: api
-      type: globalsphare.com/v1alpha1/webservice
-      vendor: globalsphare.com/v1alpha1/webservice
+      type: globalsphare.com/v1alpha1/workloadType/webservice
+      vendor: globalsphare.com/v1alpha1/workloadVendor/webservice
       properties:
         image: harbor1.zlibs.com/island/island-nginx:1.21
         after: db
@@ -31,7 +31,8 @@ spec:
               - name: 1.txt
                 value: "111"
       traits:
-        - type: globalsphare.com/v1alpha1/trait-ingress
+        - type: globalsphare.com/v1alpha1/trait/ingress
+        - type: ingress
 
 
   dependencies:
