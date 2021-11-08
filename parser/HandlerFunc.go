@@ -26,7 +26,7 @@ type Params struct {
 	Content      string       `json:"Content"`
 	Instanceid   string       `json:"InstanceId"`
 	Userconfig   interface{}  `json:"UserConfig"`
-	Dependencies []Dependency `json:"Dependencies"`
+	Dependencies Dependency `json:"Dependencies"`
 	RootDomain   string       `json:"RootDomain"`
 	WorkloadPath string       `json:"WorkloadPath"`
 }
@@ -36,6 +36,7 @@ func PostManifestHandlerFunc(c *gin.Context) {
 	p := Params{}
 	err = c.BindJSON(&p)
 	if err != nil {
+		fmt.Println(err.Error())
 		c.JSON(200, Result{ErrBadRequest, "参数错误"})
 		return
 	}
@@ -102,14 +103,14 @@ type ApplicationDependency struct {
 }
 
 //由manifest.yaml生成vale.yaml
-func GenValeYaml(instanceId string, application v1alpha1.Application, userconfig string, rootDomain string, dependencies []Dependency) (VelaYaml, error) {
+func GenValeYaml(instanceId string, application v1alpha1.Application, userconfig string, rootDomain string, dependencies Dependency) (VelaYaml, error) {
 	var vela = VelaYaml{"", make(map[string]interface{}, 0)}
 	var err error
 	vela.Name = application.Metadata.Name
 
 	//traits:ingress的组件
 	serviceEntryName := entryService(application.Spec.Workloads)
-	authorizationData, serviceEntryData, configmapData, err := parseDependencies(dependencies)
+	authorizationData, serviceEntryData, configmapData, err := parseDependencies(application, dependencies)
 	if err != nil {
 		return vela, err
 	}
@@ -345,121 +346,80 @@ func serviceVela(workload v1alpha1.Workload, instanceid string, authorization []
 			if trait.Type == "globalsphare.com/v1alpha1/trait/ingress" {
 				traitProperties := make(map[string]interface{}, 0)
 				traitProperties["host"] = fmt.Sprintf("%s.%s", instanceid, rootDomain)
+				path := make([]string, 0)
+				traitProperties["path"] = append(path, "/*")
 				traits[trait.Type] = traitProperties
 				//添加一个外部依赖的trait
-				traits["dependency"] = ApplicationDependency
+				traits["globalsphare.com/v1alpha1/trait/dependency"] = ApplicationDependency
 			}else{
 				traits[trait.Type] =  GetProperties(trait.Properties)
 			}
 		}
 		properties["traits"] = traits
 	}
-
-	if serviceEntryName == workload.Name {
-		path := make([]string, 0)
-		path = append(path, "/*")
-		entry := Entry{
-			fmt.Sprintf("%s.%s", instanceid, rootDomain),
-			path,
-		}
-		properties["entry"] = entry
-	}
 	return properties
 }
 
 //处理依赖
-func parseDependencies(dependencies []Dependency) ([]Authorization, []ServiceEntry, map[string]string, error) {
+func parseDependencies(application v1alpha1.Application, dependencies Dependency) ([]Authorization, []ServiceEntry, map[string]string, error) {
 	var err error
-	authorization := make([]Authorization, 0)
-	serviceEntry := make([]ServiceEntry, 0)
-	configmap := make(map[string]string, 0)
-	//解析uses
-	dependencyVelas := make([]DependencyVela, 0)
-	for _, v := range dependencies {
-		if v.Instanceid != "" && v.EntryService == "" {
-			return authorization, serviceEntry, configmap, errors.New("dependencies.entryService不能为空")
-		}
-		resource, err := ApiParse(v.Items)
-		if err != nil {
-			return authorization, serviceEntry, configmap, err
-		}
-		dependencyVelas = append(dependencyVelas, DependencyVela{
-			v.Instanceid,
-			v.Name,
-			v.Location,
-			v.EntryService,
-			resource,
-		})
-	}
-
-	authorization, serviceEntry, configmap, err = dependendService(dependencyVelas)
-	if err != nil {
-		return authorization, serviceEntry, configmap, err
-	}
-	return authorization, serviceEntry, configmap, err
-}
-
-//依赖的服务,授权
-func dependendService(dependencyVelas []DependencyVela) ([]Authorization, []ServiceEntry, map[string]string, error) {
+	//authorization := make([]Authorization, 0)
+	//serviceEntry := make([]ServiceEntry, 0)
+	//configmap := make(map[string]string, 0)
 	auth := make([]Authorization, 0)
 	//外部服务调用
 	svcEntry := make([]ServiceEntry, 0)
 	//运行时配置
 	cm := make(map[string]string, 0)
+	allDependency := make(map[string][]DependencyUseItem)
+	for _,j := range application.Spec.Dependencies{
+		resource, err := ApiParse(j.Items) //[]DependencyUseItem
+		if err != nil {
+			klog.Errorln(err)
+			return auth, svcEntry, cm, err
+		}
+		fmt.Printf("%+v\n", resource)
+		allDependency[j.Name] = resource
+	}
 
-	for _, v := range dependencyVelas {
-		if v.Instanceid != "" {
-			auth = append(auth, Authorization{
-				v.Instanceid, v.EntryService, v.Resource,
-			})
-			cm[v.Name] = fmt.Sprintf("%s.%s.svc.cluster.local", v.EntryService, v.Instanceid)
+	//从manifest.yaml中解析uses
+	for _,v := range dependencies.Internal {
+		auth = append(auth, Authorization{
+			v.Instanceid, v.EntryService, allDependency[v.Name],
+		})
+		cm[v.Name] = fmt.Sprintf("%s.%s.svc.cluster.local", v.EntryService, v.Instanceid)
+	}
+	for _,item := range dependencies.External {
+		arr, err := url.ParseRequestURI(item.Location)
+		if err != nil {
+			klog.Errorln(err.Error())
+			return auth, svcEntry, cm, err
+		}
+		var protocol string
+		if arr.Scheme == "https" {
+			protocol = "TLS"
+		} else if arr.Scheme == "http" {
+			protocol = "http"
 		} else {
-			if v.Location == "" {
-				return auth, svcEntry, cm, errors.New("")
-			}
-			serviceType, err := inExCheck(v.Location)
+			klog.Errorln("protocol of the location is not http or https.")
+			return auth, svcEntry, cm, errors.New("protocol of the location is not http or https.")
+		}
+		hostArr := strings.Split(arr.Host, ":")
+		var port int
+		if len(hostArr) == 1 {
+			port = 80
+		} else {
+			port, err = strconv.Atoi(hostArr[1])
 			if err != nil {
-				return auth, svcEntry, cm, err
-			}
-			if serviceType == "internal" {
-				u, err := url.Parse(v.Location)
-				if err != nil {
-					return auth, svcEntry, cm, err
-				}
-				arr := strings.Split(u.Host, ".")
-				auth = append(auth, Authorization{arr[0], arr[1], v.Resource})
-			} else {
-				arr, err := url.ParseRequestURI(v.Location)
-				if err != nil {
-					klog.Errorln(err.Error())
-					return auth, svcEntry, cm, err
-				}
-				var protocol string
-				if arr.Scheme == "https" {
-					protocol = "TLS"
-				} else if arr.Scheme == "http" {
-					protocol = "http"
-				} else {
-					klog.Errorln("protocol of the location is not http or https.")
-					return auth, svcEntry, cm, errors.New("protocol of the location is not http or https.")
-				}
-				hostArr := strings.Split(arr.Host, ":")
-				var port int
-				if len(hostArr) == 1 {
-					port = 80
-				} else {
-					port, err = strconv.Atoi(hostArr[1])
-					if err != nil {
-						klog.Errorln("转int失败")
-						return auth, svcEntry, cm, errors.New("转int失败")
-					}
-				}
-				svcEntry = append(svcEntry, ServiceEntry{arr.Host, port, protocol})
+				klog.Errorln("转int失败")
+				return auth, svcEntry, cm, errors.New("转int失败")
 			}
 		}
+		svcEntry = append(svcEntry, ServiceEntry{arr.Host, port, protocol})
 	}
-	return auth, svcEntry, cm, nil
+	return auth, svcEntry, cm, err
 }
+
 
 //traits中包含ingress的组件名称
 func entryService(workloads []v1alpha1.Workload) string {
