@@ -1,0 +1,65 @@
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: island-ui
+  namespace: island-system
+spec:
+  selector:
+    app: island
+    component: ui
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: island-ui
+  namespace: island-system
+data:
+  config.json: |
+    {
+        "domain": "http://island-api",
+        "port": 3000
+    }
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: island-ui
+  namespace: island-system
+  labels:
+    app: island
+    component: ui
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: island-ui
+      labels:
+        app: island
+        component: ui
+    spec:
+      containers:
+        - name: island-ui
+          image: harbor1.zlibs.com/island/island-ui:alpha
+          imagePullPolicy: Always
+          volumeMounts:
+            - mountPath: /crab-front/server/config.json
+              name: conf
+              subPath: config.json
+      restartPolicy: Always
+      volumes:
+        - name: conf
+          configMap:
+            name: island-ui
+  selector:
+    matchLabels:
+      app: island
+      component: ui
+

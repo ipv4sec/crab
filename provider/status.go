@@ -31,7 +31,7 @@ func Query(id, component string) error {
 	if reply.Code != 0 {
 		return fmt.Errorf("组件状态返回错误: %v %v", reply.Code, reply.Result)
 	}
-	if reply.Result != 1 {
+	if reply.Result.(float64) != 1 {
 		return fmt.Errorf("组件状态未就绪: %v",reply.Result)
 	}
 	return nil

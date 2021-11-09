@@ -158,13 +158,6 @@ func main() {
 		panic(errors.New(fmt.Sprintf("网格版本错误: %s", v)))
 	}
 
-	klog.Infoln("开始设置存储")
-	output, err := executor.ExecuteCommandWithCombinedOutput("scripts/ceph.sh")
-	if err != nil {
-		panic(fmt.Errorf("设置存储组件失败: %w", err))
-	}
-	klog.Infoln("设置存储组件成功:", output)
-
 	klog.Infoln("开始设置根域")
 	yaml := `
 apiVersion: v1
