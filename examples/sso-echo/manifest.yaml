@@ -1,13 +1,13 @@
 apiVersion: ami.globalsphare.com/v1alpha1
 kind: Application
 metadata:
-  name: ez
+  name: sso-echo
   version: 3.0.0
 spec:
   workloads:
     - name: ez
-      type: globalsphare.com/v1alpha1/webservice
-      vendor: globalsphare.com/v1alpha1/webservice
+      type: globalsphare.com/v1alpha1/workloadType/webservice
+      vendor: globalsphare.com/v1alpha1/workloadVendor/webservice
       properties:
         image: harbor1.zlibs.com/island/ez:alpha
         configs:
@@ -17,9 +17,9 @@ spec:
               - name: id.txt
                 value: "ez"
       traits:
-        - type: globalsphare.com/v1alpha1/ingress
+        - type: globalsphare.com/v1alpha1/trait/ingress
   dependencies:
-    - name: sso
+    - name: sso-alpha
       version: ">=0.0.1"
       location: user-defined
       items:

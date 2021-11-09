@@ -2,16 +2,15 @@ apiVersion: ami.globalsphare.com/v1alpha1
 kind: Application
 metadata:
   name: harbor
-  annotations:
-    version: 2.0.0
+  version: 2.0.0
 spec:
   workloads:
     - name: cache
-      type: globalsphare.com/v1alpha1/redis
-      vendor: globalsphare.com/v1alpha1/redis
+      type: globalsphare.com/v1alpha1/workloadType/redis
+      vendor: globalsphare.com/v1alpha1/workloadVendor/redis
     - name: db
-      type: globalsphare.com/v1alpha1/mysql
-      vendor: globalsphare.com/v1alpha1/mysql
+      type: globalsphare.com/v1alpha1/workloadType/mysql
+      vendor: globalsphare.com/v1alpha1/workloadVendor/mysql
       properties:
         rootpwd: "123456"
         storage:
@@ -19,8 +18,8 @@ spec:
         init: "CREATE DATABASE island;"
         after: cache
     - name: api
-      type: globalsphare.com/v1alpha1/webservice
-      vendor: globalsphare.com/v1alpha1/webservice
+      type: globalsphare.com/v1alpha1/workloadType/webservice
+      vendor: globalsphare.com/v1alpha1/workloadVendor/webservice
       properties:
         image: harbor1.zlibs.com/island/island-nginx:1.21
         after: db
@@ -31,10 +30,20 @@ spec:
               - name: 1.txt
                 value: "111"
       traits:
-        - type: globalsphare.com/v1alpha1/ingress
+        - type: globalsphare.com/v1alpha1/trait/ingress
+
 
   dependencies:
     - name: github
+      version: ">=0.0.1"
+      location: https://www.github.com
+      uses:
+        /*:
+          - create
+          - read
+          - update
+          - delete
+    - name: gitlab
       version: ">=0.0.1"
       location: https://www.github.com
       uses:
@@ -55,15 +64,6 @@ spec:
         type: integer
       param2:
         type: string
-      param3:
-        type: object
-        properties:
-          param3_1:
-            type: number
-          param3_2:
-            type: number
-        required:
-          - param3_1
       param4:
         type: array
         items:

@@ -1,48 +1,5 @@
 # Overview
 
-- [说明](#说明)
-- [错误代码](#错误代码)
-- [执行](#执行)
-
-<a name="说明"></a>
-
-## 说明
-
-### Changelog
-
-### 返回的数据结构如下
-```
-{
-    "code": 错误代码,
-    "result": 任意类型
-}
-```
-
-`code` 表示的为错误代码, 数字类型
-
-正常返回时`code`为`0`, `result`为数据, 可能是数字, 布尔, 字符串, 数组, 对象等等
-
-错误返回时`code`不为`0`, `result`为错误信息, 字符串类型, 可直接显示在浏览器页面
-
-错误代码原则上前端用不到, 前端仅需要判断非0时显示`result`字段即可
-
-
-<a name="错误代码"></a>
-## 错误代码
-
-|  code     |意义  | 
-|  ----   |----  |
-| 10101   | 参数错误 |
-| 10102   | 服务器内部错误 |
-
-错误代码的第一位, 目前1 标识此应用
-错误代码的第二三位, 标识组件
-错误代码的第四五位, 标识错误代码
-
-<a name="执行"></a>
-## 执行
-
-
 ### 请求语法
 ```
 POST / HTTP/1.1
@@ -51,15 +8,8 @@ POST / HTTP/1.1
 ### 请求参数
 |名称|说明|类型|默认值|是否必填|
 |---|---|---|---|---|
-|Deploy|翻译器生成的文件内容|string|无|是|
-|InstanceId|实例id|string|无|是|
-|Level|环境|string|develop|否|
-|Operate|操作|string|create|是|
-
-Deploy 翻译器生成的文件内容, string类型，必填
-InstanceId 应用的实例, string类型, 必填
-Level 部署的环境, string类型, 非必填, 默认develop
-Operate 操作, string类型,非必填, 默认值create, 选项create/update/delete
+|deployment|翻译器生成的文件内容|string|无|是|
+|id|实例ID|string|无|是|
 
 ### 返回值
 ```

@@ -32,8 +32,8 @@
 
 |  code     |意义  | 
 |  ----   |----  |
-| 10101   | 参数错误 |
-| 10102   | 服务器内部错误 |
+| 10201   | 参数错误 |
+| 10202   | 服务器内部错误 |
 
 错误代码的第一位, 目前1 标识此应用
 错误代码的第二三位, 标识组件
@@ -54,16 +54,20 @@ POST / HTTP/1.1
 |Content|文件内容|string|无|是|
 |InstanceId|实例id|string|无|是|
 |UserConfig|运行时配置|object|{}|否|
-|Dependencies|实例依赖|dependency数组|[]|否|
+|Dependencies|实例依赖|dependency object|{}|否|
 |RootDomain|根域|string|无|是|
 |WorkloadPath|绝对路径|string|无|是|
 
-Dependencies.InstanceId 内部服务实例id，为string类型，选择内部服务时必填
-Dependencies.Location string类型，必填
-Dependencies.Version 版本号, string类型，非必填
-Dependencies.Uses  使用的资源和权限， map[string] []string类型，非必填
-Dependencies.EntryService 服务暴露的组件的名称，string类型，选择内部服务时必填
-Dependencies.Name 依赖服务的名称，string类型，必填
+Dependencies.Internal 内部的服务, 数组类型, 非必填, 内容如下：
+
+* Dependencies.Internal.[i].Name 应用的name string类型, 必填
+* Dependencies.Internal.[i].InstanceId 内部服务实例id，string类型, 必填
+* Dependencies.Internal.[i].EntryService 服务暴露的组件的名称，string类型, 必填
+
+Dependencies.External 外部的服务, 数组类型, 非必填, 内容如下：
+
+* Dependencies.External[i].Name 应用的name string类型, 必填
+* Dependencies.External[i].Location string类型，必填
 
 ### 返回值
 ```

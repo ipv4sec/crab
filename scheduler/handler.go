@@ -6,6 +6,7 @@ import (
 	"crab/exec"
 	"crab/parser"
 	"crab/provider"
+	"crab/utils"
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -15,102 +16,74 @@ import (
 	"k8s.io/klog/v2"
 	"time"
 )
-type Result struct {
-	Code   int    `json:"code"`
-	Result string `json:"result"`
-}
-
-type Param struct {
-	Deploy string `json:"Deploy"`
-	InstanceId string `json:"InstanceId"`
-	Level string `json:"Level"`
-	Operate string `json:"operate"`
-}
 
 func PostDeploymentHandlerFunc(c *gin.Context)  {
-	var param Param
+	var param struct {
+		Deployment string `json:"deployment"`
+		ID string `json:"id"`
+	}
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
-		klog.Errorln(err)
-		ret := Result{
-			Code:   100011,
-			Result: err.Error(),
-		}
-		c.JSON(200, ret)
+		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "参数错误"))
 		return
 	}
-	if param.InstanceId == "" ||  param.Deploy == "" {
-		ret := Result{
-			Code:   100010,
-			Result: "参数不全",
-		}
-		c.JSON(200, ret)
+	if param.ID == "" || param.Deployment == "" {
+		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "参数错误"))
 		return
 	}
-	if param.Level == "" {
-		param.Level = "develop"
-	}
-	if param.Operate == "" {
-		param.Operate = "create"
-	}
-	//
+
 	var deployment parser.ParserData
-	err = yaml.Unmarshal([]byte(param.Deploy), &deployment)
+	err = yaml.Unmarshal([]byte(param.Deployment), &deployment)
 	if err != nil {
-		klog.Errorln("反序列化失败", err.Error())
+		klog.Errorln("反序列化失败:", err.Error())
+		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, err.Error()))
+		return
 	}
 	for k, v := range deployment.Workloads {
 		var parameters map[string] interface{}
 		err = yaml.Unmarshal([]byte(v.Parameter), &parameters)
 		if err != nil {
-			klog.Errorln("反序列化Parameter失败:", err.Error())
+			klog.Errorln("反序列化工作负载参数失败:", err.Error())
 			continue
 		}
-		component := Component{
-			ID:    param.InstanceId,
-			Name:  k,
-		}
+		component := Component{ID: param.ID, Name: k}
 		after, ok := parameters["after"]
 		if ok {
 			component.After = after.(string)
 		} else {
 			component.Deployment = fmt.Sprintf("%v\n", deployment.Init)
 		}
-		for _, v2 := range v.Construct {
-			component.Deployment += fmt.Sprintf("---\n%s", v2)
+		for _, construct := range v.Construct {
+			component.Deployment += fmt.Sprintf("---\n%s", construct)
 		}
-		for _, v2 := range v.Traits {
-			component.Deployment += fmt.Sprintf("---\n%s", v2)
+		for _, traits := range v.Traits {
+			component.Deployment += fmt.Sprintf("---\n%s", traits)
 		}
 		componentBytes, err := json.Marshal(component)
 		if err != nil {
-			klog.Errorln("序列化component失败:", err.Error())
+			klog.Errorln("序列化队列负载失败:", err.Error())
 			continue
 		}
 		err = cache.Client.LPush(context.Background(), "crab:scheduler", string(componentBytes)).Err()
 		if err != nil {
 			klog.Errorln("保存到队列失败", err.Error())
+			continue
 		}
 	}
-
-	ret := Result{
-		Code:   0,
-		Result: "ok",
-	}
-	c.JSON(200, ret)
+	c.JSON(200, utils.SuccessResponse("ok"))
 }
 
-func Consumer(){
+func Consumption(){
 	klog.Infoln("开始消费队列", time.Now().UTC())
 	executor := exec.CommandExecutor{}
 	for {
+		time.Sleep(time.Second * 5)
+
 		value, err := cache.Client.RPop(context.Background(), "crab:scheduler").Result()
 		if err != nil {
 			if err != redis.Nil {
-				klog.Infoln("消费队列出现错误", err.Error())
-				panic(err)
+				panic(fmt.Errorf("消费队列出现错误: %w", err))
 			}
-			time.Sleep(time.Second * 5)
 			continue
 		}
 		var component Component
@@ -126,7 +99,9 @@ func Consumer(){
 			err = cache.Client.LPush(context.Background(), "crab:scheduler", value).Err()
 			if err != nil {
 				klog.Errorln("保存到队列失败", err.Error())
+				continue
 			}
+			continue
 		}
 		klog.Infoln("要执行的文件内容为:", component.Deployment)
 		saved := fmt.Sprintf("/tmp/%s_%s.yaml", component.ID, component.Name)

@@ -1,13 +1,13 @@
 apiVersion: ami.globalsphare.com/v1alpha1
 kind: Application
 metadata:
-  name: sso
+  name: sso-alpha
   version: 3.0.0
 spec:
   workloads:
-    - name: sso
-      type: globalsphare.com/v1alpha1/webservice
-      vendor: globalsphare.com/v1alpha1/webservice
+    - name: nginx
+      type: globalsphare.com/v1alpha1/workloadType/webservice
+      vendor: globalsphare.com/v1alpha1/workloadVendor/webservice
       properties:
         image: nginx:1.21
         configs:
@@ -18,4 +18,4 @@ spec:
                 value: |
                   {"users":["zhangsan", "lisi"]}
       traits:
-        - type: globalsphare.com/v1alpha1/ingress
+        - type: globalsphare.com/v1alpha1/trait/ingress

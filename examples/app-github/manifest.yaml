@@ -1,0 +1,14 @@
+apiVersion: ami.globalsphare.com/v1alpha1
+kind: Application
+metadata:
+  name: github
+  version: 1.0.0
+spec:
+  workloads:
+    - name: ha
+      type: globalsphare.com/v1alpha1/workloadType/webservice
+      vendor: globalsphare.com/v1alpha1/workloadVendor/webservice
+      properties:
+        image: harbor1.zlibs.com/island/island-nginx:1.21
+      traits:
+        - type: globalsphare.com/v1alpha1/trait/ingress

@@ -13,7 +13,7 @@ const (
 
 type Instance struct {
 	ID      string `json:"id"`
-	Version string `json:"version"`
+	Name string `json:"name"`
 }
 
 type Dependency struct {

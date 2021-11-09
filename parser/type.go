@@ -1,44 +1,53 @@
 package parser
+
+import "crab/aam/v1alpha1"
+
 type ContextObj struct {
 	AppName       string `json:"appName"`
 	ComponentName string `json:"componentName"`
-	Namespace string `json:"namespace"`
+	Namespace     string `json:"namespace"`
 }
 type Result struct {
 	Code   int    `json:"code"`
 	Result string `json:"result"`
 }
 type Dependency struct {
-	Instanceid string `json:"InstanceId"`
-	Name string	`json:"name"`
-	Version string	`json:"version"`
-	Location string	`json:"location"`
-	Items map[string][]string `json:"items"`
-	EntryService string `json:"EntryService"`
+	Internal []InternalDependency `json:"Internal"`
+	External []ExternalDependency `json:"External"`
+}
+type InternalDependency struct {
+	Name         string              `json:"Name"`
+	Instanceid   string              `json:"InstanceId"`
+	EntryService string              `json:"EntryService"`
+}
+type ExternalDependency struct {
+	Name         string              `json:"Name"`
+	Location     string              `json:"Location"`
 }
 
 //验证type,vendor返回的数据
-type WorkloadParams struct{
+type WorkloadParam struct {
 	Parameter map[string]interface{} `json:"parameter"`
-	Type string `json:"type"`
-	Vendor string `json:"vendor"`
-	VendorCue string `json:"vendorCue"`
-	Traits []string `json:"traits"`
+	Type      string                 `json:"type"`
+	Vendor    string                 `json:"vendor"`
+	VendorCue string                 `json:"vendorCue"`
+	Traits    []string               `json:"traits"`
 }
 type VelaYaml struct {
 	Name     string                 `json:"name"`
 	Services map[string]interface{} `json:"services"`
 }
+
 //返回的中间格式
 type ParserData struct {
-	Name string  `yaml:"name"`
-	Init string `yaml:"init"`
+	Name      string              `yaml:"name"`
+	Init      string              `yaml:"init"`
 	Workloads map[string]Workload `yaml:"workloads"`
 }
 type Workload struct {
-	Parameter  string `yaml:"parameter"`
+	Parameter string            `yaml:"parameter"`
 	Construct map[string]string `yaml:"construct"`
-	Traits map[string]string `yaml:"traits"`
+	Traits    map[string]string `yaml:"traits"`
 }
 type ConfigItem struct {
 	Path    string               `yaml:"path" json:"path"`
@@ -53,6 +62,7 @@ type Storage struct {
 	Capacity string `yaml:"capacity" json:"capacity"`
 	Path     string `yaml:"path" json:"path"`
 }
+
 //内部应用授权
 type Authorization struct {
 	Namespace string              `json:"namespace"`
@@ -66,6 +76,7 @@ type ServiceEntry struct {
 	Port     int    `json:"port"`
 	Protocol string `json:"protocol"`
 }
+
 //解析后的依赖use
 type DependencyUseItem struct {
 	Uri     string   `json:"uri"`
@@ -90,8 +101,12 @@ type DependencyVela struct {
 	EntryService string              `json:"entryservice"`
 	Resource     []DependencyUseItem `json:"resource"`
 }
+type Trait struct {
+	Type       string              `yaml:"type"`
+	Properties v1alpha1.Properties `yaml:"properties"`
+}
 
 const (
-	ErrBadRequest      = 10201
-	ErrInternalServer  = 10202
+	ErrBadRequest     = 10201
+	ErrInternalServer = 10202
 )
