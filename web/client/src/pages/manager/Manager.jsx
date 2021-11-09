@@ -99,15 +99,18 @@ const Manager = (props) => {
     const [showLog, setShowLog] = useState(false)
     const [logTitle, setLogTitle] = useState('日志')
     const [logList, setLogList] = useState([])
-    const [page, setPage] = useState(0) // 当前页
-    const limit = 10 // 每页多少条
+    const [page, setPage] = useState(1) // 当前页
+    const limit = 8 // 每页多少条
     const [curInstance, setCurInstance ]= useState()
-    const onePageLength = 6
     const [hadDomain, setHadDomain] = useState(-1)
 
     useEffect(() => {
         getDomain()
     }, [])
+
+    useEffect(() => {
+        getAppList()
+    }, [page])
 
     const getDomain = () => {
         axios({
@@ -138,7 +141,7 @@ const Manager = (props) => {
         axios({
             url: '/api/app/list',
             method: 'GET',
-            params: {offset: page*limit, limit: limit}
+            params: {offset: (page-1)*limit, limit: limit}
         }).then((res) => {
             if(res.data.code === 0) {
                 setAppList(res.data.result.rows || [])
@@ -549,7 +552,8 @@ const Manager = (props) => {
         
                         <div className="pagination-content">
                             <Pagination 
-                                count={Math.ceil(total/onePageLength)} 
+                                // count={Math.ceil(total/limit)} 
+                                count={10} 
                                 page={page} 
                                 shape="rounded" 
                                 onChange={changePage} />
