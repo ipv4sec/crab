@@ -99,7 +99,7 @@ func PostManifestHandlerFunc(c *gin.Context) {
 //应用之间的依赖
 type ApplicationDependency struct {
 	Authorization []Authorization `json:"authorization"`
-	ServiceEntry []ServiceEntry `json:"serviceEntry"`
+	ServiceEntry []ServiceEntry `json:"serviceentry"`
 }
 
 //由manifest.yaml生成vale.yaml
@@ -223,6 +223,7 @@ spec:
 						traits[k] = string(str)
 						count++
 					}
+					fmt.Println("traitName：", traitName)
 					if count == 0 {
 						err = errors.New("未实现trait")
 						fmt.Println(v)
