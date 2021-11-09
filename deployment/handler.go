@@ -4,6 +4,7 @@ import (
 	"context"
 	"crab/aam/v1alpha1"
 	"crab/cluster"
+	"crab/db"
 	"crab/provider"
 	"crab/utils"
 	"github.com/gin-gonic/gin"
@@ -88,13 +89,14 @@ func PutDeploymentHandlerFunc(c *gin.Context) {
 		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "连接到翻译器错误"))
 		return
 	}
-	//err = db.Client.Model(app.App{}).Where("id = ?", instance.ID).Updates(map[string]interface{}{
-	//	"status": 1}).Error
-	//if err != nil {
-	//	klog.Errorln("数据库更新错误:", err.Error())
-	//	c.JSON(200, utils.ErrorResponse(0, "更新状态错误"))
-	//	return
-	//}
+	// TODO
+	err = db.Client.Table("t_app").Where("id = ?", instance.ID).Updates(map[string]interface{}{
+		"status": 2}).Error
+	if err != nil {
+		klog.Errorln("数据库更新错误:", err.Error())
+		c.JSON(200, utils.ErrorResponse(0, "更新状态错误"))
+		return
+	}
 
 	err = provider.Exec(instance.ID, val)
 	if err != nil {
