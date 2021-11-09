@@ -552,8 +552,7 @@ const Manager = (props) => {
         
                         <div className="pagination-content">
                             <Pagination 
-                                // count={Math.ceil(total/limit)} 
-                                count={10} 
+                                count={Math.ceil(total/limit)} 
                                 page={page} 
                                 shape="rounded" 
                                 onChange={changePage} />
