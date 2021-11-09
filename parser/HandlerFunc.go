@@ -208,28 +208,30 @@ spec:
 		}
 		workload.Construct = construct
 		traits := make(map[string]string, 0)
-		//fmt.Println(workloadParam[k])
-		if len(workloadParam[k].Traits) > 0 { //有trait
-			for _, v := range workloadParam[k].Traits {
-				count = 0
-				arr := strings.Split(v, "/")
-				v = arr[len(arr)-1]
-				for k, out := range cmdResult[v] {
-					str, err := yaml.Marshal(out)
-					if err != nil {
-						klog.Errorln(err.Error())
+		for kk,vv := range v.(map[string]interface{}){
+			if kk == "traits"{
+				for traitName := range vv.(map[string]interface{}){
+					count = 0
+					arr := strings.Split(traitName, "/")
+					traitName = arr[len(arr)-1]
+					for k, out := range cmdResult[traitName] {
+						str, err := yaml.Marshal(out)
+						if err != nil {
+							klog.Errorln(err.Error())
+							return parserData, err
+						}
+						traits[k] = string(str)
+						count++
+					}
+					if count == 0 {
+						err = errors.New("未实现trait")
+						fmt.Println(v)
 						return parserData, err
 					}
-					traits[k] = string(str)
-					count++
-				}
-				if count == 0 {
-					err = errors.New("未实现trait")
-					return parserData, err
 				}
 			}
-
 		}
+
 		workload.Traits = traits
 		parameterStr, err := yaml.Marshal(cmdResult["parameter"])
 		if err != nil {
@@ -323,7 +325,7 @@ func RandomString(str string) string {
 }
 
 //生成kubevela格式的service
-func serviceVela(workload v1alpha1.Workload, instanceid string, authorization []Authorization, ApplicationDependency ApplicationDependency, configItemData []ConfigItemDataItem, rootDomain string, serviceEntryName string) interface{} {
+func serviceVela(workload v1alpha1.Workload, instanceid string, authorization []Authorization, applicationDependency ApplicationDependency, configItemData []ConfigItemDataItem, rootDomain string, serviceEntryName string) interface{} {
 	properties := GetProperties(workload.Properties)
 	properties["authorization"] = authorization
 	configs2 := make([]interface{}, 0)
@@ -350,7 +352,9 @@ func serviceVela(workload v1alpha1.Workload, instanceid string, authorization []
 				traitProperties["path"] = append(path, "/*")
 				traits[trait.Type] = traitProperties
 				//添加一个外部依赖的trait
-				traits["globalsphare.com/v1alpha1/trait/dependency"] = ApplicationDependency
+				if len(applicationDependency.Authorization) > 0 || len(applicationDependency.ServiceEntry) > 0 {
+					traits["globalsphare.com/v1alpha1/trait/dependency"] = applicationDependency
+				}
 			}else{
 				traits[trait.Type] =  GetProperties(trait.Properties)
 			}
