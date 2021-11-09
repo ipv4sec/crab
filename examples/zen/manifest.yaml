@@ -21,6 +21,7 @@ spec:
       type: globalsphare.com/v1alpha1/workloadType/worker
       vendor: globalsphare.com/v1alpha1/workloadVendor/worker
       properties:
+        after: alfa
         image: nginx:1.21
         configs:
           - path: /usr/share/nginx/html/
@@ -33,6 +34,7 @@ spec:
       type: globalsphare.com/v1alpha1/workloadType/worker
       vendor: globalsphare.com/v1alpha1/workloadVendor/worker
       properties:
+        after: bravo
         image: nginx:1.21
         configs:
           - path: /usr/share/nginx/html/
@@ -45,6 +47,7 @@ spec:
       type: globalsphare.com/v1alpha1/workloadType/webservice
       vendor: globalsphare.com/v1alpha1/workloadVendor/webservice
       properties:
+        after: charlie
         image: nginx:1.21
         configs:
           - path: /usr/share/nginx/html/
