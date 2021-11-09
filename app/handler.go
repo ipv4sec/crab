@@ -23,7 +23,7 @@ import (
 )
 
 type Pagination struct {
-	Total int         `json:"total"`
+	Total int64         `json:"total"`
 	Rows  interface{} `json:"rows"`
 }
 
@@ -51,7 +51,7 @@ func GetAppsHandlerFunc(c *gin.Context) {
 		c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseInternalServer, "数据库查询错误"))
 		return
 	}
-	err = db.Client.Model(&App{}).Count(&total).Error
+	err = db.Client.Model(&App{}).Where("status > ? AND status < ?", 0, 4).Count(&total).Error
 	if err != nil {
 		klog.Errorln("数据库查询错误:", err.Error())
 		c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseInternalServer, "数据库查询错误"))
@@ -134,7 +134,7 @@ func GetAppsHandlerFunc(c *gin.Context) {
 		val = append(val, dto)
 	}
 	c.JSON(200, utils.SuccessResponse(Pagination{
-		Total: len(apps),
+		Total: total,
 		Rows:  val,
 	}))
 }
