@@ -15,7 +15,7 @@ const Domain = (props) => {
 
     useEffect(() => {
         getDomain()
-        getAddr()
+        // getAddr()
     }, [])
 
     const getDomain = () => {
@@ -112,32 +112,39 @@ const Domain = (props) => {
     return (
         <div className="page-container  domain-container">
             <div className="page-title">根域设置</div>
-            <div className="domain-desc">
-                <p className="desc-text">
-                    为此集群设置根域，集群会用根域的二级域名来设置应用的访问域名，请先配置域名范解析到
-                    下列所列出的IP中一个或多个地址，再点击[检测并保存]按钮
-                </p>
-            </div>
+            {
+                false ? (
+                    <React.Fragment>
+                        <div className="domain-desc">
+                            <p className="desc-text">
+                                为此集群设置根域，集群会用根域的二级域名来设置应用的访问域名，请先配置域名范解析到
+                                下列所列出的IP中一个或多个地址，再点击[检测并保存]按钮
+                            </p>
+                        </div>
+                        
+                        <div className="addr-list">
+                            {
+                                address && Array.isArray(address) ? (address.map((item, index) => {
+                                    return (
+                                        <ul className="addr-item" key={item.name}>
+                                            <li className="item-li">{item.name}</li>
+                                            {
+                                                item.addrs.map((el, idx) => {
+                                                    return <li className="item-li" key={el}>{el}</li>
+                                                })
+                                            }
+                                        </ul>
+                                    )
+                                })) : null
+                            }
+                        </div> 
+                    </React.Fragment>
+                ) : null
+            }
             
-            <div className="addr-list">
-                {
-                    address && Array.isArray(address) ? (address.map((item, index) => {
-                        return (
-                            <ul className="addr-item" key={item.name}>
-                                <li className="item-li">{item.name}</li>
-                                {
-                                    item.addrs.map((el, idx) => {
-                                        return <li className="item-li" key={el}>{el}</li>
-                                    })
-                                }
-                            </ul>
-                        )
-                    })) : null
-                }
-            </div> 
             <div className="domain-input">
                 <Input placeholder="请输入根域" value={domain} change={changeDomain} inputErr={domainErr} />
-                <Button className="input-btn" variant="contained" color="primary" onClick={save}>检测并保存</Button>
+                <Button className="input-btn" variant="contained" color="primary" onClick={save}>保存</Button>
             </div>
         </div>
     )
