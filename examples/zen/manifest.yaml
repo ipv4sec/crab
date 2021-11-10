@@ -1,0 +1,60 @@
+apiVersion: ami.globalsphare.com/v1alpha1
+kind: Application
+metadata:
+  name: zen
+  version: 3.0.0
+spec:
+  workloads:
+    - name: alfa
+      type: globalsphare.com/v1alpha1/workloadType/worker
+      vendor: globalsphare.com/v1alpha1/workloadVendor/worker
+      properties:
+        image: nginx:1.21
+        configs:
+          - path: /usr/share/nginx/html/
+            subPath: user.json
+            data:
+              - name: user.json
+                value: |
+                  {"users":"alfa"}
+    - name: bravo
+      type: globalsphare.com/v1alpha1/workloadType/worker
+      vendor: globalsphare.com/v1alpha1/workloadVendor/worker
+      properties:
+        after: alfa
+        image: nginx:1.21
+        configs:
+          - path: /usr/share/nginx/html/
+            subPath: user.json
+            data:
+              - name: user.json
+                value: |
+                  {"users":"bravo"}
+    - name: charlie
+      type: globalsphare.com/v1alpha1/workloadType/worker
+      vendor: globalsphare.com/v1alpha1/workloadVendor/worker
+      properties:
+        after: bravo
+        image: nginx:1.21
+        configs:
+          - path: /usr/share/nginx/html/
+            subPath: user.json
+            data:
+              - name: user.json
+                value: |
+                  {"users":"charlie"}
+    - name: delta
+      type: globalsphare.com/v1alpha1/workloadType/webservice
+      vendor: globalsphare.com/v1alpha1/workloadVendor/webservice
+      properties:
+        after: charlie
+        image: nginx:1.21
+        configs:
+          - path: /usr/share/nginx/html/
+            subPath: user.json
+            data:
+              - name: user.json
+                value: |
+                  {"users":"delta"}
+      traits:
+        - type: globalsphare.com/v1alpha1/trait/ingress
