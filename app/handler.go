@@ -189,7 +189,7 @@ func GetAppStatusHandlerFunc(c *gin.Context) {
 		Message string `json:"message"`
 	}
 	// TODO
-	err := db.Client.Table("t_status").Find(&val).Where("id = ?", id).Error
+	err := db.Client.Table("t_status").Where("id = ?", id).Find(&val).Error
 	if err != nil {
 		klog.Errorln("数据库查询错误:", err.Error())
 		c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseBadRequest, "数据库查询错误"))
@@ -280,7 +280,7 @@ func PostAppHandlerFunc(c *gin.Context) {
 		d.Type, d.Link = Link(manifest.Spec.Dependencies[i].Location)
 		if d.Type == Mutable {
 			var apps []App
-			err = db.Client.Where("name = ? AND status > 0 AND status < 4", manifest.Spec.Dependencies[i].Name).Find(&apps).Error
+			err = db.Client.Where("name = ? AND status = ?", manifest.Spec.Dependencies[i].Name, 2).Find(&apps).Error
 			if err != nil {
 				klog.Errorln("数据库查询错误:", err.Error())
 				continue
