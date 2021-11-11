@@ -386,7 +386,7 @@ func PutAppHandlerFunc(c *gin.Context) {
 			return
 		}
 		err = db.Client.Model(App{}).Where("pk = ?", app.PK).Updates(map[string]interface{}{
-			"status": 1, "deployment": val}).Error
+			"status": 1, "deployment": val, "configurations": param.Configurations}).Error
 		if err != nil {
 			klog.Errorln("数据库更新错误:", err.Error())
 			c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseInternalServer, "更新状态错误"))
