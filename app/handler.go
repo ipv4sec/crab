@@ -385,8 +385,30 @@ func PutAppHandlerFunc(c *gin.Context) {
 			c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "连接到翻译器错误"))
 			return
 		}
+		var configurations string
+		if param.Configurations != nil {
+			switch v := param.Configurations.(type) {
+			case map[string]interface {}:
+				configurationsBytes, err := json.Marshal(param.Configurations)
+				if err != nil {
+					klog.Errorln("序列化运行时配置错误:", err.Error())
+				}
+				configurations = string(configurationsBytes)
+			case map[string]string:
+				configurationsBytes, err := json.Marshal(param.Configurations)
+				if err != nil {
+					klog.Errorln("序列化运行时配置错误:", err.Error())
+				}
+				configurations = string(configurationsBytes)
+			case string:
+				configurations = fmt.Sprintf("%v", param.Configurations)
+			default:
+				klog.Errorln("未考虑到的类型:", v)
+				configurations = fmt.Sprintf("%v", param.Configurations)
+			}
+		}
 		err = db.Client.Model(App{}).Where("pk = ?", app.PK).Updates(map[string]interface{}{
-			"status": 1, "deployment": val, "configurations": param.Configurations}).Error
+			"status": 1, "deployment": val, "configurations": configurations}).Error
 		if err != nil {
 			klog.Errorln("数据库更新错误:", err.Error())
 			c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseInternalServer, "更新状态错误"))
