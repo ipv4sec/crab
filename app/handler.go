@@ -178,6 +178,7 @@ func GetAppHandlerFunc(c *gin.Context) {
 	err = json.Unmarshal([]byte(app.Parameters), &parameters)
 	if err != nil {
 		klog.Errorln("序列化运行时配置失败", err.Error())
+		parameters = ""
 	}
 
 	deploy, err := yaml.Marshal(deployment.Deployment{
