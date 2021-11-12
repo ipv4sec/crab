@@ -161,11 +161,30 @@ func GetAppHandlerFunc(c *gin.Context) {
 		return
 	}
 	v, _ := island.Data["root-domain"]
+
+	var vals []struct{
+		Name string `json:"name"`
+
+		ID string `json:"id"`
+		Location string `json:"location"`
+
+		EntryService string
+	}
+	err = json.Unmarshal([]byte(app.Dependencies), &vals)
+	if err != nil {
+		klog.Errorln("序列化依赖失败", err.Error())
+	}
+	var parameters interface{}
+	err = json.Unmarshal([]byte(app.Parameters), &parameters)
+	if err != nil {
+		klog.Errorln("序列化运行时配置失败", err.Error())
+	}
+
 	deploy, err := yaml.Marshal(deployment.Deployment{
 		ID:             id,
 		Domain:         v,
-		Configurations: app.Parameters,
-		Dependencies:   app.Dependencies,
+		Configurations: parameters,
+		Dependencies:   vals,
 	})
 	if err != nil {
 		klog.Errorln("序列化失败", err.Error())
@@ -262,7 +281,7 @@ func PostAppHandlerFunc(c *gin.Context) {
 
 		Manifest: string(bytes),
 
-		Parameters: "",
+		Parameters: []byte(""),
 		Deployment: "",
 	}
 	err = db.Client.Create(&app).Error
@@ -385,30 +404,13 @@ func PutAppHandlerFunc(c *gin.Context) {
 			c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "连接到翻译器错误"))
 			return
 		}
-		var configurations string
-		if param.Configurations != nil {
-			switch v := param.Configurations.(type) {
-			case map[string]interface {}:
-				configurationsBytes, err := json.Marshal(param.Configurations)
-				if err != nil {
-					klog.Errorln("序列化运行时配置错误:", err.Error())
-				}
-				configurations = string(configurationsBytes)
-			case map[string]string:
-				configurationsBytes, err := json.Marshal(param.Configurations)
-				if err != nil {
-					klog.Errorln("序列化运行时配置错误:", err.Error())
-				}
-				configurations = string(configurationsBytes)
-			case string:
-				configurations = fmt.Sprintf("%v", param.Configurations)
-			default:
-				klog.Errorln("未考虑到的类型:", v)
-				configurations = fmt.Sprintf("%v", param.Configurations)
-			}
+		parameters, err := json.Marshal(param.Configurations)
+		if err != nil {
+			parameters = []byte("")
+			klog.Errorln("序列化运行时配置错误", err.Error())
 		}
 		err = db.Client.Model(App{}).Where("pk = ?", app.PK).Updates(map[string]interface{}{
-			"status": 1, "deployment": val, "configurations": configurations}).Error
+			"status": 1, "deployment": val, "parameters": string(parameters)}).Error
 		if err != nil {
 			klog.Errorln("数据库更新错误:", err.Error())
 			c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseInternalServer, "更新状态错误"))
