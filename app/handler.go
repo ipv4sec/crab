@@ -281,7 +281,7 @@ func PostAppHandlerFunc(c *gin.Context) {
 
 		Manifest: string(bytes),
 
-		Parameters: []byte(""),
+		Parameters: "",
 		Deployment: "",
 	}
 	err = db.Client.Create(&app).Error
