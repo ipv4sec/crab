@@ -9,7 +9,6 @@ import (
 	"crab/domain"
 	"crab/mirror"
 	"crab/status"
-	"crab/storage"
 	"crab/user"
 	"flag"
 	"fmt"
@@ -67,7 +66,6 @@ func main() {
 	routers.PUT("/app/:id", app.PutAppHandlerFunc)
 	routers.DELETE("/app/:id", app.DeleteAppHandlerFunc)
 
-	routers.GET("/cluster/addrs", storage.GetAddrsHandlerFunc)
 	routers.GET("/cluster/domain", domain.GetDomainHandlerFunc)
 	routers.PUT("/cluster/domain", domain.PutDomainHandlerFunc)
 

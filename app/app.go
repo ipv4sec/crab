@@ -1,6 +1,8 @@
 package app
 
-import "time"
+import (
+	"time"
+)
 
 type App struct {
 	PK     int64  `gorm:"primaryKey" json:"-"`

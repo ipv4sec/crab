@@ -63,13 +63,6 @@ func PutDeploymentHandlerFunc(c *gin.Context) {
 		return
 	}
 
-	var dependencies provider.Dependencies
-	err = yaml.Unmarshal([]byte(instance.Dependencies), &dependencies)
-	if err != nil {
-		klog.Errorln("解析描述文件错误:", err.Error())
-		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "解析描述文件错误"))
-		return
-	}
 	island, err := cluster.Client.Clientset.CoreV1().ConfigMaps("island-system").
 		Get(context.Background(), "island-info", metav1.GetOptions{})
 	if err != nil {
@@ -83,7 +76,8 @@ func PutDeploymentHandlerFunc(c *gin.Context) {
 	if err != nil {
 		klog.Errorln("更新工作负载错误:", err.Error())
 	}
-	val, err := provider.Yaml(string(manifestBytes), instance.ID, instance.Domain, instance.Configurations, dependencies, savedMirrorPath)
+	val, err := provider.Yaml(string(manifestBytes), instance.ID, instance.Domain, instance.Configurations,
+		provider.ConvertToDependency(instance.Dependencies), savedMirrorPath)
 	if err != nil {
 		klog.Errorln("连接到翻译器错误:", err.Error())
 		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "连接到翻译器错误"))

@@ -158,6 +158,17 @@ func main() {
 		panic(errors.New(fmt.Sprintf("网格版本错误: %s", v)))
 	}
 
+	klog.Infoln("开始设置端口")
+	yamlBytes, err := ioutil.ReadFile("assets/istio/ingress.yaml")
+	if err != nil {
+		panic(fmt.Errorf("读取yaml错误: %w", err))
+	}
+	err = cluster.Client.Apply(context.Background(), yamlBytes)
+	if err != nil {
+		panic(fmt.Errorf("设置端口错误: %w", err))
+	}
+	klog.Infoln("设置端口完成")
+
 	klog.Infoln("开始设置根域")
 	yaml := `
 apiVersion: v1
