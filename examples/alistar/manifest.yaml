@@ -1,0 +1,49 @@
+apiVersion: ami.globalsphare.com/v1alpha1
+kind: Application
+metadata:
+  name: alistar
+  version: 3.0.0
+spec:
+  workloads:
+    - name: alistar
+      type: globalsphare.com/v1alpha1/workloadType/webservice
+      vendor: globalsphare.com/v1alpha1/workloadVendor/webservice
+      properties:
+        image: containous/whoami
+        configs:
+          - path: /
+            subPath: id.txt
+            data:
+              - name: id.txt
+                value: "alistar"
+    - name: nginx
+      type: globalsphare.com/v1alpha1/workloadType/webservice
+      vendor: globalsphare.com/v1alpha1/workloadVendor/webservice
+      properties:
+        image: harbor1.zlibs.com/island/island-flip
+        configs:
+          - path: /etc/nginx/conf.d/
+            subPath: default.conf
+            data:
+              - name: default.conf
+                value: |-
+                  server {
+                          listen 80;
+
+                          access_log  /var/log/alistar.access.log main;
+                          error_log  /var/log/alistar.error.log;
+
+                          location / {
+                              proxy_set_header Host $http_host;
+                              proxy_set_header X-Forwarded-Host $http_host;
+
+                              proxy_pass http://alistar;
+                              proxy_http_version 1.1;
+                          }
+                          error_page   500 502 503 504  /50x.html;
+                          location = /50x.html {
+                              root   /usr/share/nginx/html;
+                          }
+                      }
+      traits:
+        - type: globalsphare.com/v1alpha1/trait/ingress
