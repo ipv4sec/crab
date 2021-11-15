@@ -526,7 +526,7 @@ func checkParams(application v1alpha1.Application, vendorDir string) (map[string
 func GetWorkloadType(typeName, vendorDir string) (v1alpha1.WorkloadType, error) {
 	var err error
 	var t v1alpha1.WorkloadType
-	path := fmt.Sprintf("%s/%s.yaml", vendorDir, typeName)
+	path := fmt.Sprintf("%s%s.yaml", vendorDir, typeName)
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
 		err = errors.New(fmt.Sprintf("workload.Type: %s 不存在\n", path))
@@ -542,7 +542,7 @@ func GetWorkloadType(typeName, vendorDir string) (v1alpha1.WorkloadType, error) 
 func GetWorkloadVendor(vendorName, vendorDir string) (v1alpha1.WorkloadVendor, error) {
 	var err error
 	var v v1alpha1.WorkloadVendor
-	path := fmt.Sprintf("%s/%s.yaml", vendorDir, vendorName)
+	path := fmt.Sprintf("%s%s.yaml", vendorDir, vendorName)
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
 		err = errors.New(fmt.Sprintf("workload.vendor: %s 不存在\n", path))
@@ -571,7 +571,7 @@ func GetWorkloadVendor(vendorName, vendorDir string) (v1alpha1.WorkloadVendor, e
 func GetTrait(name, vendorDir string) (v1alpha1.Trait, error) {
 	var err error
 	var t v1alpha1.Trait
-	path := fmt.Sprintf("%s/%s.yaml", vendorDir, name)
+	path := fmt.Sprintf("%s%s.yaml", vendorDir, name)
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
 		err = errors.New(fmt.Sprintf("trait: %s 不存在\n", path))
