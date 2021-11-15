@@ -20,6 +20,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type Params struct {
@@ -70,16 +71,18 @@ func PostManifestHandlerFunc(c *gin.Context) {
 		c.JSON(200, Result{ErrInternalServer, err.Error()})
 		return
 	}
-	//str, err := json.Marshal(vale)
-	//if err != nil {
-	//	klog.Errorln(err)
-	//	return
-	//}
-	//err = ioutil.WriteFile("tmp/vela.json", str, 0644)
-	//if err != nil {
-	//	fmt.Println(err.Error())
-	//	return
-	//}
+	str, err := json.Marshal(vale)
+	if err != nil {
+		klog.Errorln(err)
+		return
+	}
+	ts := time.Now().Format("2006-01-02 15:04:05")
+	tmpName := fmt.Sprintf("/tmp/%s-vela.json", ts)
+	err = ioutil.WriteFile(tmpName, str, 0644)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
 
 	//生成k8s.yaml文件
 	k8s, err := GenK8sYaml(p.Instanceid, vale, workloadResource)
@@ -93,7 +96,8 @@ func PostManifestHandlerFunc(c *gin.Context) {
 		fmt.Println(err)
 		return
 	}
-	//ioutil.WriteFile("tmp/k8s.yaml", k8s2, 0644)
+	tmpName = fmt.Sprintf("/tmp/%s-k8s.yaml", ts)
+	ioutil.WriteFile(tmpName, k8s2, 0644)
 	c.JSON(200, Result{0, string(k8s2)})
 }
 //应用之间的依赖
@@ -416,7 +420,7 @@ func parseDependencies(application v1alpha1.Application, dependencies Dependency
 				return auth, svcEntry, cm, errors.New("转int失败")
 			}
 		}
-		svcEntry = append(svcEntry, ServiceEntry{arr.Host, port, protocol})
+		svcEntry = append(svcEntry, ServiceEntry{item.Name, arr.Host, port, protocol})
 	}
 	return auth, svcEntry, cm, err
 }
@@ -522,7 +526,7 @@ func checkParams(application v1alpha1.Application, vendorDir string) (map[string
 func GetWorkloadType(typeName, vendorDir string) (v1alpha1.WorkloadType, error) {
 	var err error
 	var t v1alpha1.WorkloadType
-	path := fmt.Sprintf("%s/%s.yaml", vendorDir, typeName)
+	path := fmt.Sprintf("%s%s.yaml", vendorDir, typeName)
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
 		err = errors.New(fmt.Sprintf("workload.Type: %s 不存在\n", path))
@@ -538,7 +542,7 @@ func GetWorkloadType(typeName, vendorDir string) (v1alpha1.WorkloadType, error) 
 func GetWorkloadVendor(vendorName, vendorDir string) (v1alpha1.WorkloadVendor, error) {
 	var err error
 	var v v1alpha1.WorkloadVendor
-	path := fmt.Sprintf("%s/%s.yaml", vendorDir, vendorName)
+	path := fmt.Sprintf("%s%s.yaml", vendorDir, vendorName)
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
 		err = errors.New(fmt.Sprintf("workload.vendor: %s 不存在\n", path))
@@ -567,7 +571,7 @@ func GetWorkloadVendor(vendorName, vendorDir string) (v1alpha1.WorkloadVendor, e
 func GetTrait(name, vendorDir string) (v1alpha1.Trait, error) {
 	var err error
 	var t v1alpha1.Trait
-	path := fmt.Sprintf("%s/%s.yaml", vendorDir, name)
+	path := fmt.Sprintf("%s%s.yaml", vendorDir, name)
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
 		err = errors.New(fmt.Sprintf("trait: %s 不存在\n", path))

@@ -16,13 +16,13 @@ type Dependency struct {
 	External []ExternalDependency `json:"External"`
 }
 type InternalDependency struct {
-	Name         string              `json:"Name"`
-	Instanceid   string              `json:"InstanceId"`
-	EntryService string              `json:"EntryService"`
+	Name         string `json:"Name"`
+	Instanceid   string `json:"InstanceId"`
+	EntryService string `json:"EntryService"`
 }
 type ExternalDependency struct {
-	Name         string              `json:"Name"`
-	Location     string              `json:"Location"`
+	Name     string `json:"Name"`
+	Location string `json:"Location"`
 }
 
 //验证type,vendor返回的数据
@@ -72,6 +72,7 @@ type Authorization struct {
 
 //外部应用授权
 type ServiceEntry struct {
+	Name     string `json:"name"`
 	Host     string `json:"host"`
 	Port     int    `json:"port"`
 	Protocol string `json:"protocol"`
