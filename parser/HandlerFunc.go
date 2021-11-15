@@ -416,7 +416,7 @@ func parseDependencies(application v1alpha1.Application, dependencies Dependency
 				return auth, svcEntry, cm, errors.New("转int失败")
 			}
 		}
-		svcEntry = append(svcEntry, ServiceEntry{arr.Host, port, protocol})
+		svcEntry = append(svcEntry, ServiceEntry{item.Name, arr.Host, port, protocol})
 	}
 	return auth, svcEntry, cm, err
 }
