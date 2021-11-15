@@ -1,0 +1,20 @@
+apiVersion: ami.globalsphare.com/v1alpha1
+kind: Application
+metadata:
+  name: containous
+  version: 3.0.0
+spec:
+  workloads:
+    - name: containous
+      type: globalsphare.com/v1alpha1/workloadType/webservice
+      vendor: globalsphare.com/v1alpha1/workloadVendor/webservice
+      properties:
+        image: containous/whoami
+        configs:
+          - path: /
+            subPath: id.txt
+            data:
+              - name: id.txt
+                value: "containous"
+      traits:
+        - type: globalsphare.com/v1alpha1/trait/ingress
