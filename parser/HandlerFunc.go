@@ -20,6 +20,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type Params struct {
@@ -70,16 +71,18 @@ func PostManifestHandlerFunc(c *gin.Context) {
 		c.JSON(200, Result{ErrInternalServer, err.Error()})
 		return
 	}
-	//str, err := json.Marshal(vale)
-	//if err != nil {
-	//	klog.Errorln(err)
-	//	return
-	//}
-	//err = ioutil.WriteFile("tmp/vela.json", str, 0644)
-	//if err != nil {
-	//	fmt.Println(err.Error())
-	//	return
-	//}
+	str, err := json.Marshal(vale)
+	if err != nil {
+		klog.Errorln(err)
+		return
+	}
+	ts := time.Now().Format("2006-01-02 15:04:05")
+	tmpName := fmt.Sprintf("/tmp/%s-vela.json", ts)
+	err = ioutil.WriteFile(tmpName, str, 0644)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
 
 	//生成k8s.yaml文件
 	k8s, err := GenK8sYaml(p.Instanceid, vale, workloadResource)
@@ -93,7 +96,8 @@ func PostManifestHandlerFunc(c *gin.Context) {
 		fmt.Println(err)
 		return
 	}
-	//ioutil.WriteFile("tmp/k8s.yaml", k8s2, 0644)
+	tmpName = fmt.Sprintf("/tmp/%s-k8s.yaml", ts)
+	ioutil.WriteFile(tmpName, k8s2, 0644)
 	c.JSON(200, Result{0, string(k8s2)})
 }
 //应用之间的依赖
