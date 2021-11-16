@@ -13,6 +13,7 @@ import (
 	"io/ioutil"
 	"k8s.io/klog/v2"
 	"math/rand"
+	"net"
 	"net/url"
 	"os"
 	"os/exec"
@@ -76,8 +77,8 @@ func PostManifestHandlerFunc(c *gin.Context) {
 		klog.Errorln(err)
 		return
 	}
-	ts := time.Now().Format("2006-01-02 15:04:05")
-	tmpName := fmt.Sprintf("/tmp/%s-vela.json", ts)
+	ts := time.Now().Unix()
+	tmpName := fmt.Sprintf("/tmp/%d-vela.json", ts)
 	err = ioutil.WriteFile(tmpName, str, 0644)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -96,7 +97,7 @@ func PostManifestHandlerFunc(c *gin.Context) {
 		fmt.Println(err)
 		return
 	}
-	tmpName = fmt.Sprintf("/tmp/%s-k8s.yaml", ts)
+	tmpName = fmt.Sprintf("/tmp/%d-k8s.yaml", ts)
 	ioutil.WriteFile(tmpName, k8s2, 0644)
 	c.JSON(200, Result{0, string(k8s2)})
 }
@@ -265,7 +266,8 @@ func GenWorkloadCue(ctxObj map[string]ContextObj, workloadParam WorkloadParam, w
 	}
 	content := fmt.Sprintf(finnnalCueFileContent, ctxObjData, serviceData, template)
 	fileName := RandomString(content)
-	path := fmt.Sprintf("/tmp/%s.cue", fileName)
+	ts := time.Now().Unix()
+	path := fmt.Sprintf("/tmp/%d-%s.cue",ts, fileName)
 	err = ioutil.WriteFile(path, []byte(content), 0644)
 	if err != nil {
 		klog.Errorln(err.Error())
@@ -395,6 +397,7 @@ func parseDependencies(application v1alpha1.Application, dependencies Dependency
 		cm[v.Name] = fmt.Sprintf("%s.%s.svc.cluster.local", v.EntryService, v.Instanceid)
 	}
 	for _,item := range dependencies.External {
+		var host, address string
 		arr, err := url.ParseRequestURI(item.Location)
 		if err != nil {
 			klog.Errorln(err.Error())
@@ -411,16 +414,27 @@ func parseDependencies(application v1alpha1.Application, dependencies Dependency
 		}
 		hostArr := strings.Split(arr.Host, ":")
 		var port int
-		if len(hostArr) == 1 {
-			port = 80
-		} else {
+		if len(hostArr) == 1 {//没有指定端口号
+			if protocol == "http" {
+				port = 80
+			}else{
+				port = 443
+			}
+		} else {//指定端口号
 			port, err = strconv.Atoi(hostArr[1])
 			if err != nil {
 				klog.Errorln("转int失败")
 				return auth, svcEntry, cm, errors.New("转int失败")
 			}
 		}
-		svcEntry = append(svcEntry, ServiceEntry{item.Name, arr.Host, port, protocol})
+		ipAddress := net.ParseIP(hostArr[0])
+		if ipAddress != nil {//ip
+			host = fmt.Sprintf("serviceEntry-%s-%s",application.Metadata.Name, item.Name)
+			address = ipAddress.String()
+		}else{
+			host = arr.Host
+		}
+		svcEntry = append(svcEntry, ServiceEntry{item.Name, address,host, port, protocol})
 	}
 	return auth, svcEntry, cm, err
 }
@@ -618,7 +632,8 @@ func CheckTypeParam (workload v1alpha1.Workload, vendorDir string) error{
 	}
 	parameterStr := fmt.Sprintf("parameter:{ \n%s\n}\nparameter:{\n%s\n}", t.Spec.Parameter, string(properties2))
 	fileName := RandomString(parameterStr)
-	path := fmt.Sprintf("/tmp/%s.cue", fileName)
+	ts := time.Now().Unix()
+	path := fmt.Sprintf("/tmp/%d-%s.cue", ts, fileName)
 	ioutil.WriteFile(path, []byte(parameterStr), 0644)
 	command := fmt.Sprintf("/usr/local/bin/cue vet -c %s", path)
 	cmd := exec.Command("bash", "-c", command)
@@ -647,7 +662,8 @@ func CheckTraitParam (workloadTrait Trait, vendorDir string) error {
 		return err
 	}
 	tmpcue := fmt.Sprintf("parameter: \n%s\nparameter: {\n%s\n}", string(properties2), file.Spec.Parameter)
-	path := fmt.Sprintf("/tmp/%s.cue", RandomString(tmpcue))
+	ts := time.Now().Unix()
+	path := fmt.Sprintf("/tmp/%d-%s.cue", ts, RandomString(tmpcue))
 	err = ioutil.WriteFile(path, []byte(tmpcue), 0644)
 	if err != nil {
 		klog.Errorln(err)
