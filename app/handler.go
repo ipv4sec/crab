@@ -308,9 +308,16 @@ func PostAppHandlerFunc(c *gin.Context) {
 			for j := 0; j < len(apps); j++ {
 				v, err := semver.Parse(apps[j].Version)
 				if err != nil {
-					continue
+					klog.Errorln("解析实例版本错误:", err.Error())
+					c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "解析实例版本错误"))
+					return
 				}
 				ra, err := semver.ParseRange(manifest.Spec.Dependencies[i].Version)
+				if err != nil {
+					klog.Errorln("解析依赖版本错误:", err.Error())
+					c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "解析依赖版本错误"))
+					return
+				}
 				if ra(v) {
 					d.Instances = append(d.Instances, Instance{ID: apps[j].ID, Name: apps[j].Name})
 				}
