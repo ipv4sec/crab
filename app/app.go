@@ -17,6 +17,8 @@ type App struct {
 	Manifest string `json:"manifest"`
 
 	Parameters string `json:"parameters"`
+	Additional string `json:"additional"`
+
 	Deployment string `gorm:"column:deployment" json:"deployment"`
 
 	CreatedAt time.Time `json:"created_at"`

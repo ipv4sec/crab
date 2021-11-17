@@ -170,7 +170,7 @@ func GetAppHandlerFunc(c *gin.Context) {
 
 		EntryService string
 	}
-	err = json.Unmarshal([]byte(app.Dependencies), &vals)
+	err = json.Unmarshal([]byte(app.Additional), &vals)
 	if err != nil {
 		klog.Errorln("序列化依赖失败", err.Error())
 	}
@@ -282,6 +282,7 @@ func PostAppHandlerFunc(c *gin.Context) {
 
 		Manifest: string(bytes),
 
+		Additional: "",
 		Parameters: "",
 		Deployment: "",
 	}
@@ -417,8 +418,14 @@ func PutAppHandlerFunc(c *gin.Context) {
 			parameters = []byte("")
 			klog.Errorln("序列化运行时配置错误", err.Error())
 		}
+		additional, err := json.Marshal(param.Dependencies)
+		if err != nil {
+			additional = []byte("")
+			klog.Errorln("序列化依赖配置错误", err.Error())
+		}
+
 		err = db.Client.Model(App{}).Where("pk = ?", app.PK).Updates(map[string]interface{}{
-			"status": 1, "deployment": val, "parameters": string(parameters)}).Error
+			"status": 1, "deployment": val, "parameters": string(parameters), "additional": additional}).Error
 		if err != nil {
 			klog.Errorln("数据库更新错误:", err.Error())
 			c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseInternalServer, "更新状态错误"))
