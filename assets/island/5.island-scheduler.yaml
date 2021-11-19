@@ -33,7 +33,7 @@ spec:
     spec:
       containers:
         - name: island-scheduler
-          image: harbor1.zlibs.com/island/island-scheduler:alpha
+          image: harbor1.zlibs.com/island/island-scheduler:0.1
           imagePullPolicy: Always
       restartPolicy: Always
       serviceAccountName: crab
