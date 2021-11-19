@@ -22,3 +22,7 @@ assets/bin/
 *.DS_Store
 
 examples/i1/
+
+
+examples/dist/
+cmd/debug/
