@@ -73,7 +73,7 @@ type Authorization struct {
 //外部应用授权
 type ServiceEntry struct {
 	Name     string `json:"name"`
-	Address  string `json:"address"`
+	Address  string `json:"address,omitempty"`
 	Host     string `json:"host"`
 	Port     int    `json:"port"`
 	Protocol string `json:"protocol"`
