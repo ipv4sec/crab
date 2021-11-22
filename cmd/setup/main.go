@@ -71,12 +71,10 @@ func main() {
 	// klog.Infoln("svc:", svcs)
 	var n = 0
 	var components = []string{"istio-egressgateway", "istio-ingressgateway", "istiod"}
-	for i := 0; i < len(components); i++ {
-		for j := 0; j < len(svcs.Items); j++ {
-			// klog.Infoln(svcs.Items[j].ObjectMeta.Name)
-			if utils.Contains(components, svcs.Items[j].ObjectMeta.Name) {
-				n++
-			}
+	for j := 0; j < len(svcs.Items); j++ {
+		// klog.Infoln(svcs.Items[j].ObjectMeta.Name)
+		if utils.Contains(components, svcs.Items[j].ObjectMeta.Name) {
+			n++
 		}
 	}
 	if n ==0 {
@@ -107,7 +105,7 @@ func main() {
 			time.Sleep(time.Second * 5)
 		}
 	}
-	if n != len(components) * len(svcs.Items) {
+	if n != len(components) {
 		panic(errors.New("网格中必备组件缺失"))
 	}
 	pods, err := cluster.Client.Clientset.CoreV1().Pods("istio-system").List(context.Background(), metav1.ListOptions{
@@ -202,12 +200,12 @@ data:
 	klog.Infoln("设置密码完成")
 
 	klog.Infoln("开始设置节点")
-	output, err := executor.ExecuteCommandWithCombinedOutput(fmt.Sprintf(
-		"kubectl label node %s island-storage=local", os.Getenv("ISLAND_NODE_NAME")))
+	output, err := executor.ExecuteCommandWithCombinedOutput("scripts/label.sh",
+		"--name", os.Getenv("ISLAND_NODE_NAME"))
+	klog.Infoln("设置节点结果:", output)
 	if err != nil {
 		panic(fmt.Errorf("设置节点失败: %w", err))
 	}
-	klog.Infoln("设置节点结果:", output)
 	klog.Infoln("开始设置节点")
 
 	klog.Infoln("开始部署应用")

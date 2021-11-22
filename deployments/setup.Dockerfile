@@ -12,7 +12,10 @@ ADD assets/istio/ assets/istio/
 ADD assets/island/ assets/island/
 
 ADD scripts/istio.sh scripts/istio.sh
+ADD scripts/label.sh scripts/label.sh
+
 RUN chmod +x scripts/istio.sh
+RUN chmod +x scripts/label.sh
 
 COPY assets/bin/setup setup
 
