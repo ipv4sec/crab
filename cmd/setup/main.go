@@ -15,6 +15,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/remotecommand"
 	"k8s.io/klog/v2"
+	"os"
 	"strings"
 	"time"
 )
@@ -199,6 +200,15 @@ data:
 		klog.Errorln("设置密码失败: ", err.Error())
 	}
 	klog.Infoln("设置密码完成")
+
+	klog.Infoln("开始设置节点")
+	output, err := executor.ExecuteCommandWithCombinedOutput(fmt.Sprintf(
+		"kubectl label node %s island-storage=local", os.Getenv("ISLAND_NODE_NAME")))
+	if err != nil {
+		panic(fmt.Errorf("设置节点失败: %w", err))
+	}
+	klog.Infoln("设置节点结果:", output)
+	klog.Infoln("开始设置节点")
 
 	klog.Infoln("开始部署应用")
 	files, err := ioutil.ReadDir("assets/island/")

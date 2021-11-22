@@ -1,4 +1,46 @@
 
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: island-storage
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+---
+
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: island-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: island-storage
+---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: island-pv
+spec:
+  capacity:
+    storage: 5Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: island-storage
+  local:
+    path: /var/local/island/storage
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: island-storage
+              operator: Exists
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -82,10 +124,15 @@ spec:
           volumeMounts:
             - mountPath: /docker-entrypoint-initdb.d/
               name: conf
+            - name: storage
+              mountPath: /var/lib/mysql/
       volumes:
         - name: conf
           configMap:
             name: island-db
+        - name: storage
+          persistentVolumeClaim:
+            claimName: island-pvc
       restartPolicy: Always
       serviceAccountName: crab
   selector:

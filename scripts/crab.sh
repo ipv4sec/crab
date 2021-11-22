@@ -1,5 +1,21 @@
 #!/bin/bash
 
+storage='/var/local/island/storage'
+
+#while [ $# -gt 0 ]; do
+#  case "$1" in
+#  --storage)
+#    storage="$2"
+#    shift
+#    ;;
+#  --*)
+#    echo "Illegal option $1"
+#    ;;
+#  esac
+#  shift $(($# > 0 ? 1 : 0))
+#done
+
+mkdir -p $storage
 cat <<EOF | kubectl apply -f -
 apiVersion: v1
 kind: Namespace
@@ -40,9 +56,16 @@ spec:
       name: island-setup
     spec:
       containers:
-        - name: island-setup
+        - name: main
           image: harbor1.zlibs.com/island/island-setup:0.1
           imagePullPolicy: Always
+          env:
+            - name: ISLAND_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: ISLAND_STORAGE
+              value: $storage
       restartPolicy: OnFailure
       serviceAccountName: crab
 ---
