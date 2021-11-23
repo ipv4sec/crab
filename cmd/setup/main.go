@@ -15,7 +15,6 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/remotecommand"
 	"k8s.io/klog/v2"
-	"os"
 	"strings"
 	"time"
 )
@@ -199,14 +198,23 @@ data:
 	}
 	klog.Infoln("设置密码完成")
 
-	klog.Infoln("开始设置节点")
-	output, err := executor.ExecuteCommandWithCombinedOutput("scripts/label.sh",
-		"--name", os.Getenv("ISLAND_NODE_NAME"))
-	klog.Infoln("设置节点结果:", output)
-	if err != nil {
-		panic(fmt.Errorf("设置节点失败: %w", err))
-	}
-	klog.Infoln("开始设置节点")
+	//klog.Infoln("开始设置存储")
+	//output, err := executor.ExecuteCommandWithCombinedOutput("mkdir",
+	//	"-p", "/var/local/island/storage")
+	//klog.Infoln("设置存储结果:", output)
+	//if err != nil {
+	//	panic(fmt.Errorf("设置存储失败: %w", err))
+	//}
+	//klog.Infoln("设置存储完成")
+
+	//klog.Infoln("开始设置节点")
+	//output, err = executor.ExecuteCommandWithCombinedOutput("scripts/label.sh",
+	//	"--name", os.Getenv("ISLAND_NODE_NAME"))
+	//klog.Infoln("设置节点结果:", output)
+	//if err != nil {
+	//	panic(fmt.Errorf("设置节点失败: %w", err))
+	//}
+	//klog.Infoln("设置节点完成")
 
 	klog.Infoln("开始部署应用")
 	files, err := ioutil.ReadDir("assets/island/")

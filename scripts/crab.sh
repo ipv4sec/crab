@@ -14,8 +14,9 @@ storage='/var/local/island/storage'
 #  esac
 #  shift $(($# > 0 ? 1 : 0))
 #done
-
 mkdir -p $storage
+kubectl label node `hostname` island-storage=local --overwrite
+
 cat <<EOF | kubectl apply -f -
 apiVersion: v1
 kind: Namespace
