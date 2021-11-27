@@ -33,6 +33,11 @@ type Params struct {
 	WorkloadPath string       `json:"WorkloadPath"`
 }
 
+var cuePkg = map[string]bool{
+	"strings": true,
+	"list":    true,
+}
+
 func PostManifestHandlerFunc(c *gin.Context) {
 	var err error
 	p := Params{}
@@ -245,6 +250,18 @@ spec:
 			return ParserData{}, nil
 		}
 		workload.Parameter = string(parameterStr)
+
+		//健康检查
+		healthProbe := make(map[string]string, 0)
+		for k, out := range cmdResult["healthProbe"] {
+			str, err := yaml.Marshal(out)
+			if err != nil {
+				klog.Errorln(err.Error())
+				return parserData, err
+			}
+			healthProbe[k] = string(str)
+		}
+		workload.HealthProbe = healthProbe
 		parserData.Workloads[k] = workload
 	}
 	return parserData, nil
