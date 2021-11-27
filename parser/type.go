@@ -46,6 +46,7 @@ type ParserData struct {
 }
 type Workload struct {
 	Parameter string            `yaml:"parameter"`
+	HealthProbe map[string]string `yaml:"healthProbe"`
 	Construct map[string]string `yaml:"construct"`
 	Traits    map[string]string `yaml:"traits"`
 }

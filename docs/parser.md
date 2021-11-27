@@ -76,3 +76,71 @@ Dependencies.External 外部的服务, 数组类型, 非必填, 内容如下：
     "result": "中间格式yaml"
 }
 ```
+
+中间格式反序列化后yaml字段：
+
+|名称|说明|类型|
+|---|---|---|
+|name|应用名称|string|
+|init|初始化语句|string|
+|workloads|工作负载|数组|
+
+workloads的字段：
+* workloads.[i].parameter 为工作负载的参数 字符串类型
+* workloads.[i].construct 为工作负载主体部分  map[string]string类型
+* workloads.[i].traits 为workload的trait map[string]string类型
+* workloads.[i].healthProbe 为健康状态检查描述 map[string]string类型 key为bash, value为bash的内容
+
+
+```yaml
+name: cs
+init: |2
+
+  apiVersion: v1
+  kind: Namespace
+  metadata:
+   name: ins1638001697
+   labels:
+     istio-injection: enabled
+workloads:
+  ac:
+    parameter: |
+      after: ac-db
+      image: harbor1.zlibs.com/island/ac:0.0.1
+      port: 80
+    construct: //workoadType的实现
+      ac-deployment: |
+        apiVersion: apps/v1
+        kind: Deployment
+        //...
+      island-ac-0: |
+        apiVersion: v1
+        data:
+          userconfig: "null"
+        kind: ConfigMap
+        //...
+      island-allow-ins1638001697-to-ins1638001697-ac-db: |
+        apiVersion: security.istio.io/v1beta1
+        kind: AuthorizationPolicy
+        //...
+    traits: //特性
+      ingressgateway-http: |
+        apiVersion: networking.istio.io/v1alpha3
+        kind: Gateway
+        //...
+      ingressgateway-https: |
+        apiVersion: networking.istio.io/v1alpha3
+        kind: Gateway
+        //...
+      virtualservice-http: |
+        apiVersion: networking.istio.io/v1alpha3
+        kind: VirtualService
+        //...
+      virtualservice-https: |
+        apiVersion: networking.istio.io/v1alpha3
+        kind: VirtualService
+        //... 
+    healthProb: //健康检查
+      bash: |
+        //health probe text
+```
