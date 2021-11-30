@@ -321,7 +321,7 @@ func modTemplate(workloadVendor, mod, vendorDir string) (string, error) {
 	content := string(t)
 
 	//替换import为真实内容
-	re, _ := regexp.Compile("import\\s*\"([^\"]*)\"")
+	re, _ := regexp.Compile("import\\s*\"(mod/[^\"]*)\"")
 	matchResult := re.FindAllStringSubmatch(content, -1)
 	for _, v := range matchResult {
 		if len(matchResult) > 0 {
