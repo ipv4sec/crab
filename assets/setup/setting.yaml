@@ -1,0 +1,105 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingress
+  namespace: istio-system
+spec:
+  type: NodePort
+  ports:
+    - name: http2
+      nodePort: 30080
+      port: 80
+      protocol: TCP
+      targetPort: 8080
+    - name: https
+      nodePort: 30443
+      port: 443
+      protocol: TCP
+      targetPort: 8443
+  selector:
+    app: istio-ingressgateway
+    istio: ingressgateway
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: island-info
+  namespace: island-system
+data:
+  root-domain: $domain
+  mirror: https://github.com/GlobalSphare/workloads
+---
+
+apiVersion: v1
+data:
+  root: toor
+kind: ConfigMap
+metadata:
+  name: island-administrator
+  namespace: island-system
+---
+
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: island-system
+  namespace: island-system
+spec:
+  {}
+---
+
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: island-system-to-island-system
+  namespace: island-system
+spec:
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals:
+              - cluster.local/ns/island-system/sa/island-system
+  selector:
+    matchLabels:
+      app: island
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: crab
+  namespace: island-system
+spec:
+  gateways:
+    - island-system/crab
+  hosts:
+    - '*'
+  http:
+    - name: router
+      route:
+        - destination:
+            host: crab
+            port:
+              number: 80
+          headers:
+            request:
+              add:
+                X-Forwarded-Host: crab.$domain
+---
+
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: crab
+  namespace: island-system
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    - hosts:
+        - crab.$domain
+      port:
+        name: http
+        number: 80
+        protocol: HTTP

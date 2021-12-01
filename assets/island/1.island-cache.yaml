@@ -39,7 +39,7 @@ spec:
           image: harbor1.zlibs.com/dockerhub/redis:6.2.4
           imagePullPolicy: IfNotPresent
       restartPolicy: Always
-      serviceAccountName: crab
+      serviceAccountName: island-system
   selector:
     matchLabels:
       app: island

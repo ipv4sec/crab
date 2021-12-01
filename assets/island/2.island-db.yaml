@@ -139,7 +139,7 @@ spec:
           persistentVolumeClaim:
             claimName: island-pvc
       restartPolicy: Always
-      serviceAccountName: crab
+      serviceAccountName: island-system
   selector:
     matchLabels:
       app: island
