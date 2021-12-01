@@ -113,18 +113,12 @@ func GenValeYaml(instanceId string, application v1alpha1.Application, userconfig
 	var err error
 	vela.Name = application.Metadata.Name
 
-	//traits:ingress的组件
-	serviceEntryName := entryService(application.Spec.Workloads)
-	authorizationData, serviceEntryData, configmapData, err := parseDependencies(application, dependencies)
+	authorization, serviceEntry, configmapData, err := parseDependencies(application, dependencies)
 	if err != nil {
 		return vela, err
 	}
-	var applicationDependency ApplicationDependency
-	applicationDependency.Authorization = authorizationData
-	applicationDependency.ServiceEntry = serviceEntryData
 
 	//应用内部的授权
-	authorization := make([]Authorization, 0)
 	//为每个 service 创建一个 authorization，授权当前应用下的其他服务有访问的权限
 	for _, workload := range application.Spec.Workloads {
 		authorization = append(authorization,
@@ -144,7 +138,7 @@ func GenValeYaml(instanceId string, application v1alpha1.Application, userconfig
 	//添加应用时填写的运行时配置
 	configItemData = append(configItemData, ConfigItemDataItem{Name: "userconfig", Value: userconfig})
 	for _, workload := range application.Spec.Workloads {
-		service := serviceVela(workload, instanceId, authorization, applicationDependency, configItemData, rootDomain, serviceEntryName)
+		service := serviceVela(workload, instanceId, authorization, serviceEntry, configItemData, rootDomain)
 		vela.Services[workload.Name] = service
 	}
 	return vela, nil
@@ -304,7 +298,7 @@ func modTemplate(workloadVendor, mod, vendorDir string) (string, error) {
 	content := string(t)
 
 	//替换import为真实内容
-	re, _ := regexp.Compile("import\\s*\"([^\"]*)\"")
+	re, _ := regexp.Compile("import\\s*\"(mod/[^\"]*)\"")
 	matchResult := re.FindAllStringSubmatch(content, -1)
 	for _, v := range matchResult {
 		if len(matchResult) > 0 {
@@ -332,9 +326,10 @@ func RandomString(str string) string {
 }
 
 //生成kubevela格式的service
-func serviceVela(workload v1alpha1.Workload, instanceid string, authorization []Authorization, applicationDependency ApplicationDependency, configItemData []ConfigItemDataItem, rootDomain string, serviceEntryName string) interface{} {
+func serviceVela(workload v1alpha1.Workload, instanceid string, authorization []Authorization,serviceentry []ServiceEntry, configItemData []ConfigItemDataItem, rootDomain string) interface{} {
 	properties := GetProperties(workload.Properties)
 	properties["authorization"] = authorization
+	properties["serviceentry"] = serviceentry
 	configs2 := make([]interface{}, 0)
 	if configs, ok := properties["configs"]; ok {
 		for _, v := range configs.([]interface{}) {
@@ -349,6 +344,7 @@ func serviceVela(workload v1alpha1.Workload, instanceid string, authorization []
 		Type       string	`json:"type"`
 		Properties v1alpha1.Properties `json:"properties"`
 	}
+
 	var traits = make(map[string]interface{}, 0)
 	if len(workload.Traits) > 0 {
 		for _, trait:= range workload.Traits {
@@ -358,10 +354,8 @@ func serviceVela(workload v1alpha1.Workload, instanceid string, authorization []
 				path := make([]string, 0)
 				traitProperties["path"] = append(path, "/*")
 				traits[trait.Type] = traitProperties
-				//添加一个外部依赖的trait
-				if len(applicationDependency.Authorization) > 0 || len(applicationDependency.ServiceEntry) > 0 {
-					traits["globalsphare.com/v1alpha1/trait/dependency"] = applicationDependency
-				}
+
+
 			}else{
 				traits[trait.Type] =  GetProperties(trait.Properties)
 			}
