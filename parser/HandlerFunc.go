@@ -136,6 +136,9 @@ func GenValeYaml(instanceId string, application v1alpha1.Application, userconfig
 		configItemData = append(configItemData, ConfigItemDataItem{Name: fmt.Sprintf("%s.host", k), Value: v})
 	}
 	//添加应用时填写的运行时配置
+	if userconfig == "null" || userconfig == "" {
+		userconfig = "{}"
+	}
 	configItemData = append(configItemData, ConfigItemDataItem{Name: "userconfig", Value: userconfig})
 	for _, workload := range application.Spec.Workloads {
 		service := serviceVela(workload, instanceId, authorization, serviceEntry, configItemData, rootDomain)
