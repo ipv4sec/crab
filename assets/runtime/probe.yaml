@@ -1,0 +1,27 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: probe-$runtime
+  namespace: istio-system
+  labels:
+    app: island
+    component: probe
+spec:
+  template:
+    metadata:
+      name: probe-$runtime
+      labels:
+        probe: probe-$runtime
+    spec:
+      containers:
+        - name: main
+          image: centos:7
+          imagePullPolicy: IfNotPresent
+          command:
+            - "bash"
+            - "-c"
+            - $command
+      restartPolicy: Always
+  selector:
+    matchLabels:
+      probe: probe-$runtime

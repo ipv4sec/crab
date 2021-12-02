@@ -5,4 +5,7 @@ type Component struct {
 	Name string
 	After string
 	Deployment string
+
+	HealthProbe map[string]string
+	LoopNumber int
 }

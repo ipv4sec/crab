@@ -2,6 +2,7 @@ package main
 
 import (
 	"crab/cache"
+	"crab/cluster"
 	"crab/config"
 	"crab/scheduler"
 	"flag"
@@ -27,6 +28,11 @@ func main()  {
 	err = cache.Init(&cfg.Redis)
 	if err != nil {
 		panic(err)
+	}
+
+	err = cluster.Init()
+	if err != nil {
+		panic(fmt.Errorf("获取集群认证失败: %w", err))
 	}
 
 	go scheduler.Consumption()

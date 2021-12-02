@@ -48,6 +48,7 @@ type Workload struct {
 	Parameter string            `yaml:"parameter"`
 	Construct map[string]string `yaml:"construct"`
 	Traits    map[string]string `yaml:"traits"`
+	HealthProbe map[string]string `yaml:"healthProb"`
 }
 type ConfigItem struct {
 	Path    string               `yaml:"path" json:"path"`
