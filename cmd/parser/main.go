@@ -4,11 +4,14 @@ import (
 	"crab/parser"
 	"github.com/gin-gonic/gin"
 	"k8s.io/klog/v2"
+	"math/rand"
+	"time"
 )
 
 func main() {
 	var err error
 	r := gin.Default()
+	rand.Seed(time.Now().UnixNano())
 	r.POST("/", parser.PostManifestHandlerFunc)
 
 	err = r.Run(":4000")
