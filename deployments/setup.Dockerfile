@@ -10,6 +10,7 @@ RUN chmod +x /usr/local/bin/istioctl
 
 ADD assets/istio/ assets/istio/
 ADD assets/island/ assets/island/
+ADD assets/setup/ assets/setup/
 
 ADD scripts/istio.sh scripts/istio.sh
 ADD scripts/label.sh scripts/label.sh

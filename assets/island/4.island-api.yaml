@@ -35,7 +35,7 @@ spec:
           image: harbor1.zlibs.com/island/island-api:0.1
           imagePullPolicy: Always
       restartPolicy: Always
-      serviceAccountName: crab
+      serviceAccountName: island-system
   selector:
     matchLabels:
       app: island

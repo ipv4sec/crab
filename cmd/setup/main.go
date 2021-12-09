@@ -156,65 +156,17 @@ func main() {
 		panic(errors.New(fmt.Sprintf("网格版本错误: %s", v)))
 	}
 
-	klog.Infoln("开始设置端口")
-	yamlBytes, err := ioutil.ReadFile("assets/istio/ingress.yaml")
+	klog.Infoln("开始设置系统")
+	yamlBytes, err := ioutil.ReadFile("assets/setup/setting.yaml")
 	if err != nil {
 		panic(fmt.Errorf("读取yaml错误: %w", err))
 	}
 	err = cluster.Client.Apply(context.Background(), yamlBytes)
 	if err != nil {
-		panic(fmt.Errorf("设置端口错误: %w", err))
+		panic(fmt.Errorf("设置系统错误: %w", err))
 	}
-	klog.Infoln("设置端口完成")
+	klog.Infoln("设置系统完成")
 
-	klog.Infoln("开始设置根域")
-	yaml := `
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: island-info
-  namespace: island-system
-data:
-  root-domain: ""
-  mirror: https://github.com/GlobalSphare/workloads
-`
-	err = cluster.Client.Apply(context.Background(), []byte(yaml))
-	if err != nil {
-		klog.Errorln("设置根域失败: ", err.Error())
-	}
-	klog.Infoln("设置根域完成")
-
-	klog.Infoln("开始设置密码")
-	_, err = cluster.Client.Clientset.CoreV1().ConfigMaps("island-system").
-		Create(context.Background(), &v1.ConfigMap{
-			TypeMeta: metav1.TypeMeta{},
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "island-administrator",
-			},
-			Data: map[string]string{"root": "toor"},
-		}, metav1.CreateOptions{})
-	if err != nil {
-		klog.Errorln("设置密码失败: ", err.Error())
-	}
-	klog.Infoln("设置密码完成")
-
-	//klog.Infoln("开始设置存储")
-	//output, err := executor.ExecuteCommandWithCombinedOutput("mkdir",
-	//	"-p", "/var/local/island/storage")
-	//klog.Infoln("设置存储结果:", output)
-	//if err != nil {
-	//	panic(fmt.Errorf("设置存储失败: %w", err))
-	//}
-	//klog.Infoln("设置存储完成")
-
-	//klog.Infoln("开始设置节点")
-	//output, err = executor.ExecuteCommandWithCombinedOutput("scripts/label.sh",
-	//	"--name", os.Getenv("ISLAND_NODE_NAME"))
-	//klog.Infoln("设置节点结果:", output)
-	//if err != nil {
-	//	panic(fmt.Errorf("设置节点失败: %w", err))
-	//}
-	//klog.Infoln("设置节点完成")
 
 	klog.Infoln("开始部署应用")
 	files, err := ioutil.ReadDir("assets/island/")

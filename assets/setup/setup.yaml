@@ -1,0 +1,65 @@
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: island-system
+  labels:
+    istio-injection: enabled
+---
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: island-system
+  namespace: island-system
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: island-system
+subjects:
+  - kind: ServiceAccount
+    name: island-system
+    namespace: island-system
+    apiGroup: ""
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin
+  apiGroup: rbac.authorization.k8s.io
+---
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: island-setup
+  namespace: island-system
+spec:
+  template:
+    metadata:
+      name: island-setup
+    spec:
+      containers:
+        - name: main
+          image: harbor1.zlibs.com/island/island-setup:0.1
+          imagePullPolicy: Always
+          env:
+            - name: CRAB_DOMAIN
+              value: $domain
+      restartPolicy: OnFailure
+      serviceAccountName: island-system
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: crab
+  namespace: island-system
+spec:
+  selector:
+    app: island
+    component: ui
+  ports:
+    - port: 80
+      targetPort: 3000
+  type: NodePort

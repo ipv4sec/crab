@@ -8,7 +8,6 @@ import (
 	"crab/deployment"
 	"crab/domain"
 	"crab/mirror"
-	"crab/status"
 	"crab/user"
 	"flag"
 	"fmt"
@@ -73,9 +72,6 @@ func main() {
 	routers.PUT("/cluster/mirror", mirror.PutMirrorHandlerFunc)
 
 	routers.PUT("/deployment", deployment.PutDeploymentHandlerFunc)
-
-	routers.GET("/status/:id/:componentName", status.GetComponentStatusHandlerFunc)
-	routers.PUT("/status/:id/:componentName/:statusCode", status.PutStatusHandlerFunc)
 
 
 	err = routers.Run("0.0.0.0:3000")
