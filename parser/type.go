@@ -7,10 +7,6 @@ type ContextObj struct {
 	ComponentName string `json:"componentName"`
 	Namespace     string `json:"namespace"`
 }
-type Result struct {
-	Code   int    `json:"code"`
-	Result string `json:"result"`
-}
 type Dependency struct {
 	Internal []InternalDependency `json:"Internal"`
 	External []ExternalDependency `json:"External"`
@@ -143,3 +139,9 @@ var cuePkg = map[string]bool{
 	"tool/os": true,
 	"tool/uuid": true,
 }
+
+//依赖内部应用的host
+type dependencyHostItem struct{
+	Host string `json:"host"`
+}
+type dependencyHost map[string]dependencyHostItem
