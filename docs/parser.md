@@ -56,7 +56,6 @@ POST / HTTP/1.1
 |UserConfig|运行时配置|object|{}|否|
 |Dependencies|实例依赖|dependency object|{}|否|
 |RootDomain|根域|string|无|是|
-|WorkloadPath|绝对路径|string|无|是|
 
 Dependencies.Internal 内部的服务, 数组类型, 非必填, 内容如下：
 
@@ -73,54 +72,40 @@ Dependencies.External 外部的服务, 数组类型, 非必填, 内容如下：
 ```
 {
     "code": 0,
-    "result": "中间格式yaml"
+    "result": "k8s yaml"
 }
 ```
 
-中间格式反序列化后yaml字段：
-
-|名称|说明|类型|
-|---|---|---|
-|name|应用名称|string|
-|workloads|工作负载|数组|
-
-workloads的字段：
-* workloads.[i].parameter 为工作负载的参数 string类型
-* workloads.[i].construct 为工作负载主体部分  map[string]string类型
-* workloads.[i].traits 为workload的trait map[string]string类型
-
+字段result的内容
 
 ```yaml
-name: cs
-workloads:
-  ui: |
-        apiVersion: apps/v1
-        kind: Deployment
-        //...
-        ---
-        apiVersion: v1
-        data:
-          userconfig: "null"
-        kind: ConfigMap
-        //...
-        ---
-        apiVersion: security.istio.io/v1beta1
-        kind: AuthorizationPolicy
-        //...
-  api: |
-          apiVersion: apps/v1
-          kind: Deployment
-          //...
-          ---
-          apiVersion: v1
-          data:
-            userconfig: "null"
-          kind: ConfigMap
-          //...
-          ---
-          apiVersion: security.istio.io/v1beta1
-          kind: AuthorizationPolicy
-          //...
+apiVersion: apps/v1
+kind: Deployment
+//...
+---
+apiVersion: v1
+data:
+  userconfigs: "{}"
+kind: ConfigMap
+//...
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+//...
+---
+apiVersion: apps/v1
+kind: Deployment
+//...
+---
+apiVersion: v1
+data:
+userconfig: "null"
+kind: ConfigMap
+//...
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+//...
 ```
 
 <a name="获取系统cue模板"></a>
@@ -142,7 +127,8 @@ GET /systemTemplate HTTP/1.1
 }
 ```
 
-样例
+字段result的内容
+
 ```
 context: {
 	appName:       string
