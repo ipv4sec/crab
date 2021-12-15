@@ -12,26 +12,32 @@
 2. 默认用户名密码登录
 3. 登陆后的默认页面是 [应用管理]
 4. 只要访问 [应用管理] 页面, 则请求 [获取集群根域] 判断接口返回是否是默认值(默认值为空), 默认值时弹窗提示跳转(提示信息, 调转路径需要前端定义)
-5. 分割线
-6. 删除之前的查看日志, 隐藏根域设置, 上传zip包改为上传yaml
-7. 调整实例列表字段, 删除状态字段, 查看 [实例列表] 接口
-8. [应用管理]页面点击[导出配置], node端请求 [实例详情] 接口(需修改)取 deployment字段, node构造前端进行下载
-9. [应用管理]页面点击[导出部署], 请求 [实例详情] 接口取 configuration 字段, node构造前端进行下载
-10. [应用管理]页面点击[查看部署], node端请求 [实例详情] 接口, 取 pods 字段
-11. 在 [查看部署] 页面, 点击具体的POD, 请求 [实例日志] 接口
-12. 在[工作负载]选项页, 分别请求的接口是 [Trait列表] 接口, [Type列表] 接口, [Vendor列表] 接口
-13. 在[工作负载]选项页, 要编辑时, 分别请求  [Trait修改] 接口, [Type修改] 接口, [Vendor修改] 接口
-14. 在[创建应用]选项页, 点击[下载], 前端构造为 manifest.yaml 文件下载
-15. 在[创建应用]选项页, 点击[部署], node端构造zip后请求 [添加实例] 接口
-16. 在[创建Trait]选项页, 点击[保存], 请求 [创建Trait] 接口
-17. 在[创建WorkloadType]选项页, 点击[保存], 请求 [创建WorkloadType] 接口
-18. 在[创建WorkloadVendor]选项页, 请求 [SystemSpec默认值] 接口
-19. 在[创建WorkloadVendor]选项页, 点击[保存], 请求 [创建WorkloadVendor] 接口
-20. 在[创建WorkloadVendor]选项页, 点击[转换], 请求 [转换YAML到CUE] 接口
-21. 在[创建WorkloadVendor]选项页, 点击[检查], 请求 [检查CUE语法] 接口
-22. 原样转发 [部署] 接口
+5. ================分割线, 接口文档还未完成, 以下是需要修改或新增的内容================
+6. 删除之前的实例列表中的[查看日志]
+7. 隐藏[根域设置], 隐藏[工作负载源]的设置
+8. 修改[上传]为[添加应用]
+9. 调整实例列表字段, 删除[状态]字段
+10. [应用管理]页面点击[部署详情], node端请求 [实例详情] 接口, 取 details 字段
+11. [应用管理]页面点击[部署链接], 请求 [实例详情] 接口取 link 字段, 前端复制到粘贴板并给出提示(或者前端提示用户要复制)
+12. [应用管理]页面点击[导出K8S描述文件], node端请求 [实例详情] 接口, 取 deployment 字段, 前端下载
+13. 在 [部署详情] 页面, 有[CronJobs列表] [DeamonSets列表] [Deployments列表] [Jobs列表] [Pods列表] [Replica Sets列表] [Replication Controllers列表] [Stateful Sets列表],
+14. 其中, 每个列表中的列表项, 可点击, 展示[CronJob详情]接口, [Deployment详情]接口, [Job详情]接口, [Pod详情] [Replica Set详情] [Replication Controller详情] [Stateful Set详情]
+15. 在 [Pod详情] 中有 [实例日志] 接口
+16. 在[工作负载]选项页, 分别请求的接口是 [Trait列表] 接口, [WorkloadType列表] 接口, [WorkloadVendor列表] 接口
+17. 在[工作负载]选项页, 要编辑时, 分别请求  [Trait修改] 接口, [WorkloadType修改] 接口, [WorkloadVendor修改] 接口
+18. 在[创建应用]选项页, 点击[下载], 前端构造为 manifest.yaml 文件下载
+19. 在[创建应用]选项页, 点击[部署], node端构造zip后请求 [添加实例] 接口
+20. 在[创建Trait]选项页, 点击[保存], 请求 [创建Trait] 接口
+21. 在[创建WorkloadType]选项页, 点击[保存], 请求 [创建WorkloadType] 接口
+22. 在[创建WorkloadVendor]选项页, 请求 [SystemSpec默认值] 接口
+23. 在[创建WorkloadVendor]选项页, 点击[保存], 请求 [创建WorkloadVendor] 接口
+24. 在[创建WorkloadVendor]选项页, 点击[转换], 请求 [转换YAML到CUE] 接口
+25. 在[创建WorkloadVendor]选项页, 点击[检查], 请求 [检查CUE语法] 接口
+26. 原样转发 [流水线接口] 接口
 
 ### 默认值
+
+保持缩进, 暂定2个空格
 
 在[创建应用]选项页, Metadata默认值
 ```yaml
@@ -58,8 +64,8 @@ metadata:
 Workloads默认值
 ```yaml
 name: example
-type: globalsphare.com/v1alpha1/workloadType/webservice
-vendor: globalsphare.com/v1alpha1/workloadVendor/webservice
+type: webservice
+vendor: webservice
 properties:
     image: nginx:1.21
 traits:
