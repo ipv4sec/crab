@@ -3,7 +3,7 @@ package workloadVendor
 import "time"
 
 type WorkloadVendor struct {
-	PK     int64  `gorm:"primaryKey" json:"-"`
+	PK     int64  `gorm:"primaryKey" json:"id"`
 	Name  string `json:"name"`
 	Ver   string `json:"apiVersion"`
 	Value string `json:"value"`

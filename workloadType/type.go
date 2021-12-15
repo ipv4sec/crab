@@ -3,7 +3,7 @@ package workloadType
 import "time"
 
 type WorkloadType struct {
-	PK     int64  `gorm:"primaryKey" json:"-"`
+	PK     int64  `gorm:"primaryKey" json:"id"`
 	Name  string `json:"name"`
 	Ver   string `json:"apiVersion"`
 	Value string `json:"value"`

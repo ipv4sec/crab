@@ -213,17 +213,81 @@ GET /app/<id> HTTP/1.1
   "code": 0,
   "result": {
     "id": "ins1634971791",
-    "deployment": "可导出的部署信息,[导出部署]接口, 前端将此字段信息保存为yaml文件后下载",
-    "configuration": "可导出的配置信息, [导出配置]接口, 前端将此字段信息保存为yaml文件后下载",
-    "pods": [{
-      "metadata": {
-        "name": "charlie-ndgfb"
-      }
-    },{
-      "metadata": {
-        "name": "charlie-ndgfb"
-      }
-    }]
+    "deployment": "[导出K8S描述文件], 前端将此字段信息保存为yaml文件后下载",
+    "details": {
+      "cronJobs": [{
+        "metadata": {
+          "name": "charlie-ndgfb"
+        }
+      },{
+        "metadata": {
+          "name": "charlie-ndgfb"
+        }
+      }],
+      "daemonSets": [{
+        "metadata": {
+          "name": "charlie-ndgfb"
+        }
+      },{
+        "metadata": {
+          "name": "charlie-ndgfb"
+        }
+      }],
+      "deployments": [{
+        "metadata": {
+          "name": "charlie-ndgfb"
+        }
+      },{
+        "metadata": {
+          "name": "charlie-ndgfb"
+        }
+      }],
+      "jobs": [{
+        "metadata": {
+          "name": "charlie-ndgfb"
+        }
+      },{
+        "metadata": {
+          "name": "charlie-ndgfb"
+        }
+      }],
+      "pods": [{
+        "metadata": {
+          "name": "charlie-ndgfb"
+        }
+      },{
+        "metadata": {
+          "name": "charlie-ndgfb"
+        }
+      }],
+      "replicaSets": [{
+        "metadata": {
+          "name": "charlie-ndgfb"
+        }
+      },{
+        "metadata": {
+          "name": "charlie-ndgfb"
+        }
+      }],
+      "replicationControllers": [{
+        "metadata": {
+          "name": "charlie-ndgfb"
+        }
+      },{
+        "metadata": {
+          "name": "charlie-ndgfb"
+        }
+      }],
+      "statefulSets": [{
+        "metadata": {
+          "name": "charlie-ndgfb"
+        }
+      },{
+        "metadata": {
+          "name": "charlie-ndgfb"
+        }
+      }]
+    }
   }
 }
 ```
@@ -495,15 +559,22 @@ GET /cluster/mirror HTTP/1.1
 
 ### 请求语法
 ```
-PUT /deployment HTTP/1.1
+PUT /deployment/<id> HTTP/1.1
 Content-Type: multipart/form-data; 
 ```
 ### 请求参数
 
+以下参数为URL PATH参数
+
+|名称|说明|默认值|是否必填|
+|---|---|---|---|
+|id| 实例主键 |无|是|
+
+以下参数为BODY参数
+
 |名称|说明|默认值|是否必填|
 |---|---|---|---|
 |manifest|应用描述文件|无|是|
-|instance|应用配置文件|无|是|
 
 
 ### 返回值

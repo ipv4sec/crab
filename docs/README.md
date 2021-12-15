@@ -17,23 +17,45 @@
 7. 隐藏[根域设置], 隐藏[工作负载源]的设置
 8. 修改[上传]为[添加应用]
 9. 调整实例列表字段, 删除[状态]字段
-10. [应用管理]页面点击[部署详情], node端请求 [实例详情] 接口, 取 details 字段
-11. [应用管理]页面点击[部署链接], 请求 [实例详情] 接口取 link 字段, 前端复制到粘贴板并给出提示(或者前端提示用户要复制)
-12. [应用管理]页面点击[导出K8S描述文件], node端请求 [实例详情] 接口, 取 deployment 字段, 前端下载
-13. 在 [部署详情] 页面, 有[CronJobs列表] [DeamonSets列表] [Deployments列表] [Jobs列表] [Pods列表] [Replica Sets列表] [Replication Controllers列表] [Stateful Sets列表],
-14. 其中, 每个列表中的列表项, 可点击, 展示[CronJob详情]接口, [Deployment详情]接口, [Job详情]接口, [Pod详情] [Replica Set详情] [Replication Controller详情] [Stateful Set详情]
-15. 在 [Pod详情] 中有 [实例日志] 接口
-16. 在[工作负载]选项页, 分别请求的接口是 [Trait列表] 接口, [WorkloadType列表] 接口, [WorkloadVendor列表] 接口
-17. 在[工作负载]选项页, 要编辑时, 分别请求  [Trait修改] 接口, [WorkloadType修改] 接口, [WorkloadVendor修改] 接口
-18. 在[创建应用]选项页, 点击[下载], 前端构造为 manifest.yaml 文件下载
-19. 在[创建应用]选项页, 点击[部署], node端构造zip后请求 [添加实例] 接口
-20. 在[创建Trait]选项页, 点击[保存], 请求 [创建Trait] 接口
-21. 在[创建WorkloadType]选项页, 点击[保存], 请求 [创建WorkloadType] 接口
-22. 在[创建WorkloadVendor]选项页, 请求 [SystemSpec默认值] 接口
-23. 在[创建WorkloadVendor]选项页, 点击[保存], 请求 [创建WorkloadVendor] 接口
-24. 在[创建WorkloadVendor]选项页, 点击[转换], 请求 [转换YAML到CUE] 接口
-25. 在[创建WorkloadVendor]选项页, 点击[检查], 请求 [检查CUE语法] 接口
-26. 原样转发 [流水线接口] 接口
+10. [应用管理]页面点击[部署链接], 请求 [实例详情] 接口取 id 字段 拼接到原样转发 [流水线接口] 接口之后 , 前端复制到粘贴板并给出提示(或者前端提示用户要复制)
+11. [应用管理]页面点击[导出K8S描述文件], node端请求 [实例详情] 接口, 取 deployment 字段, 前端下载
+12. [应用管理]页面点击[部署详情], node端请求 [实例详情] 接口, 取 details 字段, 见下文 [Details  字段的解释]
+13. 在 [Pod详情] 中有 [实例日志] 接口
+14. 在[工作负载]选项页, 分别请求的接口是 [Trait列表] 接口, [WorkloadType列表] 接口, [WorkloadVendor列表] 接口
+15. 在[工作负载]选项页, 要编辑时, 分别请求  [Trait修改] 接口, [WorkloadType修改] 接口, [WorkloadVendor修改] 接口
+16. 在[创建应用]选项页, 点击[下载], 前端构造为 manifest.yaml 文件下载
+17. 在[创建应用]选项页, 点击[部署], node端构造zip后请求 [添加实例] 接口
+18. 在[创建Trait]选项页, 点击[保存], 请求 [创建Trait] 接口
+19. 在[创建WorkloadType]选项页, 点击[保存], 请求 [创建WorkloadType] 接口
+20. 在[创建WorkloadVendor]选项页, 请求 [SystemSpec默认值] 接口
+21. 在[创建WorkloadVendor]选项页, 点击[保存], 请求 [创建WorkloadVendor] 接口
+22. 在[创建WorkloadVendor]选项页, 点击[转换], 请求 [转换YAML到CUE] 接口
+23. 在[创建WorkloadVendor]选项页, 点击[检查], 请求 [检查CUE语法] 接口
+24. 原样转发 [流水线接口] 接口
+
+### Details  字段的解释
+
+在 details 字段中有:
+1.CronJob列表, 字段名为 cronJob
+2.DaemonSet列表, 字段名为 daemonSet
+3.Deployment列表, 字段名为 deployment
+4.Job列表, 字段名为 job
+5.Pod列表, 字段名为 pod
+6.ReplicaSet列表, 字段名为 replicaSet 
+7.ReplicationController列表, 字段名为 replicationController
+8.StatefulSet列表, 字段名为s atefulSet
+9.Service列表, 字段名为 service
+10.ConfigMap列表, 字段名为 configMap
+11.PVC列表, 字段名为 pvc
+12.Secret列表, 字段名为 secret
+13.RoleBinding列表, 字段名为 roleBinding
+14.Role列表, 字段名为 role
+15.ServiceAccount列表, 字段名为 serviceAccount
+
+可再次请求 /{字段名}/{名称} 查看详情
+
+
+
 
 ### 默认值
 
@@ -91,32 +113,31 @@ Userconfigs默认值
       - password
 ```
 
-dependencies默认值
+dependencies默认值(数组)
 ```yaml
-    - name: gitlab
-      version: ">=0.0.1"
-      location: user-defined(https://gitlab.com)
-      items:
-        /*:
-          - create
-          - read
-          - update
-          - delete
+- name: gitlab
+  version: ">=0.0.1"
+  location: user-defined(https://gitlab.com)
+  items:
+    /*:
+      - create
+      - read
+      - update
+      - delete
 ```
 
-exports默认值
+exports默认值(map类型)
 ```yaml
-exports:
-    /user:
-      - create
-      - read
-      - update
-      - delete
-    /admin:
-      - create
-      - read
-      - update
-      - delete
+/user:
+  - create
+  - read
+  - update
+  - delete
+/admin:
+  - create
+  - read
+  - update
+  - delete
 ```
 
 在[创建Trait]选项页, 默认值
