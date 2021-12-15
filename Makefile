@@ -22,3 +22,9 @@ scheduler:
 	env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o assets/bin/scheduler cmd/scheduler/main.go
 	docker build -f deployments/scheduler.Dockerfile -t harbor1.zlibs.com/island/island-scheduler:alpha .
 	docker push harbor1.zlibs.com/island/island-scheduler:alpha
+
+.PHONY: debug
+debug:
+	env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o assets/bin/debug cmd/debug/main.go
+	docker build -f deployments/debug.Dockerfile -t harbor1.zlibs.com/island/island-debug:d .
+	docker push harbor1.zlibs.com/island/island-debug:d

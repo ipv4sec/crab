@@ -18,10 +18,6 @@
 
 - [流水线接口](#流水线接口)
 
-- [查询实例状态](#查询实例状态)
-- [查询组件状态](#查询组件状态)
-- [设置组件状态](#设置组件状态)
-
 
 
 <a name="说明"></a>
@@ -90,7 +86,7 @@ PUT /user/root HTTP/1.1
 }
 ```
 
-<a name="添加实例"></a>
+<a name="添加Trait/WrokloadType/"></a>
 ## 添加实例
 ### 请求语法
 ```
@@ -100,7 +96,7 @@ Content-Type: multipart/form-data;
 ### 请求参数
 |名称|说明|默认值|是否必填|
 |---|---|---|---|
-|file|实例描述文件（zip 包）|无|是|
+|file|实例描述文件（即manifest.yaml文件）|无|是|
 ### 返回值
 ```json
 {
@@ -185,7 +181,6 @@ GET /app?limit=<limit>&offset=<offset> HTTP/1.1
         "id": "ins1634971791",
         "name": "harbor",
         "version": "2.0.0",
-        "status": "未部署",
         "entry": "http://ins1634971791.example.com",
         "created_at": "2021-10-23T06:49:51.498Z",
         "updated_at": "2021-10-23T06:49:51.498Z"
@@ -210,12 +205,25 @@ GET /app/<id> HTTP/1.1
 |id| 实例主键 |无|是|
 
 ### 返回值
+
+只循环result.pods里的metadata.name即可
+
 ```json
 {
   "code": 0,
   "result": {
     "id": "ins1634971791",
-    "deployment": "可导出的部署信息, 前端将此字段信息保存为yaml文件后下载"
+    "deployment": "可导出的部署信息,[导出部署]接口, 前端将此字段信息保存为yaml文件后下载",
+    "configuration": "可导出的配置信息, [导出配置]接口, 前端将此字段信息保存为yaml文件后下载",
+    "pods": [{
+      "metadata": {
+        "name": "charlie-ndgfb"
+      }
+    },{
+      "metadata": {
+        "name": "charlie-ndgfb"
+      }
+    }]
   }
 }
 ```
@@ -224,32 +232,22 @@ GET /app/<id> HTTP/1.1
 ## 实例日志
 ### 请求语法
 ```
-GET /app/<id>/status HTTP/1.1
+GET /app/<pod>/logs HTTP/1.1
 ```
 ### 请求参数
 以下参数为URL PATH参数
 
 |名称|说明|默认值|是否必填|
 |---|---|---|---|
-|id| 实例主键 |无|是|
+|pod| pod名称 |无|是|
 
 ### 返回值
 
-`result[].name` 组件名称, `result[].message` 组件日志
 
 ```json
 {
   "code": 0,
-  "result": [
-    {
-      "name": "cache",
-      "message": "春江潮水连海平，海上明月共潮生"
-    },
-    {
-      "name": "nginx",
-      "message": "滟滟随波千万里，何处春江无月明"
-    }
-  ]
+  "result": "春江潮水连海平，海上明月共潮生"
 }
 ```
 
@@ -516,97 +514,261 @@ Content-Type: multipart/form-data;
 }
 ```
 
-<a name="查询实例状态"></a>
-## 查询实例状态
 
-|  statusCode   | 意义  |
-|  ----  | ----  |
-| 0  | 正在部署中 |
-| 1  | 部署完成 |
-| 2  | 卸载中 |
-| 3  | 卸载完成 |
-
-
+<a name="Trait列表"></a>
+## Trait列表
 ### 请求语法
 ```
-GET /status/<id> HTTP/1.1
+GET /trait?limit=<limit>&offset=<offset> HTTP/1.1
 ```
 ### 请求参数
 以下参数为URL PATH参数
 
 |名称|说明|默认值|是否必填|
 |---|---|---|---|
-|id|应用实例 id|无|是|
+|offset| |0|否|
+|limit|  |10|否|
 
 ### 返回值
 ```json
 {
-    "code": 0,
-    "result": 1
+  "code": 0,
+  "result": {
+    "rows": [
+      {
+        "pk": 1,
+        "name": "ingress",
+        "apiVersion": "aam.globalsphare.com/v1alpha1",
+        "value": "具体定义",
+        "type": 0,
+        "created_at": "2021-10-23T06:49:51.498Z",
+        "updated_at": "2021-10-23T06:49:51.498Z"
+      }
+    ],
+    "total": 1
+  }
 }
 ```
 
-<a name="查询组件状态"></a>
-## 查询组件状态
 
+<a name="WorkloadType列表"></a>
+## WorkloadType列表
 ### 请求语法
 ```
-GET /status/<id>/<componentName> HTTP/1.1
+GET /workload/type?limit=<limit>&offset=<offset> HTTP/1.1
 ```
 ### 请求参数
 以下参数为URL PATH参数
 
 |名称|说明|默认值|是否必填|
 |---|---|---|---|
-|id|应用实例 id|无|是|
-|componentName|workload名称|无|是|
+|offset| |0|否|
+|limit|  |10|否|
 
 ### 返回值
 ```json
 {
-    "code": 0,
-    "result": 1
+  "code": 0,
+  "result": {
+    "rows": [
+      {
+        "pk": 1,
+        "name": "worker",
+        "apiVersion": "aam.globalsphare.com/v1alpha1",
+        "value": "具体定义",
+        "type": 0,
+        "created_at": "2021-10-23T06:49:51.498Z",
+        "updated_at": "2021-10-23T06:49:51.498Z"
+      }
+    ],
+    "total": 1
+  }
 }
 ```
 
-<a name="设置组件状态"></a>
-## 设置组件状态
 
+<a name="WorkloadVendor列表"></a>
+## WorkloadVendor列表
 ### 请求语法
 ```
-PUT /status/<id>/<componentName>/<statusCode> HTTP/1.1
+GET /workload/vendor?limit=<limit>&offset=<offset> HTTP/1.1
 ```
 ### 请求参数
 以下参数为URL PATH参数
 
 |名称|说明|默认值|是否必填|
 |---|---|---|---|
-|id|应用实例 id|无|是|
-|componentName|workload名称|无|是|
-|statusCode|状态代码, 数字|无|是|
+|offset| |0|否|
+|limit|  |10|否|
 
-|  statusCode   | 意义  |
-|  ----  | ----  |
-| 0  | 部署失败 |
-| 1  | 部署成功 |
+### 返回值
+```json
+{
+  "code": 0,
+  "result": {
+    "rows": [
+      {
+        "pk": 1,
+        "name": "webservice",
+        "apiVersion": "aam.globalsphare.com/v1alpha1",
+        "value": "具体定义",
+        "type": 0,
+        "created_at": "2021-10-23T06:49:51.498Z",
+        "updated_at": "2021-10-23T06:49:51.498Z"
+      }
+    ],
+    "total": 1
+  }
+}
+```
+
+<a name="修改Trait"></a>
+## 修改Trait
+### 请求语法
+```
+PUT /trait/<id> HTTP/1.1
+```
+### 请求参数
+以下参数为URL PATH参数
+
+|名称|说明|默认值|是否必填|
+|---|---|---|---|
+|id|主键|无|是|
 
 以下参数为BODY参数
 
 |名称|说明|默认值|是否必填|
 |---|---|---|---|
-|message|日志字符串|无|否|
-
-### 请求示例
-```json
-{
-  "message": "春江潮水连海平，海上明月共潮生"
-}
-```
+|name|Trait名称 |无|是|
+|apiVersion| apiVersion |无|是|
+|value| 具体定义 |无|是|
+|type| 类型, 0系统内置不可删除 1可删除|0|无|
 
 ### 返回值
 ```json
 {
     "code": 0,
-    "result": "设置组件状态成功"
+    "result": "修改成功"
+}
+```
+
+<a name="修改WorkloadType"></a>
+## 修改WorkloadType
+### 请求语法
+```
+PUT /workload/type/<id> HTTP/1.1
+```
+### 请求参数
+以下参数为URL PATH参数
+
+|名称|说明|默认值|是否必填|
+|---|---|---|---|
+|id|主键|无|是|
+
+以下参数为BODY参数
+
+|名称|说明|默认值|是否必填|
+|---|---|---|---|
+|name|名称 |无|是|
+|apiVersion| apiVersion |无|是|
+|value| 具体定义 |无|是|
+|type| 类型, 0系统内置不可删除 1可删除|0|无|
+
+### 返回值
+```json
+{
+    "code": 0,
+    "result": "修改成功"
+}
+```
+
+
+<a name="修改WorkloadVendor"></a>
+## 修改WorkloadVendor
+### 请求语法
+```
+PUT /workload/vendor/<id> HTTP/1.1
+```
+### 请求参数
+以下参数为URL PATH参数
+
+|名称|说明|默认值|是否必填|
+|---|---|---|---|
+|id|主键|无|是|
+
+以下参数为BODY参数
+
+|名称|说明|默认值|是否必填|
+|---|---|---|---|
+|name|名称 |无|是|
+|apiVersion| apiVersion |无|是|
+|value| 具体定义 |无|是|
+|type| 类型, 0系统内置不可删除 1可删除|0|无|
+
+### 返回值
+```json
+{
+    "code": 0,
+    "result": "修改成功"
+}
+```
+
+<a name="删除Trait"></a>
+## 删除Trait
+### 请求语法
+```
+DELETE /trait/<id> HTTP/1.1
+```
+### 请求参数
+以下参数为URL PATH参数
+
+|名称|说明|默认值|是否必填|
+|---|---|---|---|
+|id|主键|无|是|
+### 返回值
+```json
+{
+    "code": 0,
+    "result": "删除成功"
+}
+```
+
+<a name="删除WorkloadType"></a>
+## 删除WorkloadType
+### 请求语法
+```
+DELETE /workload/type/<id> HTTP/1.1
+```
+### 请求参数
+以下参数为URL PATH参数
+
+|名称|说明|默认值|是否必填|
+|---|---|---|---|
+|id| 主键|无|是|
+### 返回值
+```json
+{
+    "code": 0,
+    "result": "删除成功"
+}
+```
+
+<a name="删除WorkloadVendor"></a>
+## 删除WorkloadVendor
+### 请求语法
+```
+DELETE /workload/vendor/<id> HTTP/1.1
+```
+### 请求参数
+以下参数为URL PATH参数
+
+|名称|说明|默认值|是否必填|
+|---|---|---|---|
+|id| 主键|无|是|
+### 返回值
+```json
+{
+    "code": 0,
+    "result": "删除成功"
 }
 ```
