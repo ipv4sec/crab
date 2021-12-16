@@ -43,7 +43,7 @@
 5.Pod列表, 字段名为 pod
 6.ReplicaSet列表, 字段名为 replicaSet 
 7.ReplicationController列表, 字段名为 replicationController
-8.StatefulSet列表, 字段名为s atefulSet
+8.StatefulSet列表, 字段名为 statefulSet
 9.Service列表, 字段名为 service
 10.ConfigMap列表, 字段名为 configMap
 11.PVC列表, 字段名为 pvc
@@ -52,7 +52,7 @@
 14.Role列表, 字段名为 role
 15.ServiceAccount列表, 字段名为 serviceAccount
 
-可再次请求 /{字段名}/{名称} 查看详情
+可再次请求 /{字段名}/{名称} 查看详情, 具体看 [资源详情] 接口
 
 
 
@@ -101,7 +101,7 @@ Userconfigs默认值
     "$schema": http://json-schema.org/draft-07/schema#
     "$id": http://example.com/product.schema.json
     title: User
-    description: init user description
+    description: User Description
     type: object
     properties:
       username:

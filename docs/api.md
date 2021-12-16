@@ -5,9 +5,6 @@
 - [获取管理员信息](#获取管理员信息)
 - [修改管理员密码](#修改管理员密码)
 - [添加实例](#添加实例)
-- [实例列表](#实例列表)
-- [实例详情](#实例详情)
-- [实例日志](#实例日志)
 - [运行实例](#运行实例)
 - [删除实例](#删除实例)
 - [获取节点地址](#获取节点地址)
@@ -16,7 +13,32 @@
 - [设置工作负载源](#设置工作负载源)
 - [查询工作负载源](#查询工作负载源)
 
+- [实例列表](#实例列表)
+- [实例详情](#实例详情)
+- [实例日志](#实例日志)
+
 - [流水线接口](#流水线接口)
+- [Trait列表](#Trait列表)
+- [WorkloadType列表](#WorkloadType列表)
+- [WorkloadVendor列表](#WorkloadVendor列表)
+
+- [修改Trait](#修改Trait)
+- [修改WorkloadType](#修改WorkloadType)
+- [修改WorkloadVendor](#修改WorkloadVendor)
+
+- [删除Trait](#删除Trait)
+- [删除WorkloadType](#删除WorkloadType)
+- [删除WorkloadVendor](#删除WorkloadVendor)
+
+- [添加Trait](#添加Trait)
+- [添加WorkloadType](#添加WorkloadType)
+- [添加WorkloadVendor](#添加WorkloadVendor)
+
+- [SystemSpec默认值](#SystemSpec默认值)
+- [转换YAML到CUE](#转换YAML到CUE)
+- [检查CUE语法](#检查CUE语法)
+
+- [资源详情](#资源详情)
 
 
 
@@ -86,7 +108,7 @@ PUT /user/root HTTP/1.1
 }
 ```
 
-<a name="添加Trait/WrokloadType/"></a>
+<a name="添加实例"></a>
 ## 添加实例
 ### 请求语法
 ```
@@ -206,7 +228,7 @@ GET /app/<id> HTTP/1.1
 
 ### 返回值
 
-只循环result.pods里的metadata.name即可
+只循环result.pods里的metadata.name即可, 其他字段等开发的时候给出
 
 ```json
 {
@@ -215,7 +237,7 @@ GET /app/<id> HTTP/1.1
     "id": "ins1634971791",
     "deployment": "[导出K8S描述文件], 前端将此字段信息保存为yaml文件后下载",
     "details": {
-      "cronJobs": [{
+      "cronJob": [{
         "metadata": {
           "name": "charlie-ndgfb"
         }
@@ -224,7 +246,7 @@ GET /app/<id> HTTP/1.1
           "name": "charlie-ndgfb"
         }
       }],
-      "daemonSets": [{
+      "daemonSet": [{
         "metadata": {
           "name": "charlie-ndgfb"
         }
@@ -233,7 +255,7 @@ GET /app/<id> HTTP/1.1
           "name": "charlie-ndgfb"
         }
       }],
-      "deployments": [{
+      "deployment": [{
         "metadata": {
           "name": "charlie-ndgfb"
         }
@@ -242,7 +264,7 @@ GET /app/<id> HTTP/1.1
           "name": "charlie-ndgfb"
         }
       }],
-      "jobs": [{
+      "job": [{
         "metadata": {
           "name": "charlie-ndgfb"
         }
@@ -251,7 +273,7 @@ GET /app/<id> HTTP/1.1
           "name": "charlie-ndgfb"
         }
       }],
-      "pods": [{
+      "pod": [{
         "metadata": {
           "name": "charlie-ndgfb"
         }
@@ -260,7 +282,7 @@ GET /app/<id> HTTP/1.1
           "name": "charlie-ndgfb"
         }
       }],
-      "replicaSets": [{
+      "replicaSet": [{
         "metadata": {
           "name": "charlie-ndgfb"
         }
@@ -269,7 +291,7 @@ GET /app/<id> HTTP/1.1
           "name": "charlie-ndgfb"
         }
       }],
-      "replicationControllers": [{
+      "replicationController": [{
         "metadata": {
           "name": "charlie-ndgfb"
         }
@@ -278,7 +300,70 @@ GET /app/<id> HTTP/1.1
           "name": "charlie-ndgfb"
         }
       }],
-      "statefulSets": [{
+      "statefulSet": [{
+        "metadata": {
+          "name": "charlie-ndgfb"
+        }
+      },{
+        "metadata": {
+          "name": "charlie-ndgfb"
+        }
+      }],
+      "service": [{
+        "metadata": {
+          "name": "charlie-ndgfb"
+        }
+      },{
+        "metadata": {
+          "name": "charlie-ndgfb"
+        }
+      }],
+      "configMap": [{
+        "metadata": {
+          "name": "charlie-ndgfb"
+        }
+      },{
+        "metadata": {
+          "name": "charlie-ndgfb"
+        }
+      }],
+      "pvc": [{
+        "metadata": {
+          "name": "charlie-ndgfb"
+        }
+      },{
+        "metadata": {
+          "name": "charlie-ndgfb"
+        }
+      }],
+      "secret": [{
+        "metadata": {
+          "name": "charlie-ndgfb"
+        }
+      },{
+        "metadata": {
+          "name": "charlie-ndgfb"
+        }
+      }],
+      "roleBinding": [{
+        "metadata": {
+          "name": "charlie-ndgfb"
+        }
+      },{
+        "metadata": {
+          "name": "charlie-ndgfb"
+        }
+      }],
+      "role": [{
+        "metadata": {
+          "name": "charlie-ndgfb"
+        }
+      },{
+        "metadata": {
+          "name": "charlie-ndgfb"
+        }
+      }],
+      "serviceAccount": [{
         "metadata": {
           "name": "charlie-ndgfb"
         }
@@ -601,13 +686,16 @@ GET /trait?limit=<limit>&offset=<offset> HTTP/1.1
 |limit|  |10|否|
 
 ### 返回值
+
+type: 0 内置, 不可删除 1 可删除
+
 ```json
 {
   "code": 0,
   "result": {
     "rows": [
       {
-        "pk": 1,
+        "id": 1,
         "name": "ingress",
         "apiVersion": "aam.globalsphare.com/v1alpha1",
         "value": "具体定义",
@@ -637,6 +725,9 @@ GET /workload/type?limit=<limit>&offset=<offset> HTTP/1.1
 |limit|  |10|否|
 
 ### 返回值
+
+type: 0 内置, 不可删除 1 可删除
+
 ```json
 {
   "code": 0,
@@ -673,6 +764,9 @@ GET /workload/vendor?limit=<limit>&offset=<offset> HTTP/1.1
 |limit|  |10|否|
 
 ### 返回值
+
+type: 0 内置, 不可删除 1 可删除
+
 ```json
 {
   "code": 0,
@@ -841,5 +935,194 @@ DELETE /workload/vendor/<id> HTTP/1.1
 {
     "code": 0,
     "result": "删除成功"
+}
+```
+
+
+<a name="SystemSpec默认值"></a>
+## SystemSpec默认值
+### 请求语法
+```
+GET /tool/system/template HTTP/1.1
+```
+
+### 请求参数
+无
+
+### 返回值
+```json
+{
+    "code": 0,
+    "result": "模板的内容"
+}
+```
+
+<a name="添加Trait"></a>
+## 添加Trait
+### 请求语法
+```
+POST /trait HTTP/1.1 
+```
+### 请求参数
+
+```json
+{
+  "value": "具体的yaml"
+}
+
+```
+
+
+### 返回值
+```json
+{
+  "code": 0,
+  "result": "创建成功"
+}
+```
+
+
+<a name="添加WorkloadType"></a>
+## 添加WorkloadType
+### 请求语法
+```
+POST /workload/type HTTP/1.1 
+```
+### 请求参数
+
+```json
+{
+  "value": "具体的yaml"
+}
+
+```
+
+
+### 返回值
+```json
+{
+  "code": 0,
+  "result": "创建成功"
+}
+```
+
+<a name="添加WorkloadVendor"></a>
+## 添加WorkloadVendor
+### 请求语法
+```
+POST /workload/vendor HTTP/1.1 
+```
+### 请求参数
+
+```json
+{
+  "value": "具体的yaml"
+}
+
+```
+
+
+### 返回值
+```json
+{
+  "code": 0,
+  "result": "创建成功"
+}
+```
+
+
+<a name="转换YAML到CUE"></a>
+## 转换YAML到CUE
+### 请求语法
+```
+POST /tool/convertion HTTP/1.1 
+```
+### 请求参数
+
+```json
+{
+  "value": "具体的yaml"
+}
+
+```
+
+
+### 返回值
+```json
+{
+  "code": 0,
+  "result": "翻译后的CUE模板"
+}
+```
+
+
+
+<a name="检查CUE语法"></a>
+## 检查CUE语法
+### 请求语法
+```
+POST /tool/cue/spelling HTTP/1.1 
+```
+### 请求参数
+
+```json
+{
+  "value": "具体的CUE模板"
+}
+
+```
+
+
+### 返回值
+```json
+{
+  "code": 0,
+  "result": "OK"
+}
+```
+
+```json
+{
+  "code": 1,
+  "result": "报错堆栈字符串"
+}
+```
+
+
+<a name="资源详情"></a>
+## 资源详情
+### 请求语法
+```
+GET /resource/<resourceName>/<instanceName> HTTP/1.1 
+```
+### 请求参数
+resourceName的值可能为
+```
+cronJob
+daemonSet
+deployment
+job
+pod
+replicaSet
+replicationController
+statefulSet
+service
+configMap
+pvc
+secret
+roleBinding
+role
+serviceAccount
+```
+
+instanceName的值为[实例详情]接口中 只循环result.<resourceName>里的metadata.name
+
+
+
+### 返回值
+```json
+{
+  "code": 0,
+  "result": "TODO"
 }
 ```
