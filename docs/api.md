@@ -388,7 +388,7 @@ GET /app/<pod>/logs HTTP/1.1
 
 |名称|说明|默认值|是否必填|
 |---|---|---|---|
-|pod| pod名称 |无|是|
+|pod| pod名称, 即[实例详情]接口返回中result.details.pod.metadata.name的值 |无|是|
 
 ### 返回值
 
@@ -688,18 +688,19 @@ GET /trait?limit=<limit>&offset=<offset> HTTP/1.1
 ### 返回值
 
 type: 0 内置, 不可删除 1 可删除
+表头为: 主键, 名称, 版本, 值, 类型, 创建时间, 修改时间
 
-```json
+```
 {
   "code": 0,
   "result": {
     "rows": [
       {
-        "id": 1,
-        "name": "ingress",
-        "apiVersion": "aam.globalsphare.com/v1alpha1",
-        "value": "具体定义",
-        "type": 0,
+        "id": 1, 主键
+        "name": "ingress",  名称
+        "apiVersion": "aam.globalsphare.com/v1alpha1", 版本
+        "value": "具体定义", 值
+        "type": 0, 类型
         "created_at": "2021-10-23T06:49:51.498Z",
         "updated_at": "2021-10-23T06:49:51.498Z"
       }
@@ -804,10 +805,7 @@ PUT /trait/<id> HTTP/1.1
 
 |名称|说明|默认值|是否必填|
 |---|---|---|---|
-|name|Trait名称 |无|是|
-|apiVersion| apiVersion |无|是|
 |value| 具体定义 |无|是|
-|type| 类型, 0系统内置不可删除 1可删除|0|无|
 
 ### 返回值
 ```json
@@ -834,10 +832,7 @@ PUT /workload/type/<id> HTTP/1.1
 
 |名称|说明|默认值|是否必填|
 |---|---|---|---|
-|name|名称 |无|是|
-|apiVersion| apiVersion |无|是|
 |value| 具体定义 |无|是|
-|type| 类型, 0系统内置不可删除 1可删除|0|无|
 
 ### 返回值
 ```json
@@ -865,10 +860,7 @@ PUT /workload/vendor/<id> HTTP/1.1
 
 |名称|说明|默认值|是否必填|
 |---|---|---|---|
-|name|名称 |无|是|
-|apiVersion| apiVersion |无|是|
 |value| 具体定义 |无|是|
-|type| 类型, 0系统内置不可删除 1可删除|0|无|
 
 ### 返回值
 ```json
@@ -943,7 +935,7 @@ DELETE /workload/vendor/<id> HTTP/1.1
 ## SystemSpec默认值
 ### 请求语法
 ```
-GET /tool/system/template HTTP/1.1
+GET /tool/systemTemplate HTTP/1.1
 ```
 
 ### 请求参数
@@ -1061,7 +1053,7 @@ POST /tool/convertion HTTP/1.1
 ## 检查CUE语法
 ### 请求语法
 ```
-POST /tool/cue/spelling HTTP/1.1 
+POST /tool/spelling HTTP/1.1 
 ```
 ### 请求参数
 
@@ -1074,17 +1066,11 @@ POST /tool/cue/spelling HTTP/1.1
 
 
 ### 返回值
-```json
-{
-  "code": 0,
-  "result": "OK"
-}
-```
 
 ```json
 {
-  "code": 1,
-  "result": "报错堆栈字符串"
+  "code": 0,
+  "result": "检查的结果, 前端无论拿到什么都直接显示就好"
 }
 ```
 
@@ -1115,11 +1101,14 @@ role
 serviceAccount
 ```
 
-instanceName的值为[实例详情]接口中 只循环result.<resourceName>里的metadata.name
+instanceName的值为[实例详情]接口返回的result.details.<resourceName>.metadata.name的值
 
 
 
 ### 返回值
+
+还未定义
+
 ```json
 {
   "code": 0,
