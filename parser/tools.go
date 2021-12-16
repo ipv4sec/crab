@@ -1,8 +1,9 @@
 package parser
 
 import (
-	"bytes"
 	"crab/aam/v1alpha1"
+	"cuelang.org/go/cue"
+	"cuelang.org/go/cue/cuecontext"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -13,14 +14,12 @@ import (
 	"net"
 	"net/url"
 	"os"
-	"os/exec"
 	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 )
-
 
 //由manifest.yaml生成vale.yaml
 func GenValeYaml(instanceId string, application v1alpha1.Application, userconfigs string, rootDomain string, dependencies Dependency) (VelaYaml, error) {
@@ -32,7 +31,6 @@ func GenValeYaml(instanceId string, application v1alpha1.Application, userconfig
 	if err != nil {
 		return vela, err
 	}
-
 	//应用内部的授权
 	//为每个 service 创建一个 authorization，授权当前应用下的其他服务有访问的权限
 	for _, workload := range application.Spec.Workloads {
@@ -45,14 +43,20 @@ func GenValeYaml(instanceId string, application v1alpha1.Application, userconfig
 		)
 	}
 	//依赖内部应用的host
-	dependHost := make(dependencyHost, 0)
+	dependHost := make([]dependencyHost, 0)
 	for _, v := range dependencies.Internal {
-		dependHost[v.Name] = dependencyHostItem{ fmt.Sprintf("%s.%s.svc.cluster.local", v.EntryService, v.Instanceid)}
+		dependHost = append(dependHost,
+			dependencyHost{
+				v.Name: dependencyHostItem{
+					fmt.Sprintf("%s.%s.svc.cluster.local", v.EntryService, v.Instanceid),
+				},
+			},
+		)
 	}
 	for _, workload := range application.Spec.Workloads {
 		properties := GetProperties(workload.Properties)
 		properties["authorization"] = authorization
-		properties["serviceentry"] = serviceEntry
+		properties["serviceEntry"] = serviceEntry
 		properties["userconfigs"] = userconfigs
 		properties["dependencies"] = dependHost
 		//整合trait参数
@@ -79,135 +83,100 @@ func GenValeYaml(instanceId string, application v1alpha1.Application, userconfig
 }
 
 //由vale.yaml生成k8s
-func GenK8sYaml(instanceid string, vela VelaYaml, workloadParam map[string]WorkloadParam) (ParserData, error) {
-	parserData := ParserData{
-		Init:      "",
-		Name:      "",
-		Workloads: make(map[string]Workload, 0),
-	}
-	ns := `
+func GenK8sYaml(instanceId string, vela VelaYaml, workloadParam map[string]WorkloadParam) (string, error) {
+	//先创建命名空间
+	finalContext := `
 apiVersion: v1
 kind: Namespace
 metadata:
- name: %s
- labels:
-   istio-injection: enabled
+  labels:
+    istio-injection: enabled
+  name: %s
 ---
-apiVersion: v1
-kind: ServiceAccount
-metadata:
- name: %s
- namespace: %s
----
-apiVersion: "security.istio.io/v1beta1"
-kind: "AuthorizationPolicy"
-metadata:
- name: %s
- namespace: %s
-spec:
- {}
 `
-	ns = fmt.Sprintf(ns, instanceid, vela.Name, instanceid, instanceid, instanceid)
-	parserData.Init = ns
-	parserData.Name = vela.Name
+	finalContext = fmt.Sprintf(finalContext, instanceId)
+	//自动追加的部分
 	//处理workload
 	for k, v := range vela.Services {
-		ctxObj := make(map[string]ContextObj, 0)
-		ctxObj["context"] = ContextObj{
+		ctx := make(map[string]ContextObj, 0)
+		ctx["context"] = ContextObj{
 			vela.Name,
 			k,
-			instanceid,
+			instanceId,
 		}
-		cmdResult, err := Export(ctxObj, workloadParam[k], v)
+		k8sStr, err := Export(ctx, workloadParam[k], v)
 		if err != nil {
 			klog.Errorln(err)
-			return parserData, err
+			return "", err
 		}
-		var workload Workload
-		construct := make(map[string]string, 0)
-		count := 0
-		for k, out := range cmdResult["construct"] {
-			str, err := yaml.Marshal(out)
-			if err != nil {
-				klog.Errorln(err.Error())
-				return parserData, err
-			}
-			construct[k] = string(str)
-			count++
-		}
-		if count == 0 {
-			err = errors.New("vendor未实现type")
-			return parserData, err
-		}
-		workload.Construct = construct
-		traits := make(map[string]string, 0)
-		for kk, vv := range v.(map[string]interface{}) {
-			if kk == "traits" {
-				for _,traitName :=  range vv.([]string) {
-					for k, out := range cmdResult[traitName] {
-						str, err := yaml.Marshal(out)
-						if err != nil {
-							klog.Errorln(err.Error())
-							return parserData, err
-						}
-						traits[k] = string(str)
-						count++
-					}
-					if count == 0 {
-						err = errors.New("未实现trait")
-						return parserData, err
-					}
+		if strings.Index(k8sStr, "---") != -1 {
+			s := strings.Split(k8sStr, "---")
+			for _, v := range s {
+				v = strings.TrimSpace(v)
+				if v == "" {
+					continue
+				}
+				if strings.Index(finalContext, v) == -1 {
+					finalContext += v + "\n---\n"
 				}
 			}
+		} else {
+			finalContext += k8sStr + "\n---\n"
 		}
-
-		workload.Traits = traits
-		parameterStr, err := yaml.Marshal(cmdResult["parameter"])
-		if err != nil {
-			klog.Errorln(err.Error())
-			return ParserData{}, nil
-		}
-		workload.Parameter = string(parameterStr)
-		parserData.Workloads[k] = workload
 	}
-	return parserData, nil
+	finalContext = strings.Trim(strings.TrimSpace(finalContext), "---")
+	finalContext = fmt.Sprintf("# appName: %s\n%s", vela.Name, finalContext)
+	return finalContext, nil
 }
 
-func Export(ctxObj map[string]ContextObj, workloadParam WorkloadParam, workload interface{}) (map[string]map[string]interface{}, error) {
-	var cmdResult map[string]map[string]interface{}
+func Export(ctxObj map[string]ContextObj, workloadParam WorkloadParam, workload interface{}) (string, error) {
+	var k8s = ""
 	template := workloadParam.VendorCue
 	ctxObjData, err := json.Marshal(ctxObj)
 	if err != nil {
-		klog.Errorln("ctxObj 序列化失败")
-		return cmdResult, errors.New("ctxObj 序列化失败")
+		klog.Errorln("ctxObj 序列化失败: ", err.Error())
+		return "", errors.New("ctxObj 序列化失败")
 	}
 	serviceData, err := json.Marshal(workload)
 	if err != nil {
-		klog.Errorln("vela.Services 序列化失败")
-		return cmdResult, errors.New("vela.Services 序列化失败")
+		klog.Errorln("vela.Services 序列化失败: ", err.Error())
+		return "", errors.New("vela.Services 序列化失败")
 	}
-	content := fmt.Sprintf("%s\nparameter:%s\n%s", ctxObjData, serviceData, template)
+	cueStr := fmt.Sprintf("%s\nparameter:%s\n%s", ctxObjData, serviceData, template)
 	//处理cue内置的pkg
-	content = MoveCuePkgToTop(content)
-	path := fmt.Sprintf("/tmp/1.cue")
-	err = ioutil.WriteFile(path, []byte(content), 0644)
-	if err != nil {
-		klog.Errorln(err.Error())
-		return cmdResult, err
+	cueStr = MoveCuePkgToTop(cueStr)
+	var ctx *cue.Context
+	var value cue.Value
+	ctx = cuecontext.New()
+	value = ctx.CompileString(cueStr)
+	if value.Err() != nil {
+		klog.Errorln("cue生成yaml失败: ", value.Err().Error())
+		return "", value.Err()
 	}
-	command := fmt.Sprintf("/usr/local/bin/cue export -f %s", path)
-	cmd := exec.Command("bash", "-c", command)
-	output, err := cmd.CombinedOutput()
+	it, err := value.Fields()
 	if err != nil {
-		klog.Errorln("执行命令错误", err.Error())
-		return cmdResult, err
+		klog.Errorln("获取cue.value迭代器失败: ", err.Error())
+		return "", err
 	}
-	err = json.Unmarshal(output, &cmdResult)
-	if err != nil {
-		klog.Errorln(err.Error())
-		return cmdResult, err
+	for it.Next() {
+		if it.Label() != "context" && it.Label() != "parameter" {
+			context := make(map[string]interface{}, 0)
+			err = it.Value().Decode(&context)
+			if err != nil {
+				klog.Errorln(err.Error())
+				return "", nil
+			}
+			for _, v := range context {
+				b, err := yaml.Marshal(v)
+				if err != nil {
+					klog.Errorln(err.Error())
+					return "", nil
+				}
+				k8s = fmt.Sprintf("%s\n---\n%s", k8s, string(b))
+			}
+		}
 	}
-	return cmdResult, nil
+	return strings.TrimSpace(k8s), nil
 }
 
 //处理依赖
@@ -258,6 +227,7 @@ func parseDependencies(application v1alpha1.Application, dependencies Dependency
 	}
 	return auth, svcEntry, err
 }
+
 //获取WorkloadType
 func GetWorkloadType(typeName, vendorDir string) (v1alpha1.WorkloadType, error) {
 	var err error
@@ -273,6 +243,7 @@ func GetWorkloadType(typeName, vendorDir string) (v1alpha1.WorkloadType, error) 
 
 	return t, err
 }
+
 //获取trait
 func GetTrait(name, vendorDir string) (v1alpha1.Trait, error) {
 	var err error
@@ -287,6 +258,7 @@ func GetTrait(name, vendorDir string) (v1alpha1.Trait, error) {
 	err = yaml.Unmarshal(content, &t)
 	return t, err
 }
+
 //获取WorkloadVendor
 func GetWorkloadVendor(vendorName, workloadPath string) (v1alpha1.WorkloadVendor, error) {
 	var err error
@@ -318,6 +290,7 @@ func GetWorkloadVendor(vendorName, workloadPath string) (v1alpha1.WorkloadVendor
 	v.Spec = cuefile
 	return v, err
 }
+
 //获取cue模板
 func modTemplate(workloadPath, vendorDir, mod string) (string, error) {
 	var err error
@@ -350,6 +323,7 @@ func modTemplate(workloadPath, vendorDir, mod string) (string, error) {
 	}
 	return content, nil
 }
+
 //解析数据
 func GetValue(v interface{}) interface{} {
 	vType := reflect.TypeOf(v)
@@ -383,7 +357,6 @@ func GetValue(v interface{}) interface{} {
 	klog.Errorln("其他类型")
 	return nil
 }
-
 
 //cue内置的pkg，放到cue文件第一行
 func MoveCuePkgToTop(str string) string {
@@ -428,6 +401,7 @@ func ApiParse(uses map[string][]string) ([]DependencyUseItem, error) {
 	}
 	return rtn, err
 }
+
 //校验trait参数
 func CheckTraitParam(workloadTrait Trait, vendorDir string) error {
 	properties := GetProperties(workloadTrait.Properties)
@@ -442,20 +416,13 @@ func CheckTraitParam(workloadTrait Trait, vendorDir string) error {
 		return err
 	}
 	tmpcue := fmt.Sprintf("parameter: \n%s\nparameter: {\n%s\n}", string(properties2), file.Spec.Parameter)
-	path := fmt.Sprintf("/tmp/%s.cue", RandomStr())
-	err = ioutil.WriteFile(path, []byte(tmpcue), 0644)
+	var ctx *cue.Context
+	var value cue.Value
+	ctx = cuecontext.New()
+	value = ctx.CompileString(tmpcue)
+	err = value.Validate(cue.Concrete(true))
 	if err != nil {
-		klog.Errorln(err)
 		return err
-	}
-	command := fmt.Sprintf("/usr/local/bin/cue vet -c %s", path)
-	cmd := exec.Command("bash", "-c", command)
-	var stderr bytes.Buffer
-	cmd.Stderr = &stderr
-	err = cmd.Run()
-	if err != nil {
-		klog.Errorln("trait参数校验失败: " + stderr.String())
-		return errors.New("trait参数校验失败: " + stderr.String())
 	}
 	return nil
 }
@@ -482,23 +449,17 @@ func CheckTypeParam(workload v1alpha1.Workload, vendorDir string) error {
 	if err != nil {
 		return err
 	}
-	parameterStr := fmt.Sprintf("parameter:{ \n%s\n}\nparameter:{\n%s\n}", t.Spec.Parameter, string(properties2))
-	path := fmt.Sprintf("/tmp/%s.cue", RandomStr())
-	ioutil.WriteFile(path, []byte(parameterStr), 0644)
-	command := fmt.Sprintf("/usr/local/bin/cue vet -c %s", path)
-	cmd := exec.Command("bash", "-c", command)
-	var stderr bytes.Buffer
-	var stdout bytes.Buffer
-	cmd.Stderr = &stderr
-	cmd.Stdout = &stdout
-	err = cmd.Run()
+	parameterStr := fmt.Sprintf("parameter:{ \n%s\n}\nparameter:\n%s\n", t.Spec.Parameter, string(properties2))
+	var ctx *cue.Context
+	var value cue.Value
+	ctx = cuecontext.New()
+	value = ctx.CompileString(parameterStr)
+	err = value.Validate(cue.Concrete(true))
 	if err != nil {
-		klog.Errorln("type参数校验失败: " + stderr.String())
-		return errors.New("type参数校验失败: " + stderr.String())
+		return err
 	}
 	return nil
 }
-
 
 func checkParams(application v1alpha1.Application, workloadPath string) (map[string]WorkloadParam, error) {
 	var err error
@@ -572,5 +533,3 @@ func FileExist(path string) bool {
 	_, err := os.Lstat(path)
 	return !os.IsNotExist(err)
 }
-
-

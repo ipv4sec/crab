@@ -49,7 +49,7 @@ func PostManifestHandlerFunc(c *gin.Context) {
 	var application v1alpha1.Application
 	err = yaml.Unmarshal([]byte(p.Content), &application)
 	if err != nil {
-		c.JSON(200, Result{ErrBadRequest, "文件解析失败"})
+		c.JSON(200, Result{ErrBadRequest, "描述文件解析失败"})
 		return
 	}
 
@@ -81,14 +81,9 @@ func PostManifestHandlerFunc(c *gin.Context) {
 		c.JSON(200, Result{ErrInternalServer, err.Error()})
 		return
 	}
-	k8s2, err := yaml.Marshal(k8s)
-	if err != nil {
-		klog.Errorln(err)
-		return
-	}
 	tmpName = fmt.Sprintf("/tmp/%s-k8s.yaml", RandomStr())
-	ioutil.WriteFile(tmpName, k8s2, 0644)
-	c.JSON(200, Result{0, string(k8s2)})
+	ioutil.WriteFile(tmpName, []byte(k8s), 0644)
+	c.JSON(200, Result{0, k8s})
 }
 
 func GetSystemTemplateFunc(c *gin.Context){
