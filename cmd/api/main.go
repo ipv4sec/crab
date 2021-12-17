@@ -8,8 +8,11 @@ import (
 	"crab/deployment"
 	"crab/domain"
 	"crab/mirror"
-	"crab/status"
+	"crab/tool"
+	"crab/trait"
 	"crab/user"
+	"crab/workloadType"
+	"crab/workloadVendor"
 	"flag"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -42,12 +45,12 @@ func main() {
 		panic(err)
 	}
 
-	klog.Infoln("开始集群认证")
-	err = cluster.Init()
-	if err != nil {
-		panic(fmt.Errorf("获取集群认证失败: %w", err))
-	}
-	klog.Infoln("集群认证成功")
+	//klog.Infoln("开始集群认证")
+	//err = cluster.Init()
+	//if err != nil {
+	//	panic(fmt.Errorf("获取集群认证失败: %w", err))
+	//}
+	//klog.Infoln("集群认证成功")
 
 	klog.Infoln("开始提供服务")
 	gin.SetMode(gin.ReleaseMode)
@@ -61,8 +64,7 @@ func main() {
 
 	routers.POST("/app", app.PostAppHandlerFunc)
 	routers.GET("/app", app.GetAppsHandlerFunc)
-	routers.GET("/app/:id", app.GetAppHandlerFunc)
-	routers.GET("/app/:id/status", app.GetAppStatusHandlerFunc)
+	routers.GET("/app/:id", app.GetAppHandlerFunc) // TODO
 	routers.PUT("/app/:id", app.PutAppHandlerFunc)
 	routers.DELETE("/app/:id", app.DeleteAppHandlerFunc)
 
@@ -72,10 +74,32 @@ func main() {
 	routers.GET("/cluster/mirror", mirror.GetMirrorHandlerFunc)
 	routers.PUT("/cluster/mirror", mirror.PutMirrorHandlerFunc)
 
-	routers.PUT("/deployment", deployment.PutDeploymentHandlerFunc)
+	routers.PUT("/deployment/:id", deployment.PutDeploymentHandlerFunc)
 
-	routers.GET("/status/:id/:componentName", status.GetComponentStatusHandlerFunc)
-	routers.PUT("/status/:id/:componentName/:statusCode", status.PutStatusHandlerFunc)
+	routers.POST("/trait", trait.PostTraitHandlerFunc)
+	routers.GET("/trait", trait.GetTraitsHandlerFunc)
+	routers.GET("/trait/:id", trait.GetTraitHandlerFunc)
+	routers.PUT("/trait/:id", trait.PutTraitHandlerFunc)
+	routers.DELETE("/trait/:id", trait.DeleteTraitHandlerFunc)
+
+	routers.POST("/workload/type", workloadType.PostTypeHandlerFunc)
+	routers.GET("/workload/type", workloadType.GetTypesHandlerFunc)
+	routers.GET("/workload/type/:id", workloadType.GetTypeHandlerFunc)
+	routers.PUT("/workload/type/:id", workloadType.PutTypeHandlerFunc)
+	routers.DELETE("/workload/type/:id", workloadType.DeleteTypeHandlerFunc)
+
+	routers.POST("/workload/vendor", workloadVendor.PostVendorHandlerFunc)
+	routers.GET("/workload/vendor", workloadVendor.GetVendorsHandlerFunc)
+	routers.GET("/workload/vendor/:id", workloadVendor.GetVendorHandlerFunc)
+	routers.PUT("/workload/vendor/:id", workloadVendor.PutVendorHandlerFunc)
+	routers.DELETE("/workload/vendor/:id", workloadVendor.DeleteVendorHandlerFunc)
+
+	routers.POST("/tool/spelling", tool.PostSpellingHandlerFunc)
+	routers.POST("/tool/convertion", tool.PostConvertionHandlerFunc)
+	routers.POST("/tool/systemTemplate", tool.GetTemplateHandlerFunc)
+
+	routers.GET("/resource/:namespace/:resourceType/:resourceName", cluster.GetResourceHandlerFunc)
+
 
 
 	err = routers.Run("0.0.0.0:3000")

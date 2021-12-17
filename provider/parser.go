@@ -51,3 +51,27 @@ func Yaml(manifest, uuid, domain string, config interface{}, dependencies Depend
 	}
 	return fmt.Sprintf("%v", reply.Result), nil
 }
+
+func Template() (string, error) {
+	res, err := HTTPClient.Get("http://127.0.0.1:4000/systemTemplate", nil)
+	if err != nil {
+		return "", fmt.Errorf("请求翻译器错误: %w", err)
+	}
+	bodyBytes, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return "", fmt.Errorf("读取翻译器返回错误: %w", err)
+	}
+	klog.Info("读取翻译器返回:", string(bodyBytes))
+	var reply struct{
+		Code int `json:"code"`
+		Result interface{} `json:"result"`
+	}
+	err = json.Unmarshal(bodyBytes, &reply)
+	if err != nil {
+		return "", fmt.Errorf("翻译器返回序列化错误: %w", err)
+	}
+	if reply.Code != 0 {
+		return "", fmt.Errorf("翻译器返回错误: %v", reply.Result)
+	}
+	return fmt.Sprintf("%v", reply.Result), nil
+}

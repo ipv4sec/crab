@@ -5,7 +5,6 @@ import (
 	"crab/aam/v1alpha1"
 	"crab/cluster"
 	"crab/db"
-	"crab/provider"
 	"crab/utils"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/yaml.v3"
@@ -15,6 +14,7 @@ import (
 )
 
 func PutDeploymentHandlerFunc(c *gin.Context) {
+	// todo
 	manifestFileHeader, err := c.FormFile("manifest")
 	if err != nil {
 		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "接收文件错误"))
@@ -76,13 +76,13 @@ func PutDeploymentHandlerFunc(c *gin.Context) {
 	if err != nil {
 		klog.Errorln("更新工作负载错误:", err.Error())
 	}
-	val, err := provider.Yaml(string(manifestBytes), instance.ID, instance.Domain, instance.Configurations,
-		provider.ConvertToDependency(instance.Dependencies), savedMirrorPath)
-	if err != nil {
-		klog.Errorln("连接到翻译器错误:", err.Error())
-		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "连接到翻译器错误"))
-		return
-	}
+	//val, err := provider.Yaml(string(manifestBytes), instance.ID, instance.Domain, instance.Configurations,
+	//	provider.ConvertToDependency(instance.Dependencies), savedMirrorPath)
+	//if err != nil {
+	//	klog.Errorln("连接到翻译器错误:", err.Error())
+	//	c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "连接到翻译器错误"))
+	//	return
+	//}
 	// TODO
 	err = db.Client.Table("t_app").Where("id = ?", instance.ID).Updates(map[string]interface{}{
 		"status": 2}).Error
@@ -92,11 +92,11 @@ func PutDeploymentHandlerFunc(c *gin.Context) {
 		return
 	}
 
-	err = provider.Exec(instance.ID, val)
-	if err != nil {
-		klog.Errorln("调度器执行失败:", err.Error())
-		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "更新状态错误"))
-		return
-	}
+	//err = provider.Exec(instance.ID, val)
+	//if err != nil {
+	//	klog.Errorln("调度器执行失败:", err.Error())
+	//	c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "更新状态错误"))
+	//	return
+	//}
 	c.JSON(200, utils.SuccessResponse("部署成功"))
 }

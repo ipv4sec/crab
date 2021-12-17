@@ -1079,10 +1079,13 @@ POST /tool/spelling HTTP/1.1
 ## 资源详情
 ### 请求语法
 ```
-GET /resource/<resourceName>/<instanceName> HTTP/1.1 
+GET /resource/<instanceId>/<resourceType>/<resourceName> HTTP/1.1 
 ```
 ### 请求参数
-resourceName的值可能为
+
+instanceId为实例ID
+
+resourceType的值可能为
 ```
 cronJob
 daemonSet
@@ -1101,7 +1104,7 @@ role
 serviceAccount
 ```
 
-instanceName的值为[实例详情]接口返回的result.details.<resourceName>.metadata.name的值
+resourceName的值为[实例详情]接口返回的result.details.<resourceType>.metadata.name的值
 
 
 
@@ -1112,6 +1115,161 @@ instanceName的值为[实例详情]接口返回的result.details.<resourceName>.
 ```json
 {
   "code": 0,
-  "result": "TODO"
+  "result": {
+    "metadata": {
+      "name": "crab",
+      "namespace": "island-system",
+      "uid": "d0e95583-15ca-4198-8dfa-68836f509c19",
+      "resourceVersion": "4684705",
+      "creationTimestamp": "2021-12-16T10:12:19Z",
+      "annotations": {
+        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"name\":\"crab\",\"namespace\":\"island-system\"},\"spec\":{\"ports\":[{\"port\":80,\"targetPort\":3000}],\"selector\":{\"app\":\"island\",\"component\":\"ui\"},\"type\":\"NodePort\"}}\n"
+      },
+      "managedFields": [{
+        "manager": "kubectl-client-side-apply",
+        "operation": "Update",
+        "apiVersion": "v1",
+        "time": "2021-12-16T10:12:19Z",
+        "fieldsType": "FieldsV1",
+        "fieldsV1": {
+          "f:metadata": {
+            "f:annotations": {
+              ".": {},
+              "f:kubectl.kubernetes.io/last-applied-configuration": {}
+            }
+          },
+          "f:spec": {
+            "f:externalTrafficPolicy": {},
+            "f:ports": {
+              ".": {},
+              "k:{\"port\":80,\"protocol\":\"TCP\"}": {
+                ".": {},
+                "f:port": {},
+                "f:protocol": {},
+                "f:targetPort": {}
+              }
+            },
+            "f:selector": {
+              ".": {},
+              "f:app": {},
+              "f:component": {}
+            },
+            "f:sessionAffinity": {},
+            "f:type": {}
+          }
+        }
+      }]
+    },
+    "spec": {
+      "ports": [{
+        "protocol": "TCP",
+        "port": 80,
+        "targetPort": 3000,
+        "nodePort": 31997
+      }],
+      "selector": {
+        "app": "island",
+        "component": "ui"
+      },
+      "clusterIP": "10.108.64.173",
+      "clusterIPs": ["10.108.64.173"],
+      "type": "NodePort",
+      "sessionAffinity": "None",
+      "externalTrafficPolicy": "Cluster"
+    },
+    "status": {
+      "loadBalancer": {}
+    }
+  }
+}
+```
+
+
+<a name="Trait详情"></a>
+## Trait详情
+### 请求语法
+```
+GET /trait/<IdorName> HTTP/1.1
+```
+### 请求参数
+以下参数为URL PATH参数
+
+|名称|说明|默认值|是否必填|
+|---|---|---|---|
+|IdorName| 主键或名称(名称唯一) |无|是|
+
+### 返回值
+```json
+{
+    "code": 0,
+    "result": {
+        "id": 1,
+        "name": "ingress",
+        "apiVersion": "aam.globalsphare.com/v1alpha1",
+        "value": "\napiVersion: aam.globalsphare.com/v1alpha1\nkind: Trait\nmetadata:\n    name: ingssssress\nspec:\n    parameter: |\n",
+        "type": 1,
+        "created_at": "2021-12-16T15:48:48.129+08:00",
+        "updated_at": "2021-12-16T16:06:19.228+08:00"
+    }
+}
+```
+
+
+<a name="WorkloadType详情"></a>
+## WorkloadType详情
+### 请求语法
+```
+GET /workload/type/<IdorName> HTTP/1.1
+```
+### 请求参数
+以下参数为URL PATH参数
+
+|名称|说明|默认值|是否必填|
+|---|---|---|---|
+|IdorName| 主键或名称(名称唯一) |无|是|
+
+### 返回值
+```json
+{
+    "code": 0,
+    "result": {
+        "id": 1,
+        "name": "ingress",
+        "apiVersion": "aam.globalsphare.com/v1alpha1",
+        "value": "\napiVersion: aam.globalsphare.com/v1alpha1\nkind: Trait\nmetadata:\n    name: ingssssress\nspec:\n    parameter: |\n",
+        "type": 1,
+        "created_at": "2021-12-16T15:48:48.129+08:00",
+        "updated_at": "2021-12-16T16:06:19.228+08:00"
+    }
+}
+```
+
+
+<a name="WorkloadVendor详情"></a>
+## WorkloadVendor详情
+### 请求语法
+```
+GET /workload/vendor/<IdorName> HTTP/1.1
+```
+### 请求参数
+以下参数为URL PATH参数
+
+|名称|说明|默认值|是否必填|
+|---|---|---|---|
+|IdorName| 主键或名称(名称唯一) |无|是|
+
+### 返回值
+```json
+{
+    "code": 0,
+    "result": {
+        "id": 1,
+        "name": "ingress",
+        "apiVersion": "aam.globalsphare.com/v1alpha1",
+        "value": "\napiVersion: aam.globalsphare.com/v1alpha1\nkind: Trait\nmetadata:\n    name: ingssssress\nspec:\n    parameter: |\n",
+        "type": 1,
+        "created_at": "2021-12-16T15:48:48.129+08:00",
+        "updated_at": "2021-12-16T16:06:19.228+08:00"
+    }
 }
 ```
