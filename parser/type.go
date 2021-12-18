@@ -3,13 +3,9 @@ package parser
 import "crab/aam/v1alpha1"
 
 type ContextObj struct {
-	AppName       string `json:"appName"`
-	ComponentName string `json:"componentName"`
-	Namespace     string `json:"namespace"`
-}
-type Result struct {
-	Code   int    `json:"code"`
-	Result string `json:"result"`
+	AppName      string `json:"appName"`
+	WorkloadName string `json:"workloadName"`
+	Namespace    string `json:"namespace"`
 }
 type Dependency struct {
 	Internal []InternalDependency `json:"Internal"`
@@ -112,3 +108,41 @@ const (
 	ErrBadRequest     = 10201
 	ErrInternalServer = 10202
 )
+
+var cuePkg = map[string]bool{
+	"crypto/hmac":     true,
+	"crypto/md5":      true,
+	"crypto/sha1":     true,
+	"crypto/sha256":   true,
+	"crypto/sha512":   true,
+	"encoding/base64": true,
+	"encoding/csv":    true,
+	"encoding/hex":    true,
+	"encoding/json":   true,
+	"encoding/yaml":   true,
+	"encoding/html":   true,
+	"list":            true,
+	"math":            true,
+	"math/bits":       true,
+	"net":             true,
+	"path":            true,
+	"regexp":          true,
+	"strconv":         true,
+	"strings":         true,
+	"text/tabwriter":  true,
+	"text/template":   true,
+	"time":            true,
+	"tool":            true,
+	"tool/cli":        true,
+	"tool/exec":       true,
+	"tool/file":       true,
+	"tool/http":       true,
+	"tool/os":         true,
+	"tool/uuid":       true,
+}
+
+//依赖内部应用的host
+type dependencyHostItem struct {
+	Host string `json:"host"`
+}
+type dependencyHost map[string]dependencyHostItem
