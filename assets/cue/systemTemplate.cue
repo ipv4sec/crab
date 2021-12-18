@@ -98,7 +98,7 @@ if parameter.authorization != _|_ {
 				action: "ALLOW"
 				selector: {
 					matchLabels: {
-						"workload": v.service
+						workload: v.service
 					}
 				}
 				rules: [

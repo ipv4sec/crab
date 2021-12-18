@@ -22,7 +22,7 @@ import (
 )
 
 //由manifest.yaml生成vale.yaml
-func GenValeYaml(instanceId string, application v1alpha1.Application, userconfigs string, rootDomain string, dependencies Dependency) (VelaYaml, error) {
+func GenValeYaml(instanceId string, application v1alpha1.Application, userconfigs string, host string, dependencies Dependency) (VelaYaml, error) {
 	var vela = VelaYaml{"", make(map[string]interface{}, 0)}
 	var err error
 	vela.Name = application.Metadata.Name
@@ -68,7 +68,7 @@ func GenValeYaml(instanceId string, application v1alpha1.Application, userconfig
 				traitList = append(traitList, shortName)
 				if shortName == "ingress" {
 					ingressProperties := make(map[string]interface{}, 0)
-					ingressProperties["host"] = fmt.Sprintf("%s.%s", instanceId, rootDomain)
+					ingressProperties["host"] = host
 					ingressProperties["path"] = []string{"/*"}
 					properties[shortName] = ingressProperties
 				} else {
@@ -240,7 +240,6 @@ func GetWorkloadType(typeName, vendorDir string) (v1alpha1.WorkloadType, error) 
 	}
 	//解析为结构体
 	err = yaml.Unmarshal(content, &t)
-
 	return t, err
 }
 
@@ -272,21 +271,21 @@ func GetWorkloadVendor(vendorName, workloadPath string) (v1alpha1.WorkloadVendor
 	err = yaml.Unmarshal(content, &v)
 	cuefile := v.Spec
 	//替换import为真实内容
-	re, _ := regexp.Compile("import\\s*\"([^\"]*)\"")
-	matchResult := re.FindAllStringSubmatch(cuefile, -1)
-	for _, vv := range matchResult {
-		if len(matchResult) > 0 {
-			if _, ok := cuePkg[vv[1]]; ok {
-				continue
-			}
-			includeMod, err := modTemplate(workloadPath, vendorName, vv[1])
-			if err != nil {
-				klog.Errorln(err.Error())
-				return v, err
-			}
-			cuefile = strings.ReplaceAll(cuefile, vv[0], includeMod)
-		}
-	}
+	//re, _ := regexp.Compile("import\\s*\"([^\"]*)\"")
+	//matchResult := re.FindAllStringSubmatch(cuefile, -1)
+	//for _, vv := range matchResult {
+	//	if len(matchResult) > 0 {
+	//		if _, ok := cuePkg[vv[1]]; ok {
+	//			continue
+	//		}
+	//		includeMod, err := modTemplate(workloadPath, vendorName, vv[1])
+	//		if err != nil {
+	//			klog.Errorln(err.Error())
+	//			return v, err
+	//		}
+	//		cuefile = strings.ReplaceAll(cuefile, vv[0], includeMod)
+	//	}
+	//}
 	v.Spec = cuefile
 	return v, err
 }
