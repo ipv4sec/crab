@@ -7,10 +7,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/gojek/heimdall/v7/httpclient"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"k8s.io/klog/v2"
-	"math/rand"
 	"net"
 	"net/url"
 	"os"
@@ -20,6 +20,8 @@ import (
 	"strings"
 	"time"
 )
+
+var HTTPClient = httpclient.NewClient(httpclient.WithHTTPTimeout(time.Second * 30))
 
 //由manifest.yaml生成vale.yaml
 func GenValeYaml(instanceId string, application v1alpha1.Application, userconfigs string, host string, dependencies Dependency) (VelaYaml, error) {
@@ -68,6 +70,9 @@ func GenValeYaml(instanceId string, application v1alpha1.Application, userconfig
 				traitList = append(traitList, shortName)
 				if shortName == "ingress" {
 					ingressProperties := make(map[string]interface{}, 0)
+					if host == ""{
+						return vela, errors.New("访问域名不能为空")
+					}
 					ingressProperties["host"] = host
 					ingressProperties["path"] = []string{"/*"}
 					properties[shortName] = ingressProperties
@@ -229,47 +234,45 @@ func parseDependencies(application v1alpha1.Application, dependencies Dependency
 }
 
 //获取WorkloadType
-func GetWorkloadType(typeName, vendorDir string) (v1alpha1.WorkloadType, error) {
-	var err error
+func GetWorkloadType(typeName string) (v1alpha1.WorkloadType, error) {
 	var t v1alpha1.WorkloadType
-	path := fmt.Sprintf("%s%s.yaml", vendorDir, typeName)
-	content, err := ioutil.ReadFile(path)
+	value, err := GetWorkloadDef("type", typeName)
 	if err != nil {
-		err = errors.New(fmt.Sprintf("workload.Type: %s 不存在\n", path))
 		return t, err
 	}
-	//解析为结构体
-	err = yaml.Unmarshal(content, &t)
+	err = yaml.Unmarshal([]byte(value), &t)
 	return t, err
 }
 
 //获取trait
-func GetTrait(name, vendorDir string) (v1alpha1.Trait, error) {
-	var err error
+func GetTrait(name string) (v1alpha1.Trait, error) {
 	var t v1alpha1.Trait
-	path := fmt.Sprintf("%s%s.yaml", vendorDir, name)
-	content, err := ioutil.ReadFile(path)
+	value, err := GetWorkloadDef("trait", name)
 	if err != nil {
-		err = errors.New(fmt.Sprintf("trait: %s 不存在\n", path))
 		return t, err
 	}
 	//解析为结构体
-	err = yaml.Unmarshal(content, &t)
+	err = yaml.Unmarshal([]byte(value), &t)
 	return t, err
 }
 
 //获取WorkloadVendor
-func GetWorkloadVendor(vendorName, workloadPath string) (v1alpha1.WorkloadVendor, error) {
-	var err error
+func GetWorkloadVendor(name string) (v1alpha1.WorkloadVendor, error) {
 	var v v1alpha1.WorkloadVendor
-	path := fmt.Sprintf("%s%s.yaml", workloadPath, vendorName)
-	content, err := ioutil.ReadFile(path)
+	value, err := GetWorkloadDef("vendor", name)
 	if err != nil {
-		err = errors.New(fmt.Sprintf("workload.vendor: %s 不存在\n", path))
 		return v, err
 	}
-	err = yaml.Unmarshal(content, &v)
-	cuefile := v.Spec
+	err = yaml.Unmarshal([]byte(value), &v)
+	return v, err
+	//path := fmt.Sprintf("%s%s.yaml", workloadPath, vendorName)
+	//content, err := ioutil.ReadFile(path)
+	//if err != nil {
+	//	err = errors.New(fmt.Sprintf("workload.vendor: %s 不存在\n", path))
+	//	return v, err
+	//}
+	//err = yaml.Unmarshal(content, &v)
+	//cuefile := v.Spec
 	//替换import为真实内容
 	//re, _ := regexp.Compile("import\\s*\"([^\"]*)\"")
 	//matchResult := re.FindAllStringSubmatch(cuefile, -1)
@@ -286,8 +289,7 @@ func GetWorkloadVendor(vendorName, workloadPath string) (v1alpha1.WorkloadVendor
 	//		cuefile = strings.ReplaceAll(cuefile, vv[0], includeMod)
 	//	}
 	//}
-	v.Spec = cuefile
-	return v, err
+	//v.Spec = cuefile
 }
 
 //获取cue模板
@@ -402,23 +404,23 @@ func ApiParse(uses map[string][]string) ([]DependencyUseItem, error) {
 }
 
 //校验trait参数
-func CheckTraitParam(workloadTrait Trait, vendorDir string) error {
+func CheckTraitParam(workloadTrait Trait) error {
 	properties := GetProperties(workloadTrait.Properties)
 	properties2, err := json.Marshal(properties)
 	if err != nil {
 		klog.Errorln(err)
 		return errors.New("trait参数序列化失败")
 	}
-	file, err := GetTrait(workloadTrait.Type, vendorDir)
+	file, err := GetTrait(workloadTrait.Type)
 	if err != nil {
 		klog.Errorln(err)
 		return err
 	}
-	tmpcue := fmt.Sprintf("parameter: \n%s\nparameter: {\n%s\n}", string(properties2), file.Spec.Parameter)
+	cueStr := fmt.Sprintf("parameter:%s\nparameter: {\n%s\n}", string(properties2), file.Spec.Parameter)
 	var ctx *cue.Context
 	var value cue.Value
 	ctx = cuecontext.New()
-	value = ctx.CompileString(tmpcue)
+	value = ctx.CompileString(cueStr)
 	err = value.Validate(cue.Concrete(true))
 	if err != nil {
 		return err
@@ -427,7 +429,7 @@ func CheckTraitParam(workloadTrait Trait, vendorDir string) error {
 }
 
 //校验type参数
-func CheckTypeParam(workload v1alpha1.Workload, vendorDir string) error {
+func CheckTypeParam(workload v1alpha1.Workload) error {
 	var t v1alpha1.WorkloadType
 	var err error
 	properties := GetProperties(workload.Properties)
@@ -439,7 +441,7 @@ func CheckTypeParam(workload v1alpha1.Workload, vendorDir string) error {
 		err = errors.New("workload.Vendor 不能为空")
 		return err
 	}
-	t, err = GetWorkloadType(workload.Type, vendorDir)
+	t, err = GetWorkloadType(workload.Type)
 	if err != nil {
 		klog.Infoln(err)
 		return err
@@ -448,19 +450,20 @@ func CheckTypeParam(workload v1alpha1.Workload, vendorDir string) error {
 	if err != nil {
 		return err
 	}
-	parameterStr := fmt.Sprintf("parameter:{ \n%s\n}\nparameter:\n%s\n", t.Spec.Parameter, string(properties2))
+	parameterStr := fmt.Sprintf("parameter:{ \n%s\n}\nparameter:{\n%s\n}", t.Spec.Parameter, string(properties2))
 	var ctx *cue.Context
 	var value cue.Value
 	ctx = cuecontext.New()
 	value = ctx.CompileString(parameterStr)
 	err = value.Validate(cue.Concrete(true))
 	if err != nil {
+		klog.Errorln(err)
 		return err
 	}
 	return nil
 }
 
-func checkParams(application v1alpha1.Application, workloadPath string) (map[string]WorkloadParam, error) {
+func checkParams(application v1alpha1.Application) (map[string]WorkloadParam, error) {
 	var err error
 	returnData := make(map[string]WorkloadParam, 0)
 	if len(application.Spec.Workloads) == 0 {
@@ -470,7 +473,7 @@ func checkParams(application v1alpha1.Application, workloadPath string) (map[str
 	ingressCount := 0
 	for _, workload := range application.Spec.Workloads {
 		//检查type参数
-		err = CheckTypeParam(workload, workloadPath)
+		err = CheckTypeParam(workload)
 		if err != nil {
 			klog.Errorln(err)
 			return returnData, err
@@ -478,8 +481,9 @@ func checkParams(application v1alpha1.Application, workloadPath string) (map[str
 		//检查trait参数
 		if len(workload.Traits) > 0 {
 			for _, trait := range workload.Traits {
-				err = CheckTraitParam(trait, workloadPath)
+				err = CheckTraitParam(trait)
 				if err != nil {
+					klog.Errorln(err)
 					return returnData, err
 				}
 				arr := strings.Split(trait.Type, "/")
@@ -495,12 +499,13 @@ func checkParams(application v1alpha1.Application, workloadPath string) (map[str
 		properties := GetProperties(workload.Properties)
 		workloadParams.Parameter = properties
 
-		t, _ := GetWorkloadType(workload.Type, workloadPath)
+		t, _ := GetWorkloadType(workload.Type)
 		workloadParams.Traits = t.Spec.Traits
 
 		var v v1alpha1.WorkloadVendor
-		v, err = GetWorkloadVendor(workload.Vendor, workloadPath)
+		v, err = GetWorkloadVendor(workload.Vendor)
 		if err != nil {
+			klog.Errorln(err)
 			return returnData, err
 		}
 		workloadParams.VendorCue = v.Spec
@@ -521,14 +526,47 @@ func GetProperties(properties map[string]interface{}) map[string]interface{} {
 	return ret
 }
 
-//生成随机字符串
-func RandomStr() string {
-	t1 := time.Now().Unix()
-	t2 := rand.Intn(9999)
-	return fmt.Sprintf("%d-%d", t1, t2)
-}
-
 func FileExist(path string) bool {
 	_, err := os.Lstat(path)
 	return !os.IsNotExist(err)
+}
+
+//获取workload定义
+func GetWorkloadDef(kind, name string) (string, error) {
+	type def struct {
+		Id         string `json:"id"`
+		Name       string `json:"name"`
+		ApiVersion string `json:"apiVersion"`
+		Value      string `json:"value"`
+		Type       string `json:"type"`
+	}
+	var err error
+	kind = strings.TrimSpace(kind)
+	if kind == "" {
+		return "", errors.New("kind不能为空")
+	}
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return "", errors.New("name不能为空")
+	}
+	res, err := HTTPClient.Get(fmt.Sprintf("http://127.0.0.1:3000/workload/%s/%s", kind, name), nil)
+	if err != nil {
+		return "", fmt.Errorf("请求api错误: %w", err)
+	}
+	bodyBytes, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return "", fmt.Errorf("读取api返回错误: %w", err)
+	}
+	var reply struct {
+		Code   int         `json:"code"`
+		Result def `json:"result"`
+	}
+	err = json.Unmarshal(bodyBytes, &reply)
+	if err != nil {
+		return "", fmt.Errorf("api返回序列化错误: %w", err)
+	}
+	if reply.Code != 0 {
+		return "", fmt.Errorf("api返回错误: %v", reply.Result)
+	}
+	return reply.Result.Value, err
 }
