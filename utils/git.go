@@ -25,5 +25,9 @@ func InitRepo(path, url string) error {
 		return err
 	}
 
-	return w.Pull(&git.PullOptions{})
+	err =  w.Pull(&git.PullOptions{})
+	if err != git.NoErrAlreadyUpToDate {
+		return err
+	}
+	return nil
 }

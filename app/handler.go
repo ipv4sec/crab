@@ -161,11 +161,31 @@ func GetAppHandlerFunc(c *gin.Context) {
 		return
 	}
 	v, _ := island.Data["root-domain"]
+
+	var vals []struct{
+		Name string `json:"name"`
+
+		ID string `json:"id"`
+		Location string `json:"location"`
+
+		EntryService string
+	}
+	err = json.Unmarshal([]byte(app.Additional), &vals)
+	if err != nil {
+		klog.Errorln("序列化依赖失败", err.Error())
+	}
+	var parameters interface{}
+	err = json.Unmarshal([]byte(app.Parameters), &parameters)
+	if err != nil {
+		klog.Errorln("序列化运行时配置失败", err.Error())
+		parameters = ""
+	}
+
 	deploy, err := yaml.Marshal(deployment.Deployment{
 		ID:             id,
 		Domain:         v,
-		Configurations: app.Parameters,
-		Dependencies:   app.Dependencies,
+		Configurations: parameters,
+		Dependencies:   vals,
 	})
 	if err != nil {
 		klog.Errorln("序列化失败", err.Error())
@@ -189,7 +209,7 @@ func GetAppStatusHandlerFunc(c *gin.Context) {
 		Message string `json:"message"`
 	}
 	// TODO
-	err := db.Client.Table("t_status").Find(&val).Where("id = ?", id).Error
+	err := db.Client.Table("t_status").Where("id = ?", id).Find(&val).Error
 	if err != nil {
 		klog.Errorln("数据库查询错误:", err.Error())
 		c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseBadRequest, "数据库查询错误"))
@@ -262,6 +282,7 @@ func PostAppHandlerFunc(c *gin.Context) {
 
 		Manifest: string(bytes),
 
+		Additional: "",
 		Parameters: "",
 		Deployment: "",
 	}
@@ -280,7 +301,7 @@ func PostAppHandlerFunc(c *gin.Context) {
 		d.Type, d.Link = Link(manifest.Spec.Dependencies[i].Location)
 		if d.Type == Mutable {
 			var apps []App
-			err = db.Client.Where("name = ? AND status > 0 AND status < 4", manifest.Spec.Dependencies[i].Name).Find(&apps).Error
+			err = db.Client.Where("name = ? AND status = ?", manifest.Spec.Dependencies[i].Name, 2).Find(&apps).Error
 			if err != nil {
 				klog.Errorln("数据库查询错误:", err.Error())
 				continue
@@ -288,9 +309,16 @@ func PostAppHandlerFunc(c *gin.Context) {
 			for j := 0; j < len(apps); j++ {
 				v, err := semver.Parse(apps[j].Version)
 				if err != nil {
-					continue
+					klog.Errorln("解析实例版本错误:", err.Error())
+					c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "解析实例版本错误"))
+					return
 				}
 				ra, err := semver.ParseRange(manifest.Spec.Dependencies[i].Version)
+				if err != nil {
+					klog.Errorln("解析依赖版本错误:", err.Error())
+					c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "解析依赖版本错误"))
+					return
+				}
 				if ra(v) {
 					d.Instances = append(d.Instances, Instance{ID: apps[j].ID, Name: apps[j].Name})
 				}
@@ -385,8 +413,19 @@ func PutAppHandlerFunc(c *gin.Context) {
 			c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "连接到翻译器错误"))
 			return
 		}
+		parameters, err := json.Marshal(param.Configurations)
+		if err != nil {
+			parameters = []byte("")
+			klog.Errorln("序列化运行时配置错误", err.Error())
+		}
+		additional, err := json.Marshal(param.Dependencies)
+		if err != nil {
+			additional = []byte("")
+			klog.Errorln("序列化依赖配置错误", err.Error())
+		}
+
 		err = db.Client.Model(App{}).Where("pk = ?", app.PK).Updates(map[string]interface{}{
-			"status": 1, "deployment": val}).Error
+			"status": 1, "deployment": val, "parameters": string(parameters), "additional": additional}).Error
 		if err != nil {
 			klog.Errorln("数据库更新错误:", err.Error())
 			c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseInternalServer, "更新状态错误"))

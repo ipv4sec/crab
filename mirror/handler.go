@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog/v2"
+	"os"
 )
 
 func GetMirrorHandlerFunc(c *gin.Context)  {
@@ -42,6 +43,19 @@ func PutMirrorHandlerFunc(c *gin.Context) {
 	if err != nil {
 		klog.Errorln("设置根域的键值对失败", err.Error())
 		c.JSON(200, utils.ErrorResponse(utils.ErrClusterInternalServer, "设置根域的键值对失败"))
+		return
+	}
+	savedMirrorPath := "/usr/local/workloads/"
+	err = os.RemoveAll(savedMirrorPath)
+	if err != nil {
+		klog.Errorln("删除本地工作负载失败", err.Error())
+		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "删除本地工作负载失败"))
+		return
+	}
+	err = utils.InitRepo(savedMirrorPath, param.Value)
+	if err != nil {
+		klog.Errorln("初始化本地工作负载失败", err.Error())
+		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "初始化本地工作负载失败"))
 		return
 	}
 	c.JSON(200, utils.SuccessResponse("设置成功"))
