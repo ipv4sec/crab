@@ -1,0 +1,2484 @@
+{
+  "code": 0,
+  "result": {
+    "id": "ins1634971791",
+    "deployment": "[导出K8S描述文件], 前端将此字段信息保存为yaml文件后下载",
+    "details": {
+      "cronJob": [
+        {
+          "metadata": {
+            "name": "hello",
+            "namespace": "default",
+            "uid": "00b6eb7b-793e-4049-a13e-813de54c3420",
+            "resourceVersion": "9092061",
+            "creationTimestamp": "2021-12-18T02:51:44Z"
+          },
+          "spec": {
+            "schedule": "*/1 * * * *",
+            "concurrencyPolicy": "Allow",
+            "suspend": false,
+            "jobTemplate": {
+              "metadata": {
+                "creationTimestamp": null
+              },
+              "spec": {
+                "template": {
+                  "metadata": {
+                    "creationTimestamp": null
+                  },
+                  "spec": {
+                    "containers": [
+                      {
+                        "name": "hello",
+                        "image": "busybox",
+                        "command": [
+                          "/bin/sh",
+                          "-c",
+                          "date; echo Hello from the Kubernetes cluster"
+                        ],
+                        "resources": {},
+                        "terminationMessagePath": "/dev/termination-log",
+                        "terminationMessagePolicy": "File",
+                        "imagePullPolicy": "IfNotPresent"
+                      }
+                    ],
+                    "restartPolicy": "OnFailure",
+                    "terminationGracePeriodSeconds": 30,
+                    "dnsPolicy": "ClusterFirst",
+                    "securityContext": {},
+                    "schedulerName": "default-scheduler"
+                  }
+                }
+              }
+            },
+            "successfulJobsHistoryLimit": 3,
+            "failedJobsHistoryLimit": 1
+          },
+          "status": {
+            "lastScheduleTime": "2021-12-18T02:55:00Z"
+          }
+        }
+      ],
+      "daemonSet": [
+        {
+          "metadata": {
+            "name": "kube-proxy",
+            "namespace": "kube-system",
+            "uid": "b56fc5cb-73b3-4ce6-b38b-2b81a06258e7",
+            "resourceVersion": "462",
+            "generation": 1,
+            "creationTimestamp": "2021-11-25T09:08:08Z",
+            "labels": {
+              "k8s-app": "kube-proxy"
+            },
+            "annotations": {
+              "deprecated.daemonset.template.generation": "1"
+            }
+          },
+          "spec": {
+            "selector": {
+              "matchLabels": {
+                "k8s-app": "kube-proxy"
+              }
+            },
+            "template": {
+              "metadata": {
+                "creationTimestamp": null,
+                "labels": {
+                  "k8s-app": "kube-proxy"
+                }
+              },
+              "spec": {
+                "volumes": [
+                  {
+                    "name": "kube-proxy",
+                    "configMap": {
+                      "name": "kube-proxy",
+                      "defaultMode": 420
+                    }
+                  },
+                  {
+                    "name": "xtables-lock",
+                    "hostPath": {
+                      "path": "/run/xtables.lock",
+                      "type": "FileOrCreate"
+                    }
+                  },
+                  {
+                    "name": "lib-modules",
+                    "hostPath": {
+                      "path": "/lib/modules",
+                      "type": ""
+                    }
+                  }
+                ],
+                "containers": [
+                  {
+                    "name": "kube-proxy",
+                    "image": "harbor1.zlibs.com/island/kube-proxy:v1.20.5",
+                    "command": [
+                      "/usr/local/bin/kube-proxy",
+                      "--config=/var/lib/kube-proxy/config.conf",
+                      "--hostname-override=$(NODE_NAME)"
+                    ],
+                    "env": [
+                      {
+                        "name": "NODE_NAME",
+                        "valueFrom": {
+                          "fieldRef": {
+                            "apiVersion": "v1",
+                            "fieldPath": "spec.nodeName"
+                          }
+                        }
+                      }
+                    ],
+                    "resources": {},
+                    "volumeMounts": [
+                      {
+                        "name": "kube-proxy",
+                        "mountPath": "/var/lib/kube-proxy"
+                      },
+                      {
+                        "name": "xtables-lock",
+                        "mountPath": "/run/xtables.lock"
+                      },
+                      {
+                        "name": "lib-modules",
+                        "readOnly": true,
+                        "mountPath": "/lib/modules"
+                      }
+                    ],
+                    "terminationMessagePath": "/dev/termination-log",
+                    "terminationMessagePolicy": "File",
+                    "imagePullPolicy": "IfNotPresent",
+                    "securityContext": {
+                      "privileged": true
+                    }
+                  }
+                ],
+                "restartPolicy": "Always",
+                "terminationGracePeriodSeconds": 30,
+                "dnsPolicy": "ClusterFirst",
+                "nodeSelector": {
+                  "kubernetes.io/os": "linux"
+                },
+                "serviceAccountName": "kube-proxy",
+                "serviceAccount": "kube-proxy",
+                "hostNetwork": true,
+                "securityContext": {},
+                "schedulerName": "default-scheduler",
+                "tolerations": [
+                  {
+                    "key": "CriticalAddonsOnly",
+                    "operator": "Exists"
+                  },
+                  {
+                    "operator": "Exists"
+                  }
+                ],
+                "priorityClassName": "system-node-critical"
+              }
+            },
+            "updateStrategy": {
+              "type": "RollingUpdate",
+              "rollingUpdate": {
+                "maxUnavailable": 1
+              }
+            },
+            "revisionHistoryLimit": 10
+          },
+          "status": {
+            "currentNumberScheduled": 1,
+            "numberMisscheduled": 0,
+            "desiredNumberScheduled": 1,
+            "numberReady": 1,
+            "observedGeneration": 1,
+            "updatedNumberScheduled": 1,
+            "numberAvailable": 1
+          }
+        },
+        {
+          "metadata": {
+            "name": "weave-net",
+            "namespace": "kube-system",
+            "uid": "505af9c9-eb1b-4943-b629-de6e0794ad2c",
+            "resourceVersion": "503",
+            "generation": 1,
+            "creationTimestamp": "2021-11-25T09:08:08Z",
+            "labels": {
+              "name": "weave-net"
+            },
+            "annotations": {
+              "deprecated.daemonset.template.generation": "1",
+              "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"apps/v1\",\"kind\":\"DaemonSet\",\"metadata\":{\"annotations\":{},\"labels\":{\"name\":\"weave-net\"},\"name\":\"weave-net\",\"namespace\":\"kube-system\"},\"spec\":{\"minReadySeconds\":5,\"selector\":{\"matchLabels\":{\"name\":\"weave-net\"}},\"template\":{\"metadata\":{\"labels\":{\"name\":\"weave-net\"}},\"spec\":{\"containers\":[{\"command\":[\"/home/weave/launch.sh\"],\"env\":[{\"name\":\"HOSTNAME\",\"valueFrom\":{\"fieldRef\":{\"apiVersion\":\"v1\",\"fieldPath\":\"spec.nodeName\"}}},{\"name\":\"INIT_CONTAINER\",\"value\":\"true\"}],\"image\":\"harbor1.zlibs.com/island/weave-kube:2.8.1\",\"name\":\"weave\",\"readinessProbe\":{\"httpGet\":{\"host\":\"127.0.0.1\",\"path\":\"/status\",\"port\":6784}},\"resources\":{\"requests\":{\"cpu\":\"50m\",\"memory\":\"100Mi\"}},\"securityContext\":{\"privileged\":true},\"volumeMounts\":[{\"mountPath\":\"/weavedb\",\"name\":\"weavedb\"},{\"mountPath\":\"/host/var/lib/dbus\",\"name\":\"dbus\"},{\"mountPath\":\"/host/etc/machine-id\",\"name\":\"machine-id\",\"readOnly\":true},{\"mountPath\":\"/run/xtables.lock\",\"name\":\"xtables-lock\"}]},{\"env\":[{\"name\":\"HOSTNAME\",\"valueFrom\":{\"fieldRef\":{\"apiVersion\":\"v1\",\"fieldPath\":\"spec.nodeName\"}}}],\"image\":\"harbor1.zlibs.com/island/weave-npc:2.8.1\",\"name\":\"weave-npc\",\"resources\":{\"requests\":{\"cpu\":\"50m\",\"memory\":\"100Mi\"}},\"securityContext\":{\"privileged\":true},\"volumeMounts\":[{\"mountPath\":\"/run/xtables.lock\",\"name\":\"xtables-lock\"}]}],\"dnsPolicy\":\"ClusterFirstWithHostNet\",\"hostNetwork\":true,\"initContainers\":[{\"command\":[\"/home/weave/init.sh\"],\"image\":\"harbor1.zlibs.com/island/weave-kube:2.8.1\",\"name\":\"weave-init\",\"securityContext\":{\"privileged\":true},\"volumeMounts\":[{\"mountPath\":\"/host/opt\",\"name\":\"cni-bin\"},{\"mountPath\":\"/host/home\",\"name\":\"cni-bin2\"},{\"mountPath\":\"/host/etc\",\"name\":\"cni-conf\"},{\"mountPath\":\"/lib/modules\",\"name\":\"lib-modules\"},{\"mountPath\":\"/run/xtables.lock\",\"name\":\"xtables-lock\"}]}],\"priorityClassName\":\"system-node-critical\",\"restartPolicy\":\"Always\",\"securityContext\":{\"seLinuxOptions\":{}},\"serviceAccountName\":\"weave-net\",\"tolerations\":[{\"effect\":\"NoSchedule\",\"operator\":\"Exists\"},{\"effect\":\"NoExecute\",\"operator\":\"Exists\"}],\"volumes\":[{\"hostPath\":{\"path\":\"/var/lib/weave\"},\"name\":\"weavedb\"},{\"hostPath\":{\"path\":\"/opt\"},\"name\":\"cni-bin\"},{\"hostPath\":{\"path\":\"/home\"},\"name\":\"cni-bin2\"},{\"hostPath\":{\"path\":\"/etc\"},\"name\":\"cni-conf\"},{\"hostPath\":{\"path\":\"/var/lib/dbus\"},\"name\":\"dbus\"},{\"hostPath\":{\"path\":\"/lib/modules\"},\"name\":\"lib-modules\"},{\"hostPath\":{\"path\":\"/etc/machine-id\",\"type\":\"FileOrCreate\"},\"name\":\"machine-id\"},{\"hostPath\":{\"path\":\"/run/xtables.lock\",\"type\":\"FileOrCreate\"},\"name\":\"xtables-lock\"}]}},\"updateStrategy\":{\"type\":\"RollingUpdate\"}}}\n"
+            }
+          },
+          "spec": {
+            "selector": {
+              "matchLabels": {
+                "name": "weave-net"
+              }
+            },
+            "template": {
+              "metadata": {
+                "creationTimestamp": null,
+                "labels": {
+                  "name": "weave-net"
+                }
+              },
+              "spec": {
+                "volumes": [
+                  {
+                    "name": "weavedb",
+                    "hostPath": {
+                      "path": "/var/lib/weave",
+                      "type": ""
+                    }
+                  },
+                  {
+                    "name": "cni-bin",
+                    "hostPath": {
+                      "path": "/opt",
+                      "type": ""
+                    }
+                  },
+                  {
+                    "name": "cni-bin2",
+                    "hostPath": {
+                      "path": "/home",
+                      "type": ""
+                    }
+                  },
+                  {
+                    "name": "cni-conf",
+                    "hostPath": {
+                      "path": "/etc",
+                      "type": ""
+                    }
+                  },
+                  {
+                    "name": "dbus",
+                    "hostPath": {
+                      "path": "/var/lib/dbus",
+                      "type": ""
+                    }
+                  },
+                  {
+                    "name": "lib-modules",
+                    "hostPath": {
+                      "path": "/lib/modules",
+                      "type": ""
+                    }
+                  },
+                  {
+                    "name": "machine-id",
+                    "hostPath": {
+                      "path": "/etc/machine-id",
+                      "type": "FileOrCreate"
+                    }
+                  },
+                  {
+                    "name": "xtables-lock",
+                    "hostPath": {
+                      "path": "/run/xtables.lock",
+                      "type": "FileOrCreate"
+                    }
+                  }
+                ],
+                "initContainers": [
+                  {
+                    "name": "weave-init",
+                    "image": "harbor1.zlibs.com/island/weave-kube:2.8.1",
+                    "command": [
+                      "/home/weave/init.sh"
+                    ],
+                    "resources": {},
+                    "volumeMounts": [
+                      {
+                        "name": "cni-bin",
+                        "mountPath": "/host/opt"
+                      },
+                      {
+                        "name": "cni-bin2",
+                        "mountPath": "/host/home"
+                      },
+                      {
+                        "name": "cni-conf",
+                        "mountPath": "/host/etc"
+                      },
+                      {
+                        "name": "lib-modules",
+                        "mountPath": "/lib/modules"
+                      },
+                      {
+                        "name": "xtables-lock",
+                        "mountPath": "/run/xtables.lock"
+                      }
+                    ],
+                    "terminationMessagePath": "/dev/termination-log",
+                    "terminationMessagePolicy": "File",
+                    "imagePullPolicy": "IfNotPresent",
+                    "securityContext": {
+                      "privileged": true
+                    }
+                  }
+                ],
+                "containers": [
+                  {
+                    "name": "weave",
+                    "image": "harbor1.zlibs.com/island/weave-kube:2.8.1",
+                    "command": [
+                      "/home/weave/launch.sh"
+                    ],
+                    "env": [
+                      {
+                        "name": "HOSTNAME",
+                        "valueFrom": {
+                          "fieldRef": {
+                            "apiVersion": "v1",
+                            "fieldPath": "spec.nodeName"
+                          }
+                        }
+                      },
+                      {
+                        "name": "INIT_CONTAINER",
+                        "value": "true"
+                      }
+                    ],
+                    "resources": {
+                      "requests": {
+                        "cpu": "50m",
+                        "memory": "100Mi"
+                      }
+                    },
+                    "volumeMounts": [
+                      {
+                        "name": "weavedb",
+                        "mountPath": "/weavedb"
+                      },
+                      {
+                        "name": "dbus",
+                        "mountPath": "/host/var/lib/dbus"
+                      },
+                      {
+                        "name": "machine-id",
+                        "readOnly": true,
+                        "mountPath": "/host/etc/machine-id"
+                      },
+                      {
+                        "name": "xtables-lock",
+                        "mountPath": "/run/xtables.lock"
+                      }
+                    ],
+                    "readinessProbe": {
+                      "httpGet": {
+                        "path": "/status",
+                        "port": 6784,
+                        "host": "127.0.0.1",
+                        "scheme": "HTTP"
+                      },
+                      "timeoutSeconds": 1,
+                      "periodSeconds": 10,
+                      "successThreshold": 1,
+                      "failureThreshold": 3
+                    },
+                    "terminationMessagePath": "/dev/termination-log",
+                    "terminationMessagePolicy": "File",
+                    "imagePullPolicy": "IfNotPresent",
+                    "securityContext": {
+                      "privileged": true
+                    }
+                  },
+                  {
+                    "name": "weave-npc",
+                    "image": "harbor1.zlibs.com/island/weave-npc:2.8.1",
+                    "env": [
+                      {
+                        "name": "HOSTNAME",
+                        "valueFrom": {
+                          "fieldRef": {
+                            "apiVersion": "v1",
+                            "fieldPath": "spec.nodeName"
+                          }
+                        }
+                      }
+                    ],
+                    "resources": {
+                      "requests": {
+                        "cpu": "50m",
+                        "memory": "100Mi"
+                      }
+                    },
+                    "volumeMounts": [
+                      {
+                        "name": "xtables-lock",
+                        "mountPath": "/run/xtables.lock"
+                      }
+                    ],
+                    "terminationMessagePath": "/dev/termination-log",
+                    "terminationMessagePolicy": "File",
+                    "imagePullPolicy": "IfNotPresent",
+                    "securityContext": {
+                      "privileged": true
+                    }
+                  }
+                ],
+                "restartPolicy": "Always",
+                "terminationGracePeriodSeconds": 30,
+                "dnsPolicy": "ClusterFirstWithHostNet",
+                "serviceAccountName": "weave-net",
+                "serviceAccount": "weave-net",
+                "hostNetwork": true,
+                "securityContext": {
+                  "seLinuxOptions": {}
+                },
+                "schedulerName": "default-scheduler",
+                "tolerations": [
+                  {
+                    "operator": "Exists",
+                    "effect": "NoSchedule"
+                  },
+                  {
+                    "operator": "Exists",
+                    "effect": "NoExecute"
+                  }
+                ],
+                "priorityClassName": "system-node-critical"
+              }
+            },
+            "updateStrategy": {
+              "type": "RollingUpdate",
+              "rollingUpdate": {
+                "maxUnavailable": 1
+              }
+            },
+            "minReadySeconds": 5,
+            "revisionHistoryLimit": 10
+          },
+          "status": {
+            "currentNumberScheduled": 1,
+            "numberMisscheduled": 0,
+            "desiredNumberScheduled": 1,
+            "numberReady": 1,
+            "observedGeneration": 1,
+            "updatedNumberScheduled": 1,
+            "numberAvailable": 1
+          }
+        }
+      ],
+      "deployment": [
+        {
+          "metadata": {
+            "name": "coredns",
+            "namespace": "kube-system",
+            "uid": "13c2eee1-5620-4f6c-8053-16974f303dc7",
+            "resourceVersion": "543",
+            "generation": 1,
+            "creationTimestamp": "2021-11-25T09:08:07Z",
+            "labels": {
+              "k8s-app": "kube-dns"
+            },
+            "annotations": {
+              "deployment.kubernetes.io/revision": "1"
+            }
+          },
+          "spec": {
+            "replicas": 2,
+            "selector": {
+              "matchLabels": {
+                "k8s-app": "kube-dns"
+              }
+            },
+            "template": {
+              "metadata": {
+                "creationTimestamp": null,
+                "labels": {
+                  "k8s-app": "kube-dns"
+                }
+              },
+              "spec": {
+                "volumes": [
+                  {
+                    "name": "config-volume",
+                    "configMap": {
+                      "name": "coredns",
+                      "items": [
+                        {
+                          "key": "Corefile",
+                          "path": "Corefile"
+                        }
+                      ],
+                      "defaultMode": 420
+                    }
+                  }
+                ],
+                "containers": [
+                  {
+                    "name": "coredns",
+                    "image": "harbor1.zlibs.com/island/coredns:1.7.0",
+                    "args": [
+                      "-conf",
+                      "/etc/coredns/Corefile"
+                    ],
+                    "ports": [
+                      {
+                        "name": "dns",
+                        "containerPort": 53,
+                        "protocol": "UDP"
+                      },
+                      {
+                        "name": "dns-tcp",
+                        "containerPort": 53,
+                        "protocol": "TCP"
+                      },
+                      {
+                        "name": "metrics",
+                        "containerPort": 9153,
+                        "protocol": "TCP"
+                      }
+                    ],
+                    "resources": {
+                      "limits": {
+                        "memory": "170Mi"
+                      },
+                      "requests": {
+                        "cpu": "100m",
+                        "memory": "70Mi"
+                      }
+                    },
+                    "volumeMounts": [
+                      {
+                        "name": "config-volume",
+                        "readOnly": true,
+                        "mountPath": "/etc/coredns"
+                      }
+                    ],
+                    "livenessProbe": {
+                      "httpGet": {
+                        "path": "/health",
+                        "port": 8080,
+                        "scheme": "HTTP"
+                      },
+                      "initialDelaySeconds": 60,
+                      "timeoutSeconds": 5,
+                      "periodSeconds": 10,
+                      "successThreshold": 1,
+                      "failureThreshold": 5
+                    },
+                    "readinessProbe": {
+                      "httpGet": {
+                        "path": "/ready",
+                        "port": 8181,
+                        "scheme": "HTTP"
+                      },
+                      "timeoutSeconds": 1,
+                      "periodSeconds": 10,
+                      "successThreshold": 1,
+                      "failureThreshold": 3
+                    },
+                    "terminationMessagePath": "/dev/termination-log",
+                    "terminationMessagePolicy": "File",
+                    "imagePullPolicy": "IfNotPresent",
+                    "securityContext": {
+                      "capabilities": {
+                        "add": [
+                          "NET_BIND_SERVICE"
+                        ],
+                        "drop": [
+                          "all"
+                        ]
+                      },
+                      "readOnlyRootFilesystem": true,
+                      "allowPrivilegeEscalation": false
+                    }
+                  }
+                ],
+                "restartPolicy": "Always",
+                "terminationGracePeriodSeconds": 30,
+                "dnsPolicy": "Default",
+                "nodeSelector": {
+                  "kubernetes.io/os": "linux"
+                },
+                "serviceAccountName": "coredns",
+                "serviceAccount": "coredns",
+                "securityContext": {},
+                "schedulerName": "default-scheduler",
+                "tolerations": [
+                  {
+                    "key": "CriticalAddonsOnly",
+                    "operator": "Exists"
+                  },
+                  {
+                    "key": "node-role.kubernetes.io/master",
+                    "effect": "NoSchedule"
+                  },
+                  {
+                    "key": "node-role.kubernetes.io/control-plane",
+                    "effect": "NoSchedule"
+                  }
+                ],
+                "priorityClassName": "system-cluster-critical"
+              }
+            },
+            "strategy": {
+              "type": "RollingUpdate",
+              "rollingUpdate": {
+                "maxUnavailable": 1,
+                "maxSurge": "25%"
+              }
+            },
+            "revisionHistoryLimit": 10,
+            "progressDeadlineSeconds": 600
+          },
+          "status": {
+            "observedGeneration": 1,
+            "replicas": 2,
+            "updatedReplicas": 2,
+            "readyReplicas": 2,
+            "availableReplicas": 2,
+            "conditions": [
+              {
+                "type": "Available",
+                "status": "True",
+                "lastUpdateTime": "2021-11-25T09:08:34Z",
+                "lastTransitionTime": "2021-11-25T09:08:34Z",
+                "reason": "MinimumReplicasAvailable",
+                "message": "Deployment has minimum availability."
+              },
+              {
+                "type": "Progressing",
+                "status": "True",
+                "lastUpdateTime": "2021-11-25T09:08:36Z",
+                "lastTransitionTime": "2021-11-25T09:08:13Z",
+                "reason": "NewReplicaSetAvailable",
+                "message": "ReplicaSet \"coredns-6d57f99dcd\" has successfully progressed."
+              }
+            ]
+          }
+        }
+      ],
+      "job": [{
+        "metadata": {
+          "name": "rook-ceph-osd-prepare-i-3y61o623",
+          "namespace": "rook-ceph",
+          "uid": "a9d0e880-d22d-4d96-91a0-dbf6f96cd5c3",
+          "resourceVersion": "8925244",
+          "creationTimestamp": "2021-12-17T16:51:02Z",
+          "labels": {
+            "app": "rook-ceph-osd-prepare",
+            "ceph-version": "15.2.13-0",
+            "rook-version": "v1.6.4",
+            "rook_cluster": "rook-ceph"
+          }
+        },
+        "spec": {
+          "parallelism": 1,
+          "completions": 1,
+          "backoffLimit": 6,
+          "selector": {
+            "matchLabels": {
+              "controller-uid": "a9d0e880-d22d-4d96-91a0-dbf6f96cd5c3"
+            }
+          },
+          "template": {
+            "metadata": {
+              "name": "rook-ceph-osd",
+              "creationTimestamp": null,
+              "labels": {
+                "app": "rook-ceph-osd-prepare",
+                "ceph.rook.io/pvc": "",
+                "controller-uid": "a9d0e880-d22d-4d96-91a0-dbf6f96cd5c3",
+                "job-name": "rook-ceph-osd-prepare-i-3y61o623",
+                "rook_cluster": "rook-ceph"
+              }
+            },
+            "spec": {
+              "volumes": [{
+                "name": "rook-data",
+                "hostPath": {
+                  "path": "/var/lib/rook",
+                  "type": ""
+                }
+              }, {
+                "name": "ceph-conf-emptydir",
+                "emptyDir": {}
+              }, {
+                "name": "rook-ceph-log",
+                "hostPath": {
+                  "path": "/var/lib/rook/rook-ceph/log",
+                  "type": ""
+                }
+              }, {
+                "name": "rook-ceph-crash",
+                "hostPath": {
+                  "path": "/var/lib/rook/rook-ceph/crash",
+                  "type": ""
+                }
+              }, {
+                "name": "rook-binaries",
+                "emptyDir": {}
+              }, {
+                "name": "devices",
+                "hostPath": {
+                  "path": "/dev",
+                  "type": ""
+                }
+              }, {
+                "name": "udev",
+                "hostPath": {
+                  "path": "/run/udev",
+                  "type": ""
+                }
+              }, {
+                "name": "rootfs",
+                "hostPath": {
+                  "path": "/",
+                  "type": ""
+                }
+              }],
+              "initContainers": [{
+                "name": "copy-bins",
+                "image": "harbor1.zlibs.com/rook/ceph:v1.6.4",
+                "args": ["copy-binaries", "--copy-to-dir", "/rook"],
+                "resources": {},
+                "volumeMounts": [{
+                  "name": "rook-binaries",
+                  "mountPath": "/rook"
+                }],
+                "terminationMessagePath": "/dev/termination-log",
+                "terminationMessagePolicy": "File",
+                "imagePullPolicy": "IfNotPresent"
+              }],
+              "containers": [{
+                "name": "provision",
+                "image": "harbor1.zlibs.com/ceph/ceph:v15.2.13",
+                "command": ["/rook/tini"],
+                "args": ["--", "/rook/rook", "ceph", "osd", "provision"],
+                "env": [{
+                  "name": "ROOK_NODE_NAME",
+                  "value": "i-3y61o623"
+                }, {
+                  "name": "ROOK_CLUSTER_ID",
+                  "value": "782e3fed-ebb6-4785-a430-2602ff4bcf51"
+                }, {
+                  "name": "ROOK_CLUSTER_NAME",
+                  "value": "rook-ceph"
+                }, {
+                  "name": "ROOK_PRIVATE_IP",
+                  "valueFrom": {
+                    "fieldRef": {
+                      "apiVersion": "v1",
+                      "fieldPath": "status.podIP"
+                    }
+                  }
+                }, {
+                  "name": "ROOK_PUBLIC_IP",
+                  "valueFrom": {
+                    "fieldRef": {
+                      "apiVersion": "v1",
+                      "fieldPath": "status.podIP"
+                    }
+                  }
+                }, {
+                  "name": "POD_NAMESPACE",
+                  "value": "rook-ceph"
+                }, {
+                  "name": "ROOK_MON_ENDPOINTS",
+                  "valueFrom": {
+                    "configMapKeyRef": {
+                      "name": "rook-ceph-mon-endpoints",
+                      "key": "data"
+                    }
+                  }
+                }, {
+                  "name": "ROOK_MON_SECRET",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "name": "rook-ceph-mon",
+                      "key": "mon-secret"
+                    }
+                  }
+                }, {
+                  "name": "ROOK_CEPH_USERNAME",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "name": "rook-ceph-mon",
+                      "key": "ceph-username"
+                    }
+                  }
+                }, {
+                  "name": "ROOK_CEPH_SECRET",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "name": "rook-ceph-mon",
+                      "key": "ceph-secret"
+                    }
+                  }
+                }, {
+                  "name": "ROOK_CONFIG_DIR",
+                  "value": "/var/lib/rook"
+                }, {
+                  "name": "ROOK_CEPH_CONFIG_OVERRIDE",
+                  "value": "/etc/rook/config/override.conf"
+                }, {
+                  "name": "ROOK_FSID",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "name": "rook-ceph-mon",
+                      "key": "fsid"
+                    }
+                  }
+                }, {
+                  "name": "NODE_NAME",
+                  "valueFrom": {
+                    "fieldRef": {
+                      "apiVersion": "v1",
+                      "fieldPath": "spec.nodeName"
+                    }
+                  }
+                }, {
+                  "name": "ROOK_CRUSHMAP_ROOT",
+                  "value": "default"
+                }, {
+                  "name": "ROOK_CRUSHMAP_HOSTNAME",
+                  "value": "i-3y61o623"
+                }, {
+                  "name": "CEPH_VOLUME_DEBUG",
+                  "value": "1"
+                }, {
+                  "name": "CEPH_VOLUME_SKIP_RESTORECON",
+                  "value": "1"
+                }, {
+                  "name": "DM_DISABLE_UDEV",
+                  "value": "1"
+                }, {
+                  "name": "ROOK_OSDS_PER_DEVICE",
+                  "value": "1"
+                }, {
+                  "name": "ROOK_LOG_LEVEL",
+                  "value": "DEBUG"
+                }, {
+                  "name": "ROOK_DATA_DEVICE_FILTER",
+                  "value": "all"
+                }, {
+                  "name": "ROOK_CEPH_VERSION",
+                  "value": "ceph version 15.2.13-0 octopus"
+                }, {
+                  "name": "ROOK_OSD_CRUSH_DEVICE_CLASS"
+                }, {
+                  "name": "ROOK_OSD_CRUSH_INITIAL_WEIGHT"
+                }],
+                "resources": {},
+                "volumeMounts": [{
+                  "name": "rook-data",
+                  "mountPath": "/var/lib/rook"
+                }, {
+                  "name": "ceph-conf-emptydir",
+                  "mountPath": "/etc/ceph"
+                }, {
+                  "name": "rook-ceph-log",
+                  "mountPath": "/var/log/ceph"
+                }, {
+                  "name": "rook-ceph-crash",
+                  "mountPath": "/var/lib/ceph/crash"
+                }, {
+                  "name": "devices",
+                  "mountPath": "/dev"
+                }, {
+                  "name": "udev",
+                  "mountPath": "/run/udev"
+                }, {
+                  "name": "rook-binaries",
+                  "mountPath": "/rook"
+                }, {
+                  "name": "rootfs",
+                  "readOnly": true,
+                  "mountPath": "/rootfs"
+                }],
+                "terminationMessagePath": "/dev/termination-log",
+                "terminationMessagePolicy": "File",
+                "imagePullPolicy": "IfNotPresent",
+                "securityContext": {
+                  "privileged": true,
+                  "runAsUser": 0,
+                  "runAsNonRoot": false,
+                  "readOnlyRootFilesystem": false
+                }
+              }],
+              "restartPolicy": "OnFailure",
+              "terminationGracePeriodSeconds": 30,
+              "dnsPolicy": "ClusterFirst",
+              "nodeSelector": {
+                "kubernetes.io/hostname": "i-3y61o623"
+              },
+              "serviceAccountName": "rook-ceph-osd",
+              "serviceAccount": "rook-ceph-osd",
+              "securityContext": {},
+              "affinity": {},
+              "schedulerName": "default-scheduler"
+            }
+          }
+        },
+        "status": {
+          "conditions": [{
+            "type": "Complete",
+            "status": "True",
+            "lastProbeTime": "2021-12-17T16:51:10Z",
+            "lastTransitionTime": "2021-12-17T16:51:10Z"
+          }],
+          "startTime": "2021-12-17T16:51:02Z",
+          "completionTime": "2021-12-17T16:51:10Z",
+          "succeeded": 1
+        }
+      }, {
+        "metadata": {
+          "name": "rook-ceph-osd-prepare-i-cowvq2ho",
+          "namespace": "rook-ceph",
+          "uid": "ab6d678b-058b-4158-a0a1-ac4dd5a036ab",
+          "resourceVersion": "8925254",
+          "creationTimestamp": "2021-12-17T16:51:04Z",
+          "labels": {
+            "app": "rook-ceph-osd-prepare",
+            "ceph-version": "15.2.13-0",
+            "rook-version": "v1.6.4",
+            "rook_cluster": "rook-ceph"
+          }
+        },
+        "spec": {
+          "parallelism": 1,
+          "completions": 1,
+          "backoffLimit": 6,
+          "selector": {
+            "matchLabels": {
+              "controller-uid": "ab6d678b-058b-4158-a0a1-ac4dd5a036ab"
+            }
+          },
+          "template": {
+            "metadata": {
+              "name": "rook-ceph-osd",
+              "creationTimestamp": null,
+              "labels": {
+                "app": "rook-ceph-osd-prepare",
+                "ceph.rook.io/pvc": "",
+                "controller-uid": "ab6d678b-058b-4158-a0a1-ac4dd5a036ab",
+                "job-name": "rook-ceph-osd-prepare-i-cowvq2ho",
+                "rook_cluster": "rook-ceph"
+              }
+            },
+            "spec": {
+              "volumes": [{
+                "name": "rook-data",
+                "hostPath": {
+                  "path": "/var/lib/rook",
+                  "type": ""
+                }
+              }, {
+                "name": "ceph-conf-emptydir",
+                "emptyDir": {}
+              }, {
+                "name": "rook-ceph-log",
+                "hostPath": {
+                  "path": "/var/lib/rook/rook-ceph/log",
+                  "type": ""
+                }
+              }, {
+                "name": "rook-ceph-crash",
+                "hostPath": {
+                  "path": "/var/lib/rook/rook-ceph/crash",
+                  "type": ""
+                }
+              }, {
+                "name": "rook-binaries",
+                "emptyDir": {}
+              }, {
+                "name": "devices",
+                "hostPath": {
+                  "path": "/dev",
+                  "type": ""
+                }
+              }, {
+                "name": "udev",
+                "hostPath": {
+                  "path": "/run/udev",
+                  "type": ""
+                }
+              }, {
+                "name": "rootfs",
+                "hostPath": {
+                  "path": "/",
+                  "type": ""
+                }
+              }],
+              "initContainers": [{
+                "name": "copy-bins",
+                "image": "harbor1.zlibs.com/rook/ceph:v1.6.4",
+                "args": ["copy-binaries", "--copy-to-dir", "/rook"],
+                "resources": {},
+                "volumeMounts": [{
+                  "name": "rook-binaries",
+                  "mountPath": "/rook"
+                }],
+                "terminationMessagePath": "/dev/termination-log",
+                "terminationMessagePolicy": "File",
+                "imagePullPolicy": "IfNotPresent"
+              }],
+              "containers": [{
+                "name": "provision",
+                "image": "harbor1.zlibs.com/ceph/ceph:v15.2.13",
+                "command": ["/rook/tini"],
+                "args": ["--", "/rook/rook", "ceph", "osd", "provision"],
+                "env": [{
+                  "name": "ROOK_NODE_NAME",
+                  "value": "i-cowvq2ho"
+                }, {
+                  "name": "ROOK_CLUSTER_ID",
+                  "value": "782e3fed-ebb6-4785-a430-2602ff4bcf51"
+                }, {
+                  "name": "ROOK_CLUSTER_NAME",
+                  "value": "rook-ceph"
+                }, {
+                  "name": "ROOK_PRIVATE_IP",
+                  "valueFrom": {
+                    "fieldRef": {
+                      "apiVersion": "v1",
+                      "fieldPath": "status.podIP"
+                    }
+                  }
+                }, {
+                  "name": "ROOK_PUBLIC_IP",
+                  "valueFrom": {
+                    "fieldRef": {
+                      "apiVersion": "v1",
+                      "fieldPath": "status.podIP"
+                    }
+                  }
+                }, {
+                  "name": "POD_NAMESPACE",
+                  "value": "rook-ceph"
+                }, {
+                  "name": "ROOK_MON_ENDPOINTS",
+                  "valueFrom": {
+                    "configMapKeyRef": {
+                      "name": "rook-ceph-mon-endpoints",
+                      "key": "data"
+                    }
+                  }
+                }, {
+                  "name": "ROOK_MON_SECRET",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "name": "rook-ceph-mon",
+                      "key": "mon-secret"
+                    }
+                  }
+                }, {
+                  "name": "ROOK_CEPH_USERNAME",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "name": "rook-ceph-mon",
+                      "key": "ceph-username"
+                    }
+                  }
+                }, {
+                  "name": "ROOK_CEPH_SECRET",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "name": "rook-ceph-mon",
+                      "key": "ceph-secret"
+                    }
+                  }
+                }, {
+                  "name": "ROOK_CONFIG_DIR",
+                  "value": "/var/lib/rook"
+                }, {
+                  "name": "ROOK_CEPH_CONFIG_OVERRIDE",
+                  "value": "/etc/rook/config/override.conf"
+                }, {
+                  "name": "ROOK_FSID",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "name": "rook-ceph-mon",
+                      "key": "fsid"
+                    }
+                  }
+                }, {
+                  "name": "NODE_NAME",
+                  "valueFrom": {
+                    "fieldRef": {
+                      "apiVersion": "v1",
+                      "fieldPath": "spec.nodeName"
+                    }
+                  }
+                }, {
+                  "name": "ROOK_CRUSHMAP_ROOT",
+                  "value": "default"
+                }, {
+                  "name": "ROOK_CRUSHMAP_HOSTNAME",
+                  "value": "i-cowvq2ho"
+                }, {
+                  "name": "CEPH_VOLUME_DEBUG",
+                  "value": "1"
+                }, {
+                  "name": "CEPH_VOLUME_SKIP_RESTORECON",
+                  "value": "1"
+                }, {
+                  "name": "DM_DISABLE_UDEV",
+                  "value": "1"
+                }, {
+                  "name": "ROOK_OSDS_PER_DEVICE",
+                  "value": "1"
+                }, {
+                  "name": "ROOK_LOG_LEVEL",
+                  "value": "DEBUG"
+                }, {
+                  "name": "ROOK_DATA_DEVICE_FILTER",
+                  "value": "all"
+                }, {
+                  "name": "ROOK_CEPH_VERSION",
+                  "value": "ceph version 15.2.13-0 octopus"
+                }, {
+                  "name": "ROOK_OSD_CRUSH_DEVICE_CLASS"
+                }, {
+                  "name": "ROOK_OSD_CRUSH_INITIAL_WEIGHT"
+                }],
+                "resources": {},
+                "volumeMounts": [{
+                  "name": "rook-data",
+                  "mountPath": "/var/lib/rook"
+                }, {
+                  "name": "ceph-conf-emptydir",
+                  "mountPath": "/etc/ceph"
+                }, {
+                  "name": "rook-ceph-log",
+                  "mountPath": "/var/log/ceph"
+                }, {
+                  "name": "rook-ceph-crash",
+                  "mountPath": "/var/lib/ceph/crash"
+                }, {
+                  "name": "devices",
+                  "mountPath": "/dev"
+                }, {
+                  "name": "udev",
+                  "mountPath": "/run/udev"
+                }, {
+                  "name": "rook-binaries",
+                  "mountPath": "/rook"
+                }, {
+                  "name": "rootfs",
+                  "readOnly": true,
+                  "mountPath": "/rootfs"
+                }],
+                "terminationMessagePath": "/dev/termination-log",
+                "terminationMessagePolicy": "File",
+                "imagePullPolicy": "IfNotPresent",
+                "securityContext": {
+                  "privileged": true,
+                  "runAsUser": 0,
+                  "runAsNonRoot": false,
+                  "readOnlyRootFilesystem": false
+                }
+              }],
+              "restartPolicy": "OnFailure",
+              "terminationGracePeriodSeconds": 30,
+              "dnsPolicy": "ClusterFirst",
+              "nodeSelector": {
+                "kubernetes.io/hostname": "i-cowvq2ho"
+              },
+              "serviceAccountName": "rook-ceph-osd",
+              "serviceAccount": "rook-ceph-osd",
+              "securityContext": {},
+              "affinity": {},
+              "schedulerName": "default-scheduler"
+            }
+          }
+        },
+        "status": {
+          "conditions": [{
+            "type": "Complete",
+            "status": "True",
+            "lastProbeTime": "2021-12-17T16:51:11Z",
+            "lastTransitionTime": "2021-12-17T16:51:11Z"
+          }],
+          "startTime": "2021-12-17T16:51:04Z",
+          "completionTime": "2021-12-17T16:51:11Z",
+          "succeeded": 1
+        }
+      }, {
+        "metadata": {
+          "name": "rook-ceph-osd-prepare-i-y1utyrm6",
+          "namespace": "rook-ceph",
+          "uid": "f2dc3872-dcf3-48b0-9d4e-009cc009c10f",
+          "resourceVersion": "8925272",
+          "creationTimestamp": "2021-12-17T16:51:06Z",
+          "labels": {
+            "app": "rook-ceph-osd-prepare",
+            "ceph-version": "15.2.13-0",
+            "rook-version": "v1.6.4",
+            "rook_cluster": "rook-ceph"
+          }
+        },
+        "spec": {
+          "parallelism": 1,
+          "completions": 1,
+          "backoffLimit": 6,
+          "selector": {
+            "matchLabels": {
+              "controller-uid": "f2dc3872-dcf3-48b0-9d4e-009cc009c10f"
+            }
+          },
+          "template": {
+            "metadata": {
+              "name": "rook-ceph-osd",
+              "creationTimestamp": null,
+              "labels": {
+                "app": "rook-ceph-osd-prepare",
+                "ceph.rook.io/pvc": "",
+                "controller-uid": "f2dc3872-dcf3-48b0-9d4e-009cc009c10f",
+                "job-name": "rook-ceph-osd-prepare-i-y1utyrm6",
+                "rook_cluster": "rook-ceph"
+              }
+            },
+            "spec": {
+              "volumes": [{
+                "name": "rook-data",
+                "hostPath": {
+                  "path": "/var/lib/rook",
+                  "type": ""
+                }
+              }, {
+                "name": "ceph-conf-emptydir",
+                "emptyDir": {}
+              }, {
+                "name": "rook-ceph-log",
+                "hostPath": {
+                  "path": "/var/lib/rook/rook-ceph/log",
+                  "type": ""
+                }
+              }, {
+                "name": "rook-ceph-crash",
+                "hostPath": {
+                  "path": "/var/lib/rook/rook-ceph/crash",
+                  "type": ""
+                }
+              }, {
+                "name": "rook-binaries",
+                "emptyDir": {}
+              }, {
+                "name": "devices",
+                "hostPath": {
+                  "path": "/dev",
+                  "type": ""
+                }
+              }, {
+                "name": "udev",
+                "hostPath": {
+                  "path": "/run/udev",
+                  "type": ""
+                }
+              }, {
+                "name": "rootfs",
+                "hostPath": {
+                  "path": "/",
+                  "type": ""
+                }
+              }],
+              "initContainers": [{
+                "name": "copy-bins",
+                "image": "harbor1.zlibs.com/rook/ceph:v1.6.4",
+                "args": ["copy-binaries", "--copy-to-dir", "/rook"],
+                "resources": {},
+                "volumeMounts": [{
+                  "name": "rook-binaries",
+                  "mountPath": "/rook"
+                }],
+                "terminationMessagePath": "/dev/termination-log",
+                "terminationMessagePolicy": "File",
+                "imagePullPolicy": "IfNotPresent"
+              }],
+              "containers": [{
+                "name": "provision",
+                "image": "harbor1.zlibs.com/ceph/ceph:v15.2.13",
+                "command": ["/rook/tini"],
+                "args": ["--", "/rook/rook", "ceph", "osd", "provision"],
+                "env": [{
+                  "name": "ROOK_NODE_NAME",
+                  "value": "i-y1utyrm6"
+                }, {
+                  "name": "ROOK_CLUSTER_ID",
+                  "value": "782e3fed-ebb6-4785-a430-2602ff4bcf51"
+                }, {
+                  "name": "ROOK_CLUSTER_NAME",
+                  "value": "rook-ceph"
+                }, {
+                  "name": "ROOK_PRIVATE_IP",
+                  "valueFrom": {
+                    "fieldRef": {
+                      "apiVersion": "v1",
+                      "fieldPath": "status.podIP"
+                    }
+                  }
+                }, {
+                  "name": "ROOK_PUBLIC_IP",
+                  "valueFrom": {
+                    "fieldRef": {
+                      "apiVersion": "v1",
+                      "fieldPath": "status.podIP"
+                    }
+                  }
+                }, {
+                  "name": "POD_NAMESPACE",
+                  "value": "rook-ceph"
+                }, {
+                  "name": "ROOK_MON_ENDPOINTS",
+                  "valueFrom": {
+                    "configMapKeyRef": {
+                      "name": "rook-ceph-mon-endpoints",
+                      "key": "data"
+                    }
+                  }
+                }, {
+                  "name": "ROOK_MON_SECRET",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "name": "rook-ceph-mon",
+                      "key": "mon-secret"
+                    }
+                  }
+                }, {
+                  "name": "ROOK_CEPH_USERNAME",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "name": "rook-ceph-mon",
+                      "key": "ceph-username"
+                    }
+                  }
+                }, {
+                  "name": "ROOK_CEPH_SECRET",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "name": "rook-ceph-mon",
+                      "key": "ceph-secret"
+                    }
+                  }
+                }, {
+                  "name": "ROOK_CONFIG_DIR",
+                  "value": "/var/lib/rook"
+                }, {
+                  "name": "ROOK_CEPH_CONFIG_OVERRIDE",
+                  "value": "/etc/rook/config/override.conf"
+                }, {
+                  "name": "ROOK_FSID",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "name": "rook-ceph-mon",
+                      "key": "fsid"
+                    }
+                  }
+                }, {
+                  "name": "NODE_NAME",
+                  "valueFrom": {
+                    "fieldRef": {
+                      "apiVersion": "v1",
+                      "fieldPath": "spec.nodeName"
+                    }
+                  }
+                }, {
+                  "name": "ROOK_CRUSHMAP_ROOT",
+                  "value": "default"
+                }, {
+                  "name": "ROOK_CRUSHMAP_HOSTNAME",
+                  "value": "i-y1utyrm6"
+                }, {
+                  "name": "CEPH_VOLUME_DEBUG",
+                  "value": "1"
+                }, {
+                  "name": "CEPH_VOLUME_SKIP_RESTORECON",
+                  "value": "1"
+                }, {
+                  "name": "DM_DISABLE_UDEV",
+                  "value": "1"
+                }, {
+                  "name": "ROOK_OSDS_PER_DEVICE",
+                  "value": "1"
+                }, {
+                  "name": "ROOK_LOG_LEVEL",
+                  "value": "DEBUG"
+                }, {
+                  "name": "ROOK_DATA_DEVICE_FILTER",
+                  "value": "all"
+                }, {
+                  "name": "ROOK_CEPH_VERSION",
+                  "value": "ceph version 15.2.13-0 octopus"
+                }, {
+                  "name": "ROOK_OSD_CRUSH_DEVICE_CLASS"
+                }, {
+                  "name": "ROOK_OSD_CRUSH_INITIAL_WEIGHT"
+                }],
+                "resources": {},
+                "volumeMounts": [{
+                  "name": "rook-data",
+                  "mountPath": "/var/lib/rook"
+                }, {
+                  "name": "ceph-conf-emptydir",
+                  "mountPath": "/etc/ceph"
+                }, {
+                  "name": "rook-ceph-log",
+                  "mountPath": "/var/log/ceph"
+                }, {
+                  "name": "rook-ceph-crash",
+                  "mountPath": "/var/lib/ceph/crash"
+                }, {
+                  "name": "devices",
+                  "mountPath": "/dev"
+                }, {
+                  "name": "udev",
+                  "mountPath": "/run/udev"
+                }, {
+                  "name": "rook-binaries",
+                  "mountPath": "/rook"
+                }, {
+                  "name": "rootfs",
+                  "readOnly": true,
+                  "mountPath": "/rootfs"
+                }],
+                "terminationMessagePath": "/dev/termination-log",
+                "terminationMessagePolicy": "File",
+                "imagePullPolicy": "IfNotPresent",
+                "securityContext": {
+                  "privileged": true,
+                  "runAsUser": 0,
+                  "runAsNonRoot": false,
+                  "readOnlyRootFilesystem": false
+                }
+              }],
+              "restartPolicy": "OnFailure",
+              "terminationGracePeriodSeconds": 30,
+              "dnsPolicy": "ClusterFirst",
+              "nodeSelector": {
+                "kubernetes.io/hostname": "i-y1utyrm6"
+              },
+              "serviceAccountName": "rook-ceph-osd",
+              "serviceAccount": "rook-ceph-osd",
+              "securityContext": {},
+              "affinity": {},
+              "schedulerName": "default-scheduler"
+            }
+          }
+        },
+        "status": {
+          "conditions": [{
+            "type": "Complete",
+            "status": "True",
+            "lastProbeTime": "2021-12-17T16:51:14Z",
+            "lastTransitionTime": "2021-12-17T16:51:14Z"
+          }],
+          "startTime": "2021-12-17T16:51:06Z",
+          "completionTime": "2021-12-17T16:51:14Z",
+          "succeeded": 1
+        }
+      }],
+      "pod": [
+        {
+          "metadata": {
+            "name": "island-api-74958bd68f-4bh6b",
+            "generateName": "island-api-74958bd68f-",
+            "namespace": "island-system",
+            "uid": "9a4f244f-6885-42e6-b860-1a218ba82f1f",
+            "resourceVersion": "4870640",
+            "creationTimestamp": "2021-12-17T06:14:53Z",
+            "labels": {
+              "app": "island",
+              "component": "api",
+              "pod-template-hash": "74958bd68f"
+            }
+          },
+          "spec": {
+            "volumes": [
+              {
+                "name": "crab-token-c5krv",
+                "secret": {
+                  "secretName": "crab-token-c5krv",
+                  "defaultMode": 420
+                }
+              }
+            ],
+            "containers": [
+              {
+                "name": "island-api",
+                "image": "harbor1.zlibs.com/island/island-api:alpha",
+                "resources": {},
+                "volumeMounts": [
+                  {
+                    "name": "crab-token-c5krv",
+                    "readOnly": true,
+                    "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount"
+                  }
+                ],
+                "terminationMessagePath": "/dev/termination-log",
+                "terminationMessagePolicy": "File",
+                "imagePullPolicy": "Always"
+              }
+            ],
+            "restartPolicy": "Always",
+            "terminationGracePeriodSeconds": 30,
+            "dnsPolicy": "ClusterFirst",
+            "serviceAccountName": "crab",
+            "serviceAccount": "crab",
+            "nodeName": "i-vytgzegz",
+            "securityContext": {},
+            "schedulerName": "default-scheduler",
+            "tolerations": [
+              {
+                "key": "node.kubernetes.io/not-ready",
+                "operator": "Exists",
+                "effect": "NoExecute",
+                "tolerationSeconds": 300
+              },
+              {
+                "key": "node.kubernetes.io/unreachable",
+                "operator": "Exists",
+                "effect": "NoExecute",
+                "tolerationSeconds": 300
+              }
+            ],
+            "priority": 0,
+            "enableServiceLinks": true,
+            "preemptionPolicy": "PreemptLowerPriority"
+          },
+          "status": {
+            "phase": "Running",
+            "conditions": [
+              {
+                "type": "Initialized",
+                "status": "True",
+                "lastProbeTime": null,
+                "lastTransitionTime": "2021-12-17T06:14:53Z"
+              },
+              {
+                "type": "Ready",
+                "status": "True",
+                "lastProbeTime": null,
+                "lastTransitionTime": "2021-12-17T06:15:05Z"
+              },
+              {
+                "type": "ContainersReady",
+                "status": "True",
+                "lastProbeTime": null,
+                "lastTransitionTime": "2021-12-17T06:15:05Z"
+              },
+              {
+                "type": "PodScheduled",
+                "status": "True",
+                "lastProbeTime": null,
+                "lastTransitionTime": "2021-12-17T06:14:53Z"
+              }
+            ],
+            "hostIP": "192.168.0.2",
+            "podIP": "10.32.0.10",
+            "podIPs": [
+              {
+                "ip": "10.32.0.10"
+              }
+            ],
+            "startTime": "2021-12-17T06:14:53Z",
+            "containerStatuses": [
+              {
+                "name": "island-api",
+                "state": {
+                  "running": {
+                    "startedAt": "2021-12-17T06:15:04Z"
+                  }
+                },
+                "lastState": {},
+                "ready": true,
+                "restartCount": 0,
+                "image": "harbor1.zlibs.com/island/island-api:alpha",
+                "imageID": "docker-pullable://harbor1.zlibs.com/island/island-api@sha256:f3b55efdeb2345468a3df3fc430cf9165e199f8c6460be31611165111265024c",
+                "containerID": "docker://73a293127e764da9df32aaffe404d8e523ce7746053720b615b39d43f9db0ea6",
+                "started": true
+              }
+            ],
+            "qosClass": "BestEffort"
+          }
+        },
+        {
+          "metadata": {
+            "name": "island-db-75958cb587-ch6cb",
+            "generateName": "island-db-75958cb587-",
+            "namespace": "island-system",
+            "uid": "34bdc506-8e63-4207-a44d-6ce61b924a06",
+            "resourceVersion": "4873653",
+            "creationTimestamp": "2021-12-17T06:33:56Z",
+            "labels": {
+              "app": "island",
+              "component": "db",
+              "pod-template-hash": "75958cb587"
+            }
+          },
+          "spec": {
+            "volumes": [
+              {
+                "name": "conf",
+                "configMap": {
+                  "name": "island-db",
+                  "defaultMode": 420
+                }
+              },
+              {
+                "name": "crab-token-c5krv",
+                "secret": {
+                  "secretName": "crab-token-c5krv",
+                  "defaultMode": 420
+                }
+              }
+            ],
+            "containers": [
+              {
+                "name": "island-db",
+                "image": "harbor1.zlibs.com/dockerhub/mysql:5.7",
+                "env": [
+                  {
+                    "name": "MYSQL_ROOT_PASSWORD",
+                    "value": "123456"
+                  }
+                ],
+                "resources": {},
+                "volumeMounts": [
+                  {
+                    "name": "conf",
+                    "mountPath": "/docker-entrypoint-initdb.d/"
+                  },
+                  {
+                    "name": "crab-token-c5krv",
+                    "readOnly": true,
+                    "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount"
+                  }
+                ],
+                "terminationMessagePath": "/dev/termination-log",
+                "terminationMessagePolicy": "File",
+                "imagePullPolicy": "IfNotPresent"
+              }
+            ],
+            "restartPolicy": "Always",
+            "terminationGracePeriodSeconds": 30,
+            "dnsPolicy": "ClusterFirst",
+            "serviceAccountName": "crab",
+            "serviceAccount": "crab",
+            "nodeName": "i-vytgzegz",
+            "securityContext": {},
+            "schedulerName": "default-scheduler",
+            "tolerations": [
+              {
+                "key": "node.kubernetes.io/not-ready",
+                "operator": "Exists",
+                "effect": "NoExecute",
+                "tolerationSeconds": 300
+              },
+              {
+                "key": "node.kubernetes.io/unreachable",
+                "operator": "Exists",
+                "effect": "NoExecute",
+                "tolerationSeconds": 300
+              }
+            ],
+            "priority": 0,
+            "enableServiceLinks": true,
+            "preemptionPolicy": "PreemptLowerPriority"
+          },
+          "status": {
+            "phase": "Running",
+            "conditions": [
+              {
+                "type": "Initialized",
+                "status": "True",
+                "lastProbeTime": null,
+                "lastTransitionTime": "2021-12-17T06:33:56Z"
+              },
+              {
+                "type": "Ready",
+                "status": "True",
+                "lastProbeTime": null,
+                "lastTransitionTime": "2021-12-17T06:33:59Z"
+              },
+              {
+                "type": "ContainersReady",
+                "status": "True",
+                "lastProbeTime": null,
+                "lastTransitionTime": "2021-12-17T06:33:59Z"
+              },
+              {
+                "type": "PodScheduled",
+                "status": "True",
+                "lastProbeTime": null,
+                "lastTransitionTime": "2021-12-17T06:33:56Z"
+              }
+            ],
+            "hostIP": "192.168.0.2",
+            "podIP": "10.32.0.4",
+            "podIPs": [
+              {
+                "ip": "10.32.0.4"
+              }
+            ],
+            "startTime": "2021-12-17T06:33:56Z",
+            "containerStatuses": [
+              {
+                "name": "island-db",
+                "state": {
+                  "running": {
+                    "startedAt": "2021-12-17T06:33:58Z"
+                  }
+                },
+                "lastState": {},
+                "ready": true,
+                "restartCount": 0,
+                "image": "harbor1.zlibs.com/dockerhub/mysql:5.7",
+                "imageID": "docker-pullable://harbor1.zlibs.com/dockerhub/mysql@sha256:4556aec03ad3bec8242ae18d907c798e331d73189b82ddc76ad98758308fb58f",
+                "containerID": "docker://70fa4a296ad36521f61e17edde23813e49dda22eff5ff02b700e8de821f538e7",
+                "started": true
+              }
+            ],
+            "qosClass": "BestEffort"
+          }
+        },
+        {
+          "metadata": {
+            "name": "island-ui-6b7f976d9d-prtdh",
+            "generateName": "island-ui-6b7f976d9d-",
+            "namespace": "island-system",
+            "uid": "8beabd53-43f6-45a3-b15a-20cf8b4f90f0",
+            "resourceVersion": "4870893",
+            "creationTimestamp": "2021-12-17T06:16:26Z",
+            "labels": {
+              "app": "island",
+              "component": "ui",
+              "pod-template-hash": "6b7f976d9d"
+            }
+          },
+          "spec": {
+            "volumes": [
+              {
+                "name": "conf",
+                "configMap": {
+                  "name": "island-ui",
+                  "defaultMode": 420
+                }
+              },
+              {
+                "name": "default-token-c4djw",
+                "secret": {
+                  "secretName": "default-token-c4djw",
+                  "defaultMode": 420
+                }
+              }
+            ],
+            "containers": [
+              {
+                "name": "island-ui",
+                "image": "harbor1.zlibs.com/island/island-ui:alpha",
+                "resources": {},
+                "volumeMounts": [
+                  {
+                    "name": "conf",
+                    "mountPath": "/crab-front/server/config/config.json",
+                    "subPath": "config.json"
+                  },
+                  {
+                    "name": "default-token-c4djw",
+                    "readOnly": true,
+                    "mountPath": "/var/run/secrets/kubernetes.io/serviceaccount"
+                  }
+                ],
+                "terminationMessagePath": "/dev/termination-log",
+                "terminationMessagePolicy": "File",
+                "imagePullPolicy": "Always"
+              }
+            ],
+            "restartPolicy": "Always",
+            "terminationGracePeriodSeconds": 30,
+            "dnsPolicy": "ClusterFirst",
+            "serviceAccountName": "default",
+            "serviceAccount": "default",
+            "nodeName": "i-vytgzegz",
+            "securityContext": {},
+            "schedulerName": "default-scheduler",
+            "tolerations": [
+              {
+                "key": "node.kubernetes.io/not-ready",
+                "operator": "Exists",
+                "effect": "NoExecute",
+                "tolerationSeconds": 300
+              },
+              {
+                "key": "node.kubernetes.io/unreachable",
+                "operator": "Exists",
+                "effect": "NoExecute",
+                "tolerationSeconds": 300
+              }
+            ],
+            "priority": 0,
+            "enableServiceLinks": true,
+            "preemptionPolicy": "PreemptLowerPriority"
+          },
+          "status": {
+            "phase": "Running",
+            "conditions": [
+              {
+                "type": "Initialized",
+                "status": "True",
+                "lastProbeTime": null,
+                "lastTransitionTime": "2021-12-17T06:16:26Z"
+              },
+              {
+                "type": "Ready",
+                "status": "True",
+                "lastProbeTime": null,
+                "lastTransitionTime": "2021-12-17T06:16:31Z"
+              },
+              {
+                "type": "ContainersReady",
+                "status": "True",
+                "lastProbeTime": null,
+                "lastTransitionTime": "2021-12-17T06:16:31Z"
+              },
+              {
+                "type": "PodScheduled",
+                "status": "True",
+                "lastProbeTime": null,
+                "lastTransitionTime": "2021-12-17T06:16:26Z"
+              }
+            ],
+            "hostIP": "192.168.0.2",
+            "podIP": "10.32.0.9",
+            "podIPs": [
+              {
+                "ip": "10.32.0.9"
+              }
+            ],
+            "startTime": "2021-12-17T06:16:26Z",
+            "containerStatuses": [
+              {
+                "name": "island-ui",
+                "state": {
+                  "running": {
+                    "startedAt": "2021-12-17T06:16:30Z"
+                  }
+                },
+                "lastState": {},
+                "ready": true,
+                "restartCount": 0,
+                "image": "harbor1.zlibs.com/island/island-ui:0.1",
+                "imageID": "docker-pullable://harbor1.zlibs.com/island/island-ui@sha256:aad303037ac1217a64ae3482898be2b8e32e7d91987b4d01e200bee8df56f83f",
+                "containerID": "docker://0723f864da41396e1bb326a7fd1367793ea30dc54cb7c9fe7ee7f3a6fdb22549",
+                "started": true
+              }
+            ],
+            "qosClass": "BestEffort"
+          }
+        }
+      ],
+      "replicaSet": [
+        {
+          "metadata": {
+            "name": "island-api-74958bd68f",
+            "namespace": "island-system",
+            "uid": "f05e8b67-3e4c-4e22-8a93-3c7259054997",
+            "resourceVersion": "4870645",
+            "generation": 1,
+            "creationTimestamp": "2021-12-16T10:15:20Z",
+            "labels": {
+              "app": "island",
+              "component": "api",
+              "pod-template-hash": "74958bd68f"
+            },
+            "annotations": {
+              "deployment.kubernetes.io/desired-replicas": "1",
+              "deployment.kubernetes.io/max-replicas": "2",
+              "deployment.kubernetes.io/revision": "1"
+            }
+          },
+          "spec": {
+            "replicas": 1,
+            "selector": {
+              "matchLabels": {
+                "app": "island",
+                "component": "api",
+                "pod-template-hash": "74958bd68f"
+              }
+            },
+            "template": {
+              "metadata": {
+                "name": "island-api",
+                "creationTimestamp": null,
+                "labels": {
+                  "app": "island",
+                  "component": "api",
+                  "pod-template-hash": "74958bd68f"
+                }
+              },
+              "spec": {
+                "containers": [
+                  {
+                    "name": "island-api",
+                    "image": "harbor1.zlibs.com/island/island-api:alpha",
+                    "resources": {},
+                    "terminationMessagePath": "/dev/termination-log",
+                    "terminationMessagePolicy": "File",
+                    "imagePullPolicy": "Always"
+                  }
+                ],
+                "restartPolicy": "Always",
+                "terminationGracePeriodSeconds": 30,
+                "dnsPolicy": "ClusterFirst",
+                "serviceAccountName": "crab",
+                "serviceAccount": "crab",
+                "securityContext": {},
+                "schedulerName": "default-scheduler"
+              }
+            }
+          },
+          "status": {
+            "replicas": 1,
+            "fullyLabeledReplicas": 1,
+            "readyReplicas": 1,
+            "availableReplicas": 1,
+            "observedGeneration": 1
+          }
+        },
+        {
+          "metadata": {
+            "name": "island-db-75958cb587",
+            "namespace": "island-system",
+            "uid": "52bc83fb-e233-4549-a4d4-9e775498cc2c",
+            "resourceVersion": "4873655",
+            "generation": 1,
+            "creationTimestamp": "2021-12-17T06:33:56Z",
+            "labels": {
+              "app": "island",
+              "component": "db",
+              "pod-template-hash": "75958cb587"
+            },
+            "annotations": {
+              "deployment.kubernetes.io/desired-replicas": "1",
+              "deployment.kubernetes.io/max-replicas": "2",
+              "deployment.kubernetes.io/revision": "1"
+            }
+          },
+          "spec": {
+            "replicas": 1,
+            "selector": {
+              "matchLabels": {
+                "app": "island",
+                "component": "db",
+                "pod-template-hash": "75958cb587"
+              }
+            },
+            "template": {
+              "metadata": {
+                "name": "island-db",
+                "creationTimestamp": null,
+                "labels": {
+                  "app": "island",
+                  "component": "db",
+                  "pod-template-hash": "75958cb587"
+                }
+              },
+              "spec": {
+                "volumes": [
+                  {
+                    "name": "conf",
+                    "configMap": {
+                      "name": "island-db",
+                      "defaultMode": 420
+                    }
+                  }
+                ],
+                "containers": [
+                  {
+                    "name": "island-db",
+                    "image": "harbor1.zlibs.com/dockerhub/mysql:5.7",
+                    "env": [
+                      {
+                        "name": "MYSQL_ROOT_PASSWORD",
+                        "value": "123456"
+                      }
+                    ],
+                    "resources": {},
+                    "volumeMounts": [
+                      {
+                        "name": "conf",
+                        "mountPath": "/docker-entrypoint-initdb.d/"
+                      }
+                    ],
+                    "terminationMessagePath": "/dev/termination-log",
+                    "terminationMessagePolicy": "File",
+                    "imagePullPolicy": "IfNotPresent"
+                  }
+                ],
+                "restartPolicy": "Always",
+                "terminationGracePeriodSeconds": 30,
+                "dnsPolicy": "ClusterFirst",
+                "serviceAccountName": "crab",
+                "serviceAccount": "crab",
+                "securityContext": {},
+                "schedulerName": "default-scheduler"
+              }
+            }
+          },
+          "status": {
+            "replicas": 1,
+            "fullyLabeledReplicas": 1,
+            "readyReplicas": 1,
+            "availableReplicas": 1,
+            "observedGeneration": 1
+          }
+        },
+        {
+          "metadata": {
+            "name": "island-ui-6b7f976d9d",
+            "namespace": "island-system",
+            "uid": "e2e38c6e-f10f-429b-9874-65b1519710ce",
+            "resourceVersion": "4870895",
+            "generation": 1,
+            "creationTimestamp": "2021-12-17T06:16:26Z",
+            "labels": {
+              "app": "island",
+              "component": "ui",
+              "pod-template-hash": "6b7f976d9d"
+            },
+            "annotations": {
+              "deployment.kubernetes.io/desired-replicas": "1",
+              "deployment.kubernetes.io/max-replicas": "2",
+              "deployment.kubernetes.io/revision": "1"
+            }
+          },
+          "spec": {
+            "replicas": 1,
+            "selector": {
+              "matchLabels": {
+                "app": "island",
+                "component": "ui",
+                "pod-template-hash": "6b7f976d9d"
+              }
+            },
+            "template": {
+              "metadata": {
+                "name": "island-ui",
+                "creationTimestamp": null,
+                "labels": {
+                  "app": "island",
+                  "component": "ui",
+                  "pod-template-hash": "6b7f976d9d"
+                }
+              },
+              "spec": {
+                "volumes": [
+                  {
+                    "name": "conf",
+                    "configMap": {
+                      "name": "island-ui",
+                      "defaultMode": 420
+                    }
+                  }
+                ],
+                "containers": [
+                  {
+                    "name": "island-ui",
+                    "image": "harbor1.zlibs.com/island/island-ui:alpha",
+                    "resources": {},
+                    "volumeMounts": [
+                      {
+                        "name": "conf",
+                        "mountPath": "/crab-front/server/config/config.json",
+                        "subPath": "config.json"
+                      }
+                    ],
+                    "terminationMessagePath": "/dev/termination-log",
+                    "terminationMessagePolicy": "File",
+                    "imagePullPolicy": "Always"
+                  }
+                ],
+                "restartPolicy": "Always",
+                "terminationGracePeriodSeconds": 30,
+                "dnsPolicy": "ClusterFirst",
+                "securityContext": {},
+                "schedulerName": "default-scheduler"
+              }
+            }
+          },
+          "status": {
+            "replicas": 1,
+            "fullyLabeledReplicas": 1,
+            "readyReplicas": 1,
+            "availableReplicas": 1,
+            "observedGeneration": 1
+          }
+        }
+      ],
+      "replicationController": [
+        {
+          "metadata": {
+            "name": "nginx",
+            "namespace": "default",
+            "uid": "948f5270-c60f-4c8e-8b60-929a5bb76e9e",
+            "resourceVersion": "9090033",
+            "generation": 1,
+            "creationTimestamp": "2021-12-18T02:48:17Z",
+            "labels": {
+              "app": "nginx"
+            }
+          },
+          "spec": {
+            "replicas": 3,
+            "selector": {
+              "app": "nginx"
+            },
+            "template": {
+              "metadata": {
+                "name": "nginx",
+                "creationTimestamp": null,
+                "labels": {
+                  "app": "nginx"
+                }
+              },
+              "spec": {
+                "containers": [
+                  {
+                    "name": "nginx",
+                    "image": "nginx",
+                    "ports": [
+                      {
+                        "containerPort": 80,
+                        "protocol": "TCP"
+                      }
+                    ],
+                    "resources": {},
+                    "terminationMessagePath": "/dev/termination-log",
+                    "terminationMessagePolicy": "File",
+                    "imagePullPolicy": "Always"
+                  }
+                ],
+                "restartPolicy": "Always",
+                "terminationGracePeriodSeconds": 30,
+                "dnsPolicy": "ClusterFirst",
+                "securityContext": {},
+                "schedulerName": "default-scheduler"
+              }
+            }
+          },
+          "status": {
+            "replicas": 3,
+            "fullyLabeledReplicas": 3,
+            "observedGeneration": 1
+          }
+        }
+      ],
+      "statefulSet": [
+        {
+          "metadata": {
+            "name": "island-db",
+            "namespace": "island-system",
+            "uid": "ca96caa4-ad90-4ded-9606-62c425d7eea2",
+            "resourceVersion": "4346",
+            "generation": 1,
+            "creationTimestamp": "2021-11-25T06:20:38Z",
+            "labels": {
+              "app": "island",
+              "component": "db"
+            },
+            "annotations": {
+              "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"apps/v1\",\"kind\":\"StatefulSet\",\"metadata\":{\"annotations\":{},\"labels\":{\"app\":\"island\",\"component\":\"db\"},\"name\":\"island-db\",\"namespace\":\"island-system\"},\"spec\":{\"replicas\":1,\"selector\":{\"matchLabels\":{\"app\":\"island\",\"component\":\"db\"}},\"serviceName\":\"island-db\",\"template\":{\"metadata\":{\"labels\":{\"app\":\"island\",\"component\":\"db\"},\"name\":\"island-db\"},\"spec\":{\"containers\":[{\"env\":[{\"name\":\"MYSQL_ROOT_PASSWORD\",\"value\":\"123456\"}],\"image\":\"harbor1.zlibs.com/dockerhub/mysql:5.7\",\"imagePullPolicy\":\"IfNotPresent\",\"name\":\"island-db\",\"volumeMounts\":[{\"mountPath\":\"/docker-entrypoint-initdb.d/\",\"name\":\"conf\"},{\"mountPath\":\"/var/lib/mysql/\",\"name\":\"storage\"}]}],\"nodeSelector\":{\"island-storage\":\"local\"},\"restartPolicy\":\"Always\",\"serviceAccountName\":\"crab\",\"volumes\":[{\"configMap\":{\"name\":\"island-db\"},\"name\":\"conf\"},{\"name\":\"storage\",\"persistentVolumeClaim\":{\"claimName\":\"island-pvc\"}}]}}}}\n"
+            }
+          },
+          "spec": {
+            "replicas": 1,
+            "selector": {
+              "matchLabels": {
+                "app": "island",
+                "component": "db"
+              }
+            },
+            "template": {
+              "metadata": {
+                "name": "island-db",
+                "creationTimestamp": null,
+                "labels": {
+                  "app": "island",
+                  "component": "db"
+                }
+              },
+              "spec": {
+                "volumes": [
+                  {
+                    "name": "conf",
+                    "configMap": {
+                      "name": "island-db",
+                      "defaultMode": 420
+                    }
+                  },
+                  {
+                    "name": "storage",
+                    "persistentVolumeClaim": {
+                      "claimName": "island-pvc"
+                    }
+                  }
+                ],
+                "containers": [
+                  {
+                    "name": "island-db",
+                    "image": "harbor1.zlibs.com/dockerhub/mysql:5.7",
+                    "env": [
+                      {
+                        "name": "MYSQL_ROOT_PASSWORD",
+                        "value": "123456"
+                      }
+                    ],
+                    "resources": {},
+                    "volumeMounts": [
+                      {
+                        "name": "conf",
+                        "mountPath": "/docker-entrypoint-initdb.d/"
+                      },
+                      {
+                        "name": "storage",
+                        "mountPath": "/var/lib/mysql/"
+                      }
+                    ],
+                    "terminationMessagePath": "/dev/termination-log",
+                    "terminationMessagePolicy": "File",
+                    "imagePullPolicy": "IfNotPresent"
+                  }
+                ],
+                "restartPolicy": "Always",
+                "terminationGracePeriodSeconds": 30,
+                "dnsPolicy": "ClusterFirst",
+                "nodeSelector": {
+                  "island-storage": "local"
+                },
+                "serviceAccountName": "crab",
+                "serviceAccount": "crab",
+                "securityContext": {},
+                "schedulerName": "default-scheduler"
+              }
+            },
+            "serviceName": "island-db",
+            "podManagementPolicy": "OrderedReady",
+            "updateStrategy": {
+              "type": "RollingUpdate",
+              "rollingUpdate": {
+                "partition": 0
+              }
+            },
+            "revisionHistoryLimit": 10
+          },
+          "status": {
+            "observedGeneration": 1,
+            "replicas": 1,
+            "readyReplicas": 1,
+            "currentReplicas": 1,
+            "updatedReplicas": 1,
+            "currentRevision": "island-db-5886fb5779",
+            "updateRevision": "island-db-5886fb5779",
+            "collisionCount": 0
+          }
+        }
+      ],
+      "configMap": [
+        {
+          "metadata": {
+            "name": "istio-ca-root-cert",
+            "namespace": "default",
+            "uid": "05820e07-018f-467c-adf5-c72f9301a4fd",
+            "resourceVersion": "956",
+            "creationTimestamp": "2021-11-25T09:11:45Z",
+            "labels": {
+              "istio.io/config": "true"
+            }
+          },
+          "data": {
+            "root-cert.pem": "-----BEGIN CERTIFICATE-----\nMIIC/DCCAeSgAwIBAgIQLJdyFmeQrmshzqo+Zh+hPTANBgkqhkiG9w0BAQsFADAY\nMRYwFAYDVQQKEw1jbHVzdGVyLmxvY2FsMB4XDTIxMTEyNTA5MTE0NFoXDTMxMTEy\nMzA5MTE0NFowGDEWMBQGA1UEChMNY2x1c3Rlci5sb2NhbDCCASIwDQYJKoZIhvcN\nAQEBBQADggEPADCCAQoCggEBALLbxcDKSr8/2Jb+WDaf7TOTKqMaf1GwH3lCbFqz\nKl7lL9AEQgTSAhpWlS1QM2r6wblVhCXlZF5tnV9e/7fm45jaCR3j4ApABZ80fADO\n+XGHzB4S/qn58yO1uzGv4WcgElH6us+9EjaeZKV/gn2V7W1vt6eYD1Ue6vPDzY2K\nYb8US1OS0U0u65DVTttkq1vobHNlfb/dGVzoTt+NT4TLWP1MRpnvPE01BAcUYpAL\ntFfX//W226/jOiuDoFn1/kykz+C9lm5xpbfexPDnK5LX0mhNXp0x1QL6yxZFJfA8\nqulFiqSylmAQ9HKHQSgqUVYL98jrVxij0QnQV34azdZsxTcCAwEAAaNCMEAwDgYD\nVR0PAQH/BAQDAgIEMA8GA1UdEwEB/wQFMAMBAf8wHQYDVR0OBBYEFFCjSR/b8eXS\nKEWIkgxQ53cRtT0OMA0GCSqGSIb3DQEBCwUAA4IBAQApuDoCYDJYReoWomuTpZbI\nCbiOeuYFoq/Wf9BdQ7MixGDLz2Aa3/K67POIayuEAb/5x1V40QzY5/rP9U/HMOS4\npi18Pr3RIzfxyxcjc/UGXaFbxpXNbUugdpEgNs8GY61qS6F5GWMieL0c0S2YaqeR\nnjev5mRfto/gOKsomAoh9i/JWfaoVLMsnlDOARyx3B+dKqcW/t/Zcf/4nlINgtQJ\ntEM4odS7aTvff1r+BEYOLWT7OkMjWPZJGh7w84MzaSHx1Ge7EDGeMnS+sX6kgnYH\nMiPwVwA3DRfMfjvKd7rnOVa31s9YEUeet7k3dkbtX9KpZmbrmi/lbXXBIIpjCu6X\n-----END CERTIFICATE-----\n"
+          }
+        },
+        {
+          "metadata": {
+            "name": "kube-root-ca.crt",
+            "namespace": "default",
+            "uid": "5fa0e346-391f-4b97-8c24-bd29dfb0e4f1",
+            "resourceVersion": "405",
+            "creationTimestamp": "2021-11-25T09:08:13Z"
+          },
+          "data": {
+            "ca.crt": "-----BEGIN CERTIFICATE-----\nMIIC5zCCAc+gAwIBAgIBADANBgkqhkiG9w0BAQsFADAVMRMwEQYDVQQDEwprdWJl\ncm5ldGVzMB4XDTIxMTEyNTA5MDY1M1oXDTMxMTEyMzA5MDY1M1owFTETMBEGA1UE\nAxMKa3ViZXJuZXRlczCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALZe\n///crtcbesJIqqeGUREjsQ+LY7wRoaoZRIZ1PV4urGqPfvggRoZRBG2k+eOjfmla\nEwpahrXpVRJ7LVFXrOOqLxP2A1ciilB6oZUvlUZmKLJWwYF8Lw1Rybcz+5eEq1gT\n6VJhSz7xzIUYGb/DHcwULErVKLxe3ILD/lt26HmJVUd6l0FwzY5XCRkIpzcFZZnX\n1j0k3wEewt3ddnbdr1XX/Xnm9N/SPPAVM43MqrHm02I93cTvRf7ZtDbfPj6MNlsa\nKhUGoKhTlcqT4CfKqpxJygVpbb8/R/osJNcpNG9uv55B47+MxeAX/6np9fejiVma\nkpQXUp3V85yfFlxa1UcCAwEAAaNCMEAwDgYDVR0PAQH/BAQDAgKkMA8GA1UdEwEB\n/wQFMAMBAf8wHQYDVR0OBBYEFDQ5AewvCaCA4IfpkLVhblbroZYoMA0GCSqGSIb3\nDQEBCwUAA4IBAQBWhWPgcYd+8UhUxY+Jl+xFwepKNsUZCnGWzih64gtQyg2kHVyZ\n9+TqHvgIILnDH4ixrBwf8LAIjBpk4hqt051C8L70wtNvo57xmSZ/ir+zVJOBcBIh\nji6UwMn1XRI1GQwapBwsXdVN47yFlqG7IH+0FLNz2qKlGdMnIcOGsvdd+dMJ7C8y\na/y7/pQ/nI7P0l/eKHd2e3bhGZQx+nvTxGxbf0Yc19K5Rfd+bJMWn/iYtRz4+5+T\n62tBdY2X8L6utE9dGTCCiTpk33JoINRhheFc5O0dZc4JmxrtH/PymfofPt3a0YKQ\nOYrfPfUs6yE5Dhp/QbLh2cIZfnNZSnX7ameZ\n-----END CERTIFICATE-----\n"
+          }
+        }
+      ],
+      "secret": [
+        {
+          "metadata": {
+            "name": "default-token-ks9rs",
+            "namespace": "default",
+            "uid": "4a370fa4-1846-448b-a9f8-87ea17e92c6d",
+            "resourceVersion": "412",
+            "creationTimestamp": "2021-11-25T09:08:13Z",
+            "annotations": {
+              "kubernetes.io/service-account.name": "default",
+              "kubernetes.io/service-account.uid": "2c41ea39-f81d-4ed1-8056-c2abc7d7457d"
+            }
+          },
+          "data": {
+            "ca.crt": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUM1ekNDQWMrZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFWTVJNd0VRWURWUVFERXdwcmRXSmwKY201bGRHVnpNQjRYRFRJeE1URXlOVEE1TURZMU0xb1hEVE14TVRFeU16QTVNRFkxTTFvd0ZURVRNQkVHQTFVRQpBeE1LYTNWaVpYSnVaWFJsY3pDQ0FTSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnRVBBRENDQVFvQ2dnRUJBTFplCi8vL2NydGNiZXNKSXFxZUdVUkVqc1ErTFk3d1JvYW9aUklaMVBWNHVyR3FQZnZnZ1JvWlJCRzJrK2VPamZtbGEKRXdwYWhyWHBWUko3TFZGWHJPT3FMeFAyQTFjaWlsQjZvWlV2bFVabUtMSld3WUY4THcxUnliY3orNWVFcTFnVAo2VkpoU3o3eHpJVVlHYi9ESGN3VUxFclZLTHhlM0lMRC9sdDI2SG1KVlVkNmwwRnd6WTVYQ1JrSXB6Y0ZaWm5YCjFqMGszd0Vld3QzZGRuYmRyMVhYL1hubTlOL1NQUEFWTTQzTXFySG0wMkk5M2NUdlJmN1p0RGJmUGo2TU5sc2EKS2hVR29LaFRsY3FUNENmS3FweEp5Z1ZwYmI4L1Ivb3NKTmNwTkc5dXY1NUI0NytNeGVBWC82bnA5ZmVqaVZtYQprcFFYVXAzVjg1eWZGbHhhMVVjQ0F3RUFBYU5DTUVBd0RnWURWUjBQQVFIL0JBUURBZ0trTUE4R0ExVWRFd0VCCi93UUZNQU1CQWY4d0hRWURWUjBPQkJZRUZEUTVBZXd2Q2FDQTRJZnBrTFZoYmxicm9aWW9NQTBHQ1NxR1NJYjMKRFFFQkN3VUFBNElCQVFCV2hXUGdjWWQrOFVoVXhZK0psK3hGd2VwS05zVVpDbkdXemloNjRndFF5ZzJrSFZ5Wgo5K1RxSHZnSUlMbkRINGl4ckJ3ZjhMQUlqQnBrNGhxdDA1MUM4TDcwd3ROdm81N3htU1ovaXIrelZKT0JjQkloCmppNlV3TW4xWFJJMUdRd2FwQndzWGRWTjQ3eUZscUc3SUgrMEZMTnoycUtsR2RNbkljT0dzdmRkK2RNSjdDOHkKYS95Ny9wUS9uSTdQMGwvZUtIZDJlM2JoR1pReCtudlR4R3hiZjBZYzE5SzVSZmQrYkpNV24vaVl0Uno0KzUrVAo2MnRCZFkyWDhMNnV0RTlkR1RDQ2lUcGszM0pvSU5SaGhlRmM1TzBkWmM0Sm14cnRIL1B5bWZvZlB0M2EwWUtRCk9ZcmZQZlVzNnlFNURocC9RYkxoMmNJWmZuTlpTblg3YW1lWgotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==",
+            "namespace": "ZGVmYXVsdA==",
+            "token": "ZXlKaGJHY2lPaUpTVXpJMU5pSXNJbXRwWkNJNklsTkJSMDl2WkU5TWFuaEpSRVZNUWs1dVVqSmhRV0ZtZWtsYWRFVjRMVEl6VUVkRkxUQkpiM1IyVDI4aWZRLmV5SnBjM01pT2lKcmRXSmxjbTVsZEdWekwzTmxjblpwWTJWaFkyTnZkVzUwSWl3aWEzVmlaWEp1WlhSbGN5NXBieTl6WlhKMmFXTmxZV05qYjNWdWRDOXVZVzFsYzNCaFkyVWlPaUprWldaaGRXeDBJaXdpYTNWaVpYSnVaWFJsY3k1cGJ5OXpaWEoyYVdObFlXTmpiM1Z1ZEM5elpXTnlaWFF1Ym1GdFpTSTZJbVJsWm1GMWJIUXRkRzlyWlc0dGEzTTVjbk1pTENKcmRXSmxjbTVsZEdWekxtbHZMM05sY25acFkyVmhZMk52ZFc1MEwzTmxjblpwWTJVdFlXTmpiM1Z1ZEM1dVlXMWxJam9pWkdWbVlYVnNkQ0lzSW10MVltVnlibVYwWlhNdWFXOHZjMlZ5ZG1salpXRmpZMjkxYm5RdmMyVnlkbWxqWlMxaFkyTnZkVzUwTG5WcFpDSTZJakpqTkRGbFlUTTVMV1k0TVdRdE5HVmtNUzA0TURVMkxXTXlZV0pqTjJRM05EVTNaQ0lzSW5OMVlpSTZJbk41YzNSbGJUcHpaWEoyYVdObFlXTmpiM1Z1ZERwa1pXWmhkV3gwT21SbFptRjFiSFFpZlEuUkN3SkV4LWNzVVF5WDIyQ0hLMjVRWnd5eHB4bnVxS1ZrcEk1Ql9TaWJ6d09fQnJYV2lWU0wzZzdIY2Z3cTdYSXNqZl9QSWpiZy1sMW1COS1FM00tdG5fdW96cDFZcTZhWHEwXzBsYTJWNmVPYWd2Y3dGM0d2enB4aGQ5bHNaNlQxb1FObXhhN3A0WVJrSUN1U0FxN1hMOU9XZlEtYU1KYzlSUGxydnN2d1ZUTFVLeS1jcjNyNzhwNy1wdlhkWlJnOG1ZRFVsbkIwYXpHcUtXbFJqdnZEMWhPZ0tMcmZfZE9xYkp1RmZQUG1OUFlYQU91cEhGTEh0R01EVDFkTnh6N0FPQVZYcjlYTzc4aDZJMUdwWW5abmctWks2b1k2dVZKTm1FblBFVXNQSlA0UTdINVo0Vmx4QVdtdGRIdGtfdk9xaENpanRqcDRVUVViTnR1SWpPcDVn"
+          },
+          "type": "kubernetes.io/service-account-token"
+        }
+      ],
+      "service": [
+        {
+          "metadata": {
+            "name": "kubernetes",
+            "namespace": "default",
+            "uid": "9fa7297a-52a9-47fb-8dc9-df66121afb45",
+            "resourceVersion": "201",
+            "creationTimestamp": "2021-11-25T09:08:05Z",
+            "labels": {
+              "component": "apiserver",
+              "provider": "kubernetes"
+            }
+          },
+          "spec": {
+            "ports": [
+              {
+                "name": "https",
+                "protocol": "TCP",
+                "port": 443,
+                "targetPort": 6443
+              }
+            ],
+            "clusterIP": "10.96.0.1",
+            "clusterIPs": [
+              "10.96.0.1"
+            ],
+            "type": "ClusterIP",
+            "sessionAffinity": "None"
+          },
+          "status": {
+            "loadBalancer": {}
+          }
+        }
+      ],
+      "serviceAccount": [
+        {
+          "metadata": {
+            "name": "default",
+            "namespace": "default",
+            "uid": "2c41ea39-f81d-4ed1-8056-c2abc7d7457d",
+            "resourceVersion": "414",
+            "creationTimestamp": "2021-11-25T09:08:13Z"
+          },
+          "secrets": [
+            {
+              "name": "default-token-ks9rs"
+            }
+          ]
+        }
+      ],
+      "pvc": [
+        {
+          "metadata": {
+            "name": "island-pvc",
+            "namespace": "island-system",
+            "uid": "3e6f7dcb-646f-4f09-b2b2-39d8db0b414b",
+            "resourceVersion": "4320",
+            "creationTimestamp": "2021-11-25T06:20:37Z",
+            "annotations": {
+              "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"PersistentVolumeClaim\",\"metadata\":{\"annotations\":{},\"name\":\"island-pvc\",\"namespace\":\"island-system\"},\"spec\":{\"accessModes\":[\"ReadWriteOnce\"],\"resources\":{\"requests\":{\"storage\":\"5Gi\"}},\"storageClassName\":\"island-storage\"}}\n",
+              "pv.kubernetes.io/bind-completed": "yes",
+              "pv.kubernetes.io/bound-by-controller": "yes"
+            },
+            "finalizers": [
+              "kubernetes.io/pvc-protection"
+            ]
+          },
+          "spec": {
+            "accessModes": [
+              "ReadWriteOnce"
+            ],
+            "resources": {
+              "requests": {
+                "storage": "5Gi"
+              }
+            },
+            "volumeName": "island-pv",
+            "storageClassName": "island-storage",
+            "volumeMode": "Filesystem"
+          },
+          "status": {
+            "phase": "Bound",
+            "accessModes": [
+              "ReadWriteOnce"
+            ],
+            "capacity": {
+              "storage": "5Gi"
+            }
+          }
+        }
+      ],
+      "role": [{
+        "metadata": {
+          "name": "kubernetes-dashboard",
+          "namespace": "kubernetes-dashboard",
+          "uid": "23fef494-9575-46cb-b1a3-64530de45f55",
+          "resourceVersion": "4434600",
+          "creationTimestamp": "2021-12-15T07:22:07Z",
+          "labels": {
+            "k8s-app": "kubernetes-dashboard"
+          }
+        },
+        "rules": [{
+          "verbs": ["get", "update", "delete"],
+          "apiGroups": [""],
+          "resources": ["secrets"],
+          "resourceNames": ["kubernetes-dashboard-key-holder", "kubernetes-dashboard-certs", "kubernetes-dashboard-csrf"]
+        }, {
+          "verbs": ["get", "update"],
+          "apiGroups": [""],
+          "resources": ["configmaps"],
+          "resourceNames": ["kubernetes-dashboard-settings"]
+        }, {
+          "verbs": ["proxy"],
+          "apiGroups": [""],
+          "resources": ["services"],
+          "resourceNames": ["heapster", "dashboard-metrics-scraper"]
+        }, {
+          "verbs": ["get"],
+          "apiGroups": [""],
+          "resources": ["services/proxy"],
+          "resourceNames": ["heapster", "http:heapster:", "https:heapster:", "dashboard-metrics-scraper", "http:dashboard-metrics-scraper"]
+        }]
+      }],
+      "roleBinding": [{
+        "metadata": {
+          "name": "kubernetes-dashboard",
+          "namespace": "kubernetes-dashboard",
+          "uid": "49f6ab95-508f-40bf-8477-6542d44fd2d7",
+          "resourceVersion": "4434602",
+          "creationTimestamp": "2021-12-15T07:22:07Z",
+          "labels": {
+            "k8s-app": "kubernetes-dashboard"
+          }
+        },
+        "subjects": [{
+          "kind": "ServiceAccount",
+          "name": "kubernetes-dashboard",
+          "namespace": "kubernetes-dashboard"
+        }],
+        "roleRef": {
+          "apiGroup": "rbac.authorization.k8s.io",
+          "kind": "Role",
+          "name": "kubernetes-dashboard"
+        }
+      }]
+    }
+  }
+}

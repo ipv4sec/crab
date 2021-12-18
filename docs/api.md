@@ -5,9 +5,6 @@
 - [获取管理员信息](#获取管理员信息)
 - [修改管理员密码](#修改管理员密码)
 - [添加实例](#添加实例)
-- [实例列表](#实例列表)
-- [实例详情](#实例详情)
-- [实例日志](#实例日志)
 - [运行实例](#运行实例)
 - [删除实例](#删除实例)
 - [获取节点地址](#获取节点地址)
@@ -16,11 +13,32 @@
 - [设置工作负载源](#设置工作负载源)
 - [查询工作负载源](#查询工作负载源)
 
-- [流水线接口](#流水线接口)
+- [实例列表](#实例列表)
+- [实例详情](#实例详情)
+- [实例日志](#实例日志)
 
-- [查询实例状态](#查询实例状态)
-- [查询组件状态](#查询组件状态)
-- [设置组件状态](#设置组件状态)
+- [流水线接口](#流水线接口)
+- [Trait列表](#Trait列表)
+- [WorkloadType列表](#WorkloadType列表)
+- [WorkloadVendor列表](#WorkloadVendor列表)
+
+- [修改Trait](#修改Trait)
+- [修改WorkloadType](#修改WorkloadType)
+- [修改WorkloadVendor](#修改WorkloadVendor)
+
+- [删除Trait](#删除Trait)
+- [删除WorkloadType](#删除WorkloadType)
+- [删除WorkloadVendor](#删除WorkloadVendor)
+
+- [添加Trait](#添加Trait)
+- [添加WorkloadType](#添加WorkloadType)
+- [添加WorkloadVendor](#添加WorkloadVendor)
+
+- [SystemSpec默认值](#SystemSpec默认值)
+- [转换YAML到CUE](#转换YAML到CUE)
+- [检查CUE语法](#检查CUE语法)
+
+- [资源详情](#资源详情)
 
 
 
@@ -100,7 +118,7 @@ Content-Type: multipart/form-data;
 ### 请求参数
 |名称|说明|默认值|是否必填|
 |---|---|---|---|
-|file|实例描述文件（zip 包）|无|是|
+|file|实例描述文件（即manifest.yaml文件）|无|是|
 ### 返回值
 ```json
 {
@@ -185,7 +203,6 @@ GET /app?limit=<limit>&offset=<offset> HTTP/1.1
         "id": "ins1634971791",
         "name": "harbor",
         "version": "2.0.0",
-        "status": "未部署",
         "entry": "http://ins1634971791.example.com",
         "created_at": "2021-10-23T06:49:51.498Z",
         "updated_at": "2021-10-23T06:49:51.498Z"
@@ -210,46 +227,93 @@ GET /app/<id> HTTP/1.1
 |id| 实例主键 |无|是|
 
 ### 返回值
-```json
-{
-  "code": 0,
-  "result": {
-    "id": "ins1634971791",
-    "deployment": "可导出的部署信息, 前端将此字段信息保存为yaml文件后下载"
-  }
-}
-```
+
+[点击查看](app.json)
+
+
+cronJob展示的字段有:
+名称, 创建时间, 最后执行时间
+metadata.name, metadata.creationTimestamp, status.lastScheduleTime
+
+daemonSet展示的字段有:
+名称, 创建时间, 当前可用数
+metadata.name, metadata.creationTimestamp, status.numberAvailable
+
+deployment展示的字段有:
+名称, 创建时间, 当前可用数
+metadata.name, metadata.creationTimestamp, status.availableReplicas
+
+job展示的字段有:
+名称, 创建时间, 完成时间
+metadata.name, metadata.creationTimestamp, status.completionTime
+
+pod展示的字段有:
+名称, 创建时间, 状态, 启动时间
+metadata.name, metadata.creationTimestamp, status.phase, status.startTime
+
+replicaSet展示的字段有:
+名称, 创建时间, 当前可用数
+metadata.name, metadata.creationTimestamp, status.availableReplicas
+
+replicationController展示的字段有:
+名称, 创建时间, 当前副本数
+metadata.name, metadata.creationTimestamp, status.replicas
+
+statefulSet展示的字段有:
+名称, 创建时间, 当前副本数
+metadata.name, metadata.creationTimestamp, status.currentReplicas
+
+service展示的字段有:
+名称, 创建时间
+metadata.name, metadata.creationTimestamp
+
+configMap展示的字段有:
+名称, 创建时间
+metadata.name, metadata.creationTimestamp
+
+pvc展示的字段有:
+名称, 创建时间, 状态
+metadata.name, metadata.creationTimestamp, status.phase
+
+secret展示的字段有:
+名称, 创建时间
+metadata.name, metadata.creationTimestamp
+
+roleBinding展示的字段有:
+名称, 创建时间
+metadata.name, metadata.creationTimestamp
+
+role展示的字段有:
+名称, 创建时间
+metadata.name, metadata.creationTimestamp
+
+serviceAccount展示的字段有:
+名称, 创建时间
+metadata.name, metadata.creationTimestamp
 
 <a name="实例日志"></a>
 ## 实例日志
 ### 请求语法
 ```
-GET /app/<id>/status HTTP/1.1
+GET /app/<id>/logs HTTP/1.1
 ```
 ### 请求参数
 以下参数为URL PATH参数
 
 |名称|说明|默认值|是否必填|
 |---|---|---|---|
-|id| 实例主键 |无|是|
+|pod| 实例主键 |无|是|
 
 ### 返回值
 
-`result[].name` 组件名称, `result[].message` 组件日志
 
 ```json
 {
   "code": 0,
-  "result": [
-    {
-      "name": "cache",
-      "message": "春江潮水连海平，海上明月共潮生"
-    },
-    {
-      "name": "nginx",
-      "message": "滟滟随波千万里，何处春江无月明"
-    }
-  ]
+  "result": [{
+    "name": "POD名称",
+    "value": "春江潮水连海平，海上明月共潮生"
+  }]
 }
 ```
 
@@ -497,15 +561,22 @@ GET /cluster/mirror HTTP/1.1
 
 ### 请求语法
 ```
-PUT /deployment HTTP/1.1
+PUT /deployment/<id> HTTP/1.1
 Content-Type: multipart/form-data; 
 ```
 ### 请求参数
 
+以下参数为URL PATH参数
+
+|名称|说明|默认值|是否必填|
+|---|---|---|---|
+|id| 实例主键 |无|是|
+
+以下参数为BODY参数
+
 |名称|说明|默认值|是否必填|
 |---|---|---|---|
 |manifest|应用描述文件|无|是|
-|instance|应用配置文件|无|是|
 
 
 ### 返回值
@@ -516,97 +587,633 @@ Content-Type: multipart/form-data;
 }
 ```
 
-<a name="查询实例状态"></a>
-## 查询实例状态
 
-|  statusCode   | 意义  |
-|  ----  | ----  |
-| 0  | 正在部署中 |
-| 1  | 部署完成 |
-| 2  | 卸载中 |
-| 3  | 卸载完成 |
-
-
+<a name="Trait列表"></a>
+## Trait列表
 ### 请求语法
 ```
-GET /status/<id> HTTP/1.1
+GET /trait?limit=<limit>&offset=<offset> HTTP/1.1
 ```
 ### 请求参数
 以下参数为URL PATH参数
 
 |名称|说明|默认值|是否必填|
 |---|---|---|---|
-|id|应用实例 id|无|是|
+|offset| |0|否|
+|limit|  |10|否|
 
 ### 返回值
-```json
+
+type: 0 内置, 不可删除 1 可删除
+表头为: 主键, 名称, 版本, 值, 类型, 创建时间, 修改时间
+
+```
 {
-    "code": 0,
-    "result": 1
+  "code": 0,
+  "result": {
+    "rows": [
+      {
+        "id": 1, 主键
+        "name": "ingress",  名称
+        "apiVersion": "aam.globalsphare.com/v1alpha1", 版本
+        "value": "具体定义", 值
+        "type": 0, 类型
+        "created_at": "2021-10-23T06:49:51.498Z",
+        "updated_at": "2021-10-23T06:49:51.498Z"
+      }
+    ],
+    "total": 1
+  }
 }
 ```
 
-<a name="查询组件状态"></a>
-## 查询组件状态
 
+<a name="WorkloadType列表"></a>
+## WorkloadType列表
 ### 请求语法
 ```
-GET /status/<id>/<componentName> HTTP/1.1
+GET /workload/type?limit=<limit>&offset=<offset> HTTP/1.1
 ```
 ### 请求参数
 以下参数为URL PATH参数
 
 |名称|说明|默认值|是否必填|
 |---|---|---|---|
-|id|应用实例 id|无|是|
-|componentName|workload名称|无|是|
+|offset| |0|否|
+|limit|  |10|否|
 
 ### 返回值
+
+type: 0 内置, 不可删除 1 可删除
+
 ```json
 {
-    "code": 0,
-    "result": 1
+  "code": 0,
+  "result": {
+    "rows": [
+      {
+        "pk": 1,
+        "name": "worker",
+        "apiVersion": "aam.globalsphare.com/v1alpha1",
+        "value": "具体定义",
+        "type": 0,
+        "created_at": "2021-10-23T06:49:51.498Z",
+        "updated_at": "2021-10-23T06:49:51.498Z"
+      }
+    ],
+    "total": 1
+  }
 }
 ```
 
-<a name="设置组件状态"></a>
-## 设置组件状态
 
+<a name="WorkloadVendor列表"></a>
+## WorkloadVendor列表
 ### 请求语法
 ```
-PUT /status/<id>/<componentName>/<statusCode> HTTP/1.1
+GET /workload/vendor?limit=<limit>&offset=<offset> HTTP/1.1
 ```
 ### 请求参数
 以下参数为URL PATH参数
 
 |名称|说明|默认值|是否必填|
 |---|---|---|---|
-|id|应用实例 id|无|是|
-|componentName|workload名称|无|是|
-|statusCode|状态代码, 数字|无|是|
+|offset| |0|否|
+|limit|  |10|否|
 
-|  statusCode   | 意义  |
-|  ----  | ----  |
-| 0  | 部署失败 |
-| 1  | 部署成功 |
+### 返回值
+
+type: 0 内置, 不可删除 1 可删除
+
+```json
+{
+  "code": 0,
+  "result": {
+    "rows": [
+      {
+        "pk": 1,
+        "name": "webservice",
+        "apiVersion": "aam.globalsphare.com/v1alpha1",
+        "value": "具体定义",
+        "type": 0,
+        "created_at": "2021-10-23T06:49:51.498Z",
+        "updated_at": "2021-10-23T06:49:51.498Z"
+      }
+    ],
+    "total": 1
+  }
+}
+```
+
+<a name="修改Trait"></a>
+## 修改Trait
+### 请求语法
+```
+PUT /trait/<id> HTTP/1.1
+```
+### 请求参数
+以下参数为URL PATH参数
+
+|名称|说明|默认值|是否必填|
+|---|---|---|---|
+|id|主键|无|是|
 
 以下参数为BODY参数
 
 |名称|说明|默认值|是否必填|
 |---|---|---|---|
-|message|日志字符串|无|否|
-
-### 请求示例
-```json
-{
-  "message": "春江潮水连海平，海上明月共潮生"
-}
-```
+|value| 具体定义 |无|是|
 
 ### 返回值
 ```json
 {
     "code": 0,
-    "result": "设置组件状态成功"
+    "result": "修改成功"
+}
+```
+
+<a name="修改WorkloadType"></a>
+## 修改WorkloadType
+### 请求语法
+```
+PUT /workload/type/<id> HTTP/1.1
+```
+### 请求参数
+以下参数为URL PATH参数
+
+|名称|说明|默认值|是否必填|
+|---|---|---|---|
+|id|主键|无|是|
+
+以下参数为BODY参数
+
+|名称|说明|默认值|是否必填|
+|---|---|---|---|
+|value| 具体定义 |无|是|
+
+### 返回值
+```json
+{
+    "code": 0,
+    "result": "修改成功"
+}
+```
+
+
+<a name="修改WorkloadVendor"></a>
+## 修改WorkloadVendor
+### 请求语法
+```
+PUT /workload/vendor/<id> HTTP/1.1
+```
+### 请求参数
+以下参数为URL PATH参数
+
+|名称|说明|默认值|是否必填|
+|---|---|---|---|
+|id|主键|无|是|
+
+以下参数为BODY参数
+
+|名称|说明|默认值|是否必填|
+|---|---|---|---|
+|value| 具体定义 |无|是|
+
+### 返回值
+```json
+{
+    "code": 0,
+    "result": "修改成功"
+}
+```
+
+<a name="删除Trait"></a>
+## 删除Trait
+### 请求语法
+```
+DELETE /trait/<id> HTTP/1.1
+```
+### 请求参数
+以下参数为URL PATH参数
+
+|名称|说明|默认值|是否必填|
+|---|---|---|---|
+|id|主键|无|是|
+### 返回值
+```json
+{
+    "code": 0,
+    "result": "删除成功"
+}
+```
+
+<a name="删除WorkloadType"></a>
+## 删除WorkloadType
+### 请求语法
+```
+DELETE /workload/type/<id> HTTP/1.1
+```
+### 请求参数
+以下参数为URL PATH参数
+
+|名称|说明|默认值|是否必填|
+|---|---|---|---|
+|id| 主键|无|是|
+### 返回值
+```json
+{
+    "code": 0,
+    "result": "删除成功"
+}
+```
+
+<a name="删除WorkloadVendor"></a>
+## 删除WorkloadVendor
+### 请求语法
+```
+DELETE /workload/vendor/<id> HTTP/1.1
+```
+### 请求参数
+以下参数为URL PATH参数
+
+|名称|说明|默认值|是否必填|
+|---|---|---|---|
+|id| 主键|无|是|
+### 返回值
+```json
+{
+    "code": 0,
+    "result": "删除成功"
+}
+```
+
+
+<a name="SystemSpec默认值"></a>
+## SystemSpec默认值
+### 请求语法
+```
+GET /tool/systemTemplate HTTP/1.1
+```
+
+### 请求参数
+无
+
+### 返回值
+```json
+{
+    "code": 0,
+    "result": "模板的内容"
+}
+```
+
+<a name="添加Trait"></a>
+## 添加Trait
+### 请求语法
+```
+POST /trait HTTP/1.1 
+```
+### 请求参数
+
+```json
+{
+  "value": "具体的yaml"
+}
+
+```
+
+
+### 返回值
+```json
+{
+  "code": 0,
+  "result": "创建成功"
+}
+```
+
+
+<a name="添加WorkloadType"></a>
+## 添加WorkloadType
+### 请求语法
+```
+POST /workload/type HTTP/1.1 
+```
+### 请求参数
+
+```json
+{
+  "value": "具体的yaml"
+}
+
+```
+
+
+### 返回值
+```json
+{
+  "code": 0,
+  "result": "创建成功"
+}
+```
+
+<a name="添加WorkloadVendor"></a>
+## 添加WorkloadVendor
+### 请求语法
+```
+POST /workload/vendor HTTP/1.1 
+```
+### 请求参数
+
+```json
+{
+  "value": "具体的yaml"
+}
+
+```
+
+
+### 返回值
+```json
+{
+  "code": 0,
+  "result": "创建成功"
+}
+```
+
+
+<a name="转换YAML到CUE"></a>
+## 转换YAML到CUE
+### 请求语法
+```
+POST /tool/convertion HTTP/1.1 
+```
+### 请求参数
+
+```json
+{
+  "value": "具体的yaml"
+}
+
+```
+
+
+### 返回值
+```json
+{
+  "code": 0,
+  "result": "翻译后的CUE模板"
+}
+```
+
+
+
+<a name="检查CUE语法"></a>
+## 检查CUE语法
+### 请求语法
+```
+POST /tool/spelling HTTP/1.1 
+```
+### 请求参数
+
+```json
+{
+  "value": "具体的CUE模板"
+}
+
+```
+
+
+### 返回值
+
+```json
+{
+  "code": 0,
+  "result": "检查的结果, 前端无论拿到什么都直接显示就好"
+}
+```
+
+
+<a name="资源详情"></a>
+## 资源详情
+### 请求语法
+```
+GET /resource/<instanceId>/<resourceType>/<resourceName> HTTP/1.1 
+```
+### 请求参数
+
+instanceId为实例ID
+
+resourceType的值可能为
+```
+cronJob
+daemonSet
+deployment
+job
+pod
+replicaSet
+replicationController
+statefulSet
+service
+configMap
+pvc
+secret
+roleBinding
+role
+serviceAccount
+```
+
+resourceName的值为[实例详情]接口返回的result.details.<resourceType>.metadata.name的值
+
+
+
+### 返回值
+
+在详情中, cronJob展示的字段有:
+名称, 创建时间, 最后执行时间
+metadata.name, metadata.creationTimestamp, status.lastScheduleTime
+
+在详情中, daemonSet展示的字段有:
+名称, 创建时间, 当前可用数
+metadata.name, metadata.creationTimestamp, status.numberAvailable
+
+在详情中, deployment展示的字段有:
+名称, 创建时间, 当前可用数
+metadata.name, metadata.creationTimestamp, status.availableReplicas
+
+在详情中, job展示的字段有:
+名称, 创建时间, 完成时间
+metadata.name, metadata.creationTimestamp, status.completionTime
+
+在详情中, pod展示的字段有:
+名称, 创建时间, 状态, 启动时间
+metadata.name, metadata.creationTimestamp, status.phase, status.startTime
+
+在详情中, replicaSet展示的字段有:
+名称, 创建时间, 当前可用数
+metadata.name, metadata.creationTimestamp, status.availableReplicas
+
+在详情中, replicationController展示的字段有:
+名称, 创建时间, 当前副本数
+metadata.name, metadata.creationTimestamp, status.replicas
+
+在详情中, statefulSet展示的字段有:
+名称, 创建时间, 当前副本数
+metadata.name, metadata.creationTimestamp, status.currentReplicas
+
+在详情中, service展示的字段有:
+名称, 创建时间
+metadata.name, metadata.creationTimestamp
+
+在详情中, configMap展示的字段有:
+名称, 创建时间
+metadata.name, metadata.creationTimestamp
+
+在详情中, pvc展示的字段有:
+名称, 创建时间, 状态
+metadata.name, metadata.creationTimestamp, status.phase
+
+在详情中, secret展示的字段有:
+名称, 创建时间
+metadata.name, metadata.creationTimestamp
+
+在详情中, roleBinding展示的字段有:
+名称, 创建时间
+metadata.name, metadata.creationTimestamp
+
+在详情中, role展示的字段有:
+名称, 创建时间
+metadata.name, metadata.creationTimestamp
+
+在详情中, serviceAccount展示的字段有:
+名称, 创建时间
+metadata.name, metadata.creationTimestamp
+
+
+
+每种resourceType的返回值请看 [实例详情] 接口, 下面样例是service的返回
+```json
+{
+  "code": 0,
+  "result": {
+    "metadata": {
+      "name": "crab",
+      "namespace": "island-system",
+      "uid": "d0e95583-15ca-4198-8dfa-68836f509c19",
+      "resourceVersion": "4684705",
+      "creationTimestamp": "2021-12-16T10:12:19Z",
+      "annotations": {
+        "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"name\":\"crab\",\"namespace\":\"island-system\"},\"spec\":{\"ports\":[{\"port\":80,\"targetPort\":3000}],\"selector\":{\"app\":\"island\",\"component\":\"ui\"},\"type\":\"NodePort\"}}\n"
+      }
+    },
+    "spec": {
+      "ports": [{
+        "protocol": "TCP",
+        "port": 80,
+        "targetPort": 3000,
+        "nodePort": 31997
+      }],
+      "selector": {
+        "app": "island",
+        "component": "ui"
+      },
+      "clusterIP": "10.108.64.173",
+      "clusterIPs": ["10.108.64.173"],
+      "type": "NodePort",
+      "sessionAffinity": "None",
+      "externalTrafficPolicy": "Cluster"
+    },
+    "status": {
+      "loadBalancer": {}
+    }
+  }
+}
+```
+
+
+<a name="Trait详情"></a>
+## Trait详情
+### 请求语法
+```
+GET /trait/<IdorName> HTTP/1.1
+```
+### 请求参数
+以下参数为URL PATH参数
+
+|名称|说明|默认值|是否必填|
+|---|---|---|---|
+|IdorName| 主键或名称(名称唯一) |无|是|
+
+### 返回值
+```json
+{
+    "code": 0,
+    "result": {
+        "id": 1,
+        "name": "ingress",
+        "apiVersion": "aam.globalsphare.com/v1alpha1",
+        "value": "\napiVersion: aam.globalsphare.com/v1alpha1\nkind: Trait\nmetadata:\n    name: ingssssress\nspec:\n    parameter: |\n",
+        "type": 1,
+        "created_at": "2021-12-16T15:48:48.129+08:00",
+        "updated_at": "2021-12-16T16:06:19.228+08:00"
+    }
+}
+```
+
+
+<a name="WorkloadType详情"></a>
+## WorkloadType详情
+### 请求语法
+```
+GET /workload/type/<IdorName> HTTP/1.1
+```
+### 请求参数
+以下参数为URL PATH参数
+
+|名称|说明|默认值|是否必填|
+|---|---|---|---|
+|IdorName| 主键或名称(名称唯一) |无|是|
+
+### 返回值
+```json
+{
+    "code": 0,
+    "result": {
+        "id": 1,
+        "name": "ingress",
+        "apiVersion": "aam.globalsphare.com/v1alpha1",
+        "value": "\napiVersion: aam.globalsphare.com/v1alpha1\nkind: Trait\nmetadata:\n    name: ingssssress\nspec:\n    parameter: |\n",
+        "type": 1,
+        "created_at": "2021-12-16T15:48:48.129+08:00",
+        "updated_at": "2021-12-16T16:06:19.228+08:00"
+    }
+}
+```
+
+
+<a name="WorkloadVendor详情"></a>
+## WorkloadVendor详情
+### 请求语法
+```
+GET /workload/vendor/<IdorName> HTTP/1.1
+```
+### 请求参数
+以下参数为URL PATH参数
+
+|名称|说明|默认值|是否必填|
+|---|---|---|---|
+|IdorName| 主键或名称(名称唯一) |无|是|
+
+### 返回值
+```json
+{
+    "code": 0,
+    "result": {
+        "id": 1,
+        "name": "ingress",
+        "apiVersion": "aam.globalsphare.com/v1alpha1",
+        "value": "\napiVersion: aam.globalsphare.com/v1alpha1\nkind: Trait\nmetadata:\n    name: ingssssress\nspec:\n    parameter: |\n",
+        "type": 1,
+        "created_at": "2021-12-16T15:48:48.129+08:00",
+        "updated_at": "2021-12-16T16:06:19.228+08:00"
+    }
 }
 ```
