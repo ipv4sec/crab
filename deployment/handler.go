@@ -1,26 +1,28 @@
 package deployment
 
 import (
-	"context"
 	"crab/aam/v1alpha1"
-	"crab/cluster"
+	app2 "crab/app"
 	"crab/db"
+	"crab/exec"
 	"crab/provider"
 	"crab/utils"
+	"encoding/json"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog/v2"
+	"time"
+)
+
+var (
+	executor = exec.CommandExecutor{}
 )
 
 func PutDeploymentHandlerFunc(c *gin.Context) {
+	id := c.Param("id")
 	manifestFileHeader, err := c.FormFile("manifest")
-	if err != nil {
-		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "接收文件错误"))
-		return
-	}
-	instanceFileHeader, err := c.FormFile("instance")
 	if err != nil {
 		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "接收文件错误"))
 		return
@@ -36,17 +38,6 @@ func PutDeploymentHandlerFunc(c *gin.Context) {
 		return
 	}
 
-	instanceFile, err := instanceFileHeader.Open()
-	if err != nil {
-		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "打开文件错误"))
-		return
-	}
-	instanceBytes, err := ioutil.ReadAll(instanceFile)
-	if err != nil {
-		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "读取文件错误"))
-		return
-	}
-
 	var manifest v1alpha1.Application
 	err = yaml.Unmarshal(manifestBytes, &manifest)
 	if err != nil {
@@ -55,48 +46,53 @@ func PutDeploymentHandlerFunc(c *gin.Context) {
 		return
 	}
 
-	var instance Deployment
-	err = yaml.Unmarshal(instanceBytes, &instance)
+	var app app2.App
+	err = db.Client.Where("id = ?", id).Find(&app).Error
 	if err != nil {
-		klog.Errorln("解析描述文件错误:", err.Error())
-		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "解析描述文件错误"))
+		klog.Errorln("数据库查询错误:", err.Error())
+		c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseInternalServer, "该实例不存在"))
 		return
 	}
 
-	island, err := cluster.Client.Clientset.CoreV1().ConfigMaps("island-system").
-		Get(context.Background(), "island-info", metav1.GetOptions{})
-	if err != nil {
-		klog.Errorln("获取根域失败", err.Error())
-		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "获取根域失败"))
-		return
+	var vals []struct{
+		Name string `json:"name"`
+
+		ID string `json:"id"`
+		Location string `json:"location"`
+
+		EntryService string
 	}
-	mirror, _ := island.Data["mirror"]
-	savedMirrorPath := "/usr/local/workloads/"
-	err = utils.InitRepo(savedMirrorPath, mirror)
+	err = json.Unmarshal([]byte(app.Additional), &vals)
 	if err != nil {
-		klog.Errorln("更新工作负载错误:", err.Error())
+		klog.Errorln("序列化依赖失败", err.Error())
 	}
-	val, err := provider.Yaml(string(manifestBytes), instance.ID, instance.Domain, instance.Configurations,
-		provider.ConvertToDependency(instance.Dependencies), savedMirrorPath)
+	var parameters interface{}
+	err = json.Unmarshal([]byte(app.Parameters), &parameters)
+	if err != nil {
+		klog.Errorln("序列化运行时配置失败", err.Error())
+		parameters = ""
+	}
+
+	val, err := provider.Yaml(string(manifestBytes), app.ID, app.Entry, parameters, provider.ConvertToDependency(vals))
 	if err != nil {
 		klog.Errorln("连接到翻译器错误:", err.Error())
 		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "连接到翻译器错误"))
 		return
 	}
-	// TODO
-	err = db.Client.Table("t_app").Where("id = ?", instance.ID).Updates(map[string]interface{}{
-		"status": 2}).Error
+	klog.Infoln("要执行的文件内容为:", val)
+	timeNow := time.Now().Unix()
+	saved := fmt.Sprintf("/tmp/%v.yaml", timeNow)
+	err = ioutil.WriteFile(saved, []byte(val),0777)
 	if err != nil {
-		klog.Errorln("数据库更新错误:", err.Error())
-		c.JSON(200, utils.ErrorResponse(0, "更新状态错误"))
-		return
+		klog.Errorln("保存文件错误", saved, err.Error())
+		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "保存文件错误"))
 	}
-
-	err = provider.Exec(instance.ID, val)
+	command := fmt.Sprintf("/usr/local/bin/kubectl apply -f %s", saved)
+	output, err := executor.ExecuteCommandWithCombinedOutput("bash", "-c", command)
 	if err != nil {
-		klog.Errorln("调度器执行失败:", err.Error())
-		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "更新状态错误"))
-		return
+		klog.Errorln("执行命令错误", err.Error())
+		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "执行命令错误"))
 	}
+	klog.Infoln("执行命令结果:", output)
 	c.JSON(200, utils.SuccessResponse("部署成功"))
 }
