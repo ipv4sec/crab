@@ -136,8 +136,18 @@ func DeleteTraitHandlerFunc(c *gin.Context) {
 		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "参数错误"))
 		return
 	}
-	// todo 不能删除内置
-	err := db.Client.Delete(&Trait{}, id).Error
+	var val Trait
+	err := db.Client.Where("id = ?", id).Find(&val).Error
+	if err != nil {
+		klog.Errorln("数据库查询错误:", err.Error())
+		c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseBadRequest, "该资源不存在"))
+		return
+	}
+	if val.Type == 0 {
+		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "该资源无法删除"))
+		return
+	}
+	err = db.Client.Delete(&Trait{}, id).Error
 	if err != nil {
 		klog.Errorln("删除错误", err.Error())
 		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "删除错误"))

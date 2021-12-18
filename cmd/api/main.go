@@ -7,7 +7,6 @@ import (
 	"crab/db"
 	"crab/deployment"
 	"crab/domain"
-	"crab/mirror"
 	"crab/tool"
 	"crab/trait"
 	"crab/user"
@@ -45,34 +44,29 @@ func main() {
 		panic(err)
 	}
 
-	//klog.Infoln("开始集群认证")
-	//err = cluster.Init()
-	//if err != nil {
-	//	panic(fmt.Errorf("获取集群认证失败: %w", err))
-	//}
-	//klog.Infoln("集群认证成功")
+	klog.Infoln("开始集群认证")
+	err = cluster.Init()
+	if err != nil {
+		panic(fmt.Errorf("获取集群认证失败: %w", err))
+	}
 
 	klog.Infoln("开始提供服务")
 	gin.SetMode(gin.ReleaseMode)
 	routers := gin.Default()
-	routers.GET("/", func(c *gin.Context) {
-		c.String(200, "crab")
-	})
 
 	routers.GET("/user/:username", user.GetUserHandlerFunc)
 	routers.PUT("/user/:username", user.PutUserHandlerFunc)
 
 	routers.POST("/app", app.PostAppHandlerFunc)
 	routers.GET("/app", app.GetAppsHandlerFunc)
-	routers.GET("/app/:id", app.GetAppHandlerFunc) // TODO
+	routers.GET("/app/:id", app.GetAppHandlerFunc)
 	routers.PUT("/app/:id", app.PutAppHandlerFunc)
 	routers.DELETE("/app/:id", app.DeleteAppHandlerFunc)
 
+	routers.GET("/app/:id/logs", app.GetPodLogsHandlerFunc)
+
 	routers.GET("/cluster/domain", domain.GetDomainHandlerFunc)
 	routers.PUT("/cluster/domain", domain.PutDomainHandlerFunc)
-
-	routers.GET("/cluster/mirror", mirror.GetMirrorHandlerFunc)
-	routers.PUT("/cluster/mirror", mirror.PutMirrorHandlerFunc)
 
 	routers.PUT("/deployment/:id", deployment.PutDeploymentHandlerFunc)
 
@@ -99,8 +93,6 @@ func main() {
 	routers.POST("/tool/systemTemplate", tool.GetTemplateHandlerFunc)
 
 	routers.GET("/resource/:namespace/:resourceType/:resourceName", cluster.GetResourceHandlerFunc)
-
-
 
 	err = routers.Run("0.0.0.0:3000")
 	if err != nil {

@@ -1,6 +1,7 @@
 package app
 
 import (
+	"bytes"
 	"context"
 	"crab/aam/v1alpha1"
 	"crab/cluster"
@@ -13,7 +14,9 @@ import (
 	"github.com/blang/semver/v4"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/yaml.v3"
+	"io"
 	"io/ioutil"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog/v2"
 	"strconv"
@@ -116,7 +119,7 @@ func GetAppHandlerFunc(c *gin.Context) {
 
 	v := map[string] interface{}{}
 
-	cronJob, err := cluster.Client.Clientset.BatchV1().CronJobs(id).List(context.Background(), metav1.ListOptions{})
+	cronJob, err := cluster.Client.Clientset.BatchV1beta1().CronJobs(id).List(context.Background(), metav1.ListOptions{})
 	if err == nil {
 		v["cronJob"] = cronJob.Items
 	}
@@ -236,8 +239,16 @@ func PostAppHandlerFunc(c *gin.Context) {
 	if err != nil {
 		klog.Errorln("序列化依赖字段错误:", err.Error())
 	}
-	id := fmt.Sprintf("ins%v", time.Now().Unix())
+	island, err := cluster.Client.Clientset.CoreV1().ConfigMaps("island-system").
+		Get(context.Background(), "island-info", metav1.GetOptions{})
+	if err != nil {
+		klog.Errorln("获取根域失败", err.Error())
+		c.JSON(200, utils.ErrorResponse(utils.ErrClusterInternalServer, "获取根域失败"))
+		return
+	}
+	v, _ := island.Data["root-domain"]
 
+	id := fmt.Sprintf("ins%v", time.Now().Unix())
 	app := App{
 		ID:    id ,
 
@@ -247,7 +258,7 @@ func PostAppHandlerFunc(c *gin.Context) {
 		Dependencies:  string(dependenciesBytes),
 
 		Manifest: string(bytes),
-		Entry: "", // TODO
+		Entry: fmt.Sprintf("%s.%s", id, v),
 
 		Additional: "",
 		Parameters: "",
@@ -336,15 +347,6 @@ func PutAppHandlerFunc(c *gin.Context) {
 		return
 	}
 	if param.Status == 1 {
-		island, err := cluster.Client.Clientset.CoreV1().ConfigMaps("island-system").
-			Get(context.Background(), "island-info", metav1.GetOptions{})
-		if err != nil {
-			klog.Errorln("获取根域失败", err.Error())
-			c.JSON(200, utils.ErrorResponse(utils.ErrClusterInternalServer, "获取根域失败"))
-			return
-		}
-		v, _ := island.Data["root-domain"]
-
 		for i := 0; i < len(param.Dependencies); i++ {
 			if param.Dependencies[i].ID != "" {
 				var a App
@@ -360,21 +362,15 @@ func PutAppHandlerFunc(c *gin.Context) {
 					continue
 				}
 				for j := 0; j < len(manifest.Spec.Workloads); j++ {
-					if utils.ContainsTrait(manifest.Spec.Workloads[j].Traits, "globalsphare.com/v1alpha1/trait/ingress") {
+					if utils.ContainsTrait(manifest.Spec.Workloads[j].Traits, "ingress") {
 						param.Dependencies[i].EntryService = manifest.Spec.Workloads[j].Name
 					}
 				}
 			}
 		}
 
-		mirror, _ := island.Data["mirror"]
-		savedMirrorPath := "/usr/local/workloads/"
-		err = utils.InitRepo(savedMirrorPath, mirror)
-		if err != nil {
-			klog.Errorln("更新工作负载错误:", err.Error())
-		}
-		val, err := provider.Yaml(app.Manifest, app.ID, v, param.Configurations,
-			provider.ConvertToDependency(param.Dependencies), savedMirrorPath)
+		val, err := provider.Yaml(app.Manifest, app.ID, app.Entry, param.Configurations,
+			provider.ConvertToDependency(param.Dependencies))
 		if err != nil {
 			klog.Errorln("连接到翻译器错误:", err.Error())
 			c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "连接到翻译器错误"))
@@ -392,7 +388,7 @@ func PutAppHandlerFunc(c *gin.Context) {
 		}
 
 		err = db.Client.Model(App{}).Where("pk = ?", app.PK).Updates(map[string]interface{}{
-			"status": 1, "deployment": val, "parameters": string(parameters), "additional": additional}).Error
+			"deployment": val, "parameters": string(parameters), "additional": additional}).Error
 		if err != nil {
 			klog.Errorln("数据库更新错误:", err.Error())
 			c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseInternalServer, "更新状态错误"))
@@ -449,3 +445,47 @@ func DeleteAppHandlerFunc(c *gin.Context) {
 	klog.Infoln("执行命令结果:", output)
 	c.JSON(200, utils.SuccessResponse("删除完成"))
 }
+
+func GetPodLogsHandlerFunc(c *gin.Context) {
+	id := c.Param("id")
+	pods, err := cluster.Client.Clientset.CoreV1().Pods(id).List(context.Background(), metav1.ListOptions{})
+	if err != nil {
+
+	}
+	type Logs struct {
+		Name string `json:"name"`
+		Value string `json:"value"`
+	}
+	var result []Logs
+	for i := 0; i < len(pods.Items); i++ {
+		logs, err := GetPodLogs(id, pods.Items[i].Name)
+		if err != nil {
+			klog.Errorln("")
+			continue
+		}
+		result = append(result, Logs{
+			Name:  pods.Items[i].Name,
+			Value: logs,
+		})
+	}
+	c.JSON(200, utils.SuccessResponse(result))
+}
+
+func GetPodLogs(ns, name string) (string, error) {
+	req := cluster.Client.Clientset.CoreV1().Pods(ns).GetLogs(name, &v1.PodLogOptions{})
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second * 5)
+	defer cancel()
+	podLogs, err := req.Stream(ctx)
+	if err != nil {
+		return "", err
+	}
+	defer podLogs.Close()
+
+	buf := new(bytes.Buffer)
+	_, err = io.Copy(buf, podLogs)
+	if err != nil {
+		return "", err
+	}
+	return buf.String(), nil
+}
+

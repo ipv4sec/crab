@@ -8,21 +8,19 @@ import (
 	"k8s.io/klog/v2"
 )
 
-func Yaml(manifest, uuid, domain string, config interface{}, dependencies Dependencies, savedMirrorPath string) (string, error) {
+func Yaml(manifest, uuid, entry string, config interface{}, dependencies Dependencies) (string, error) {
 	v, err := json.Marshal(struct {
 		Content string `json:"Content"`
 		ID string `json:"InstanceId"`
 		Configurations interface{} `json:"UserConfig"`
 		Dependencies Dependencies `json:"Dependencies"`
-		RootDomain string `json:"RootDomain"`
-		WorkloadPath string
+		Host string `json:"Host"`
 	}{
 		Content: manifest,
 		ID: uuid,
 		Configurations: config,
 		Dependencies: dependencies,
-		RootDomain: domain,
-		WorkloadPath: savedMirrorPath,
+		Host: entry,
 	})
 	if err != nil {
 		return "", fmt.Errorf("序列化参数错误:%w", err)

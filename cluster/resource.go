@@ -16,7 +16,7 @@ func GetResourceHandlerFunc(c *gin.Context) {
 	var err error
 	switch resourceType {
 	case "cronJob":
-		v, err = Client.Clientset.BatchV1().CronJobs(namespace).Get(context.Background(), resourceName, metav1.GetOptions{})
+		v, err = Client.Clientset.BatchV1beta1().CronJobs(namespace).Get(context.Background(), resourceName, metav1.GetOptions{})
 	case "daemonSet":
 		v, err = Client.Clientset.AppsV1().DaemonSets(namespace).Get(context.Background(), resourceName, metav1.GetOptions{})
 	case "deployment":
@@ -53,3 +53,4 @@ func GetResourceHandlerFunc(c *gin.Context) {
 	}
 	c.JSON(200, utils.SuccessResponse(v))
 }
+

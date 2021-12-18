@@ -228,167 +228,81 @@ GET /app/<id> HTTP/1.1
 
 ### 返回值
 
-只循环result.pods里的metadata.name即可, 其他字段等开发的时候给出
+[点击查看](app.json)
 
-```json
-{
-  "code": 0,
-  "result": {
-    "id": "ins1634971791",
-    "deployment": "[导出K8S描述文件], 前端将此字段信息保存为yaml文件后下载",
-    "details": {
-      "cronJob": [{
-        "metadata": {
-          "name": "charlie-ndgfb"
-        }
-      },{
-        "metadata": {
-          "name": "charlie-ndgfb"
-        }
-      }],
-      "daemonSet": [{
-        "metadata": {
-          "name": "charlie-ndgfb"
-        }
-      },{
-        "metadata": {
-          "name": "charlie-ndgfb"
-        }
-      }],
-      "deployment": [{
-        "metadata": {
-          "name": "charlie-ndgfb"
-        }
-      },{
-        "metadata": {
-          "name": "charlie-ndgfb"
-        }
-      }],
-      "job": [{
-        "metadata": {
-          "name": "charlie-ndgfb"
-        }
-      },{
-        "metadata": {
-          "name": "charlie-ndgfb"
-        }
-      }],
-      "pod": [{
-        "metadata": {
-          "name": "charlie-ndgfb"
-        }
-      },{
-        "metadata": {
-          "name": "charlie-ndgfb"
-        }
-      }],
-      "replicaSet": [{
-        "metadata": {
-          "name": "charlie-ndgfb"
-        }
-      },{
-        "metadata": {
-          "name": "charlie-ndgfb"
-        }
-      }],
-      "replicationController": [{
-        "metadata": {
-          "name": "charlie-ndgfb"
-        }
-      },{
-        "metadata": {
-          "name": "charlie-ndgfb"
-        }
-      }],
-      "statefulSet": [{
-        "metadata": {
-          "name": "charlie-ndgfb"
-        }
-      },{
-        "metadata": {
-          "name": "charlie-ndgfb"
-        }
-      }],
-      "service": [{
-        "metadata": {
-          "name": "charlie-ndgfb"
-        }
-      },{
-        "metadata": {
-          "name": "charlie-ndgfb"
-        }
-      }],
-      "configMap": [{
-        "metadata": {
-          "name": "charlie-ndgfb"
-        }
-      },{
-        "metadata": {
-          "name": "charlie-ndgfb"
-        }
-      }],
-      "pvc": [{
-        "metadata": {
-          "name": "charlie-ndgfb"
-        }
-      },{
-        "metadata": {
-          "name": "charlie-ndgfb"
-        }
-      }],
-      "secret": [{
-        "metadata": {
-          "name": "charlie-ndgfb"
-        }
-      },{
-        "metadata": {
-          "name": "charlie-ndgfb"
-        }
-      }],
-      "roleBinding": [{
-        "metadata": {
-          "name": "charlie-ndgfb"
-        }
-      },{
-        "metadata": {
-          "name": "charlie-ndgfb"
-        }
-      }],
-      "role": [{
-        "metadata": {
-          "name": "charlie-ndgfb"
-        }
-      },{
-        "metadata": {
-          "name": "charlie-ndgfb"
-        }
-      }],
-      "serviceAccount": [{
-        "metadata": {
-          "name": "charlie-ndgfb"
-        }
-      },{
-        "metadata": {
-          "name": "charlie-ndgfb"
-        }
-      }]
-    }
-  }
-}
-```
+
+cronJob展示的字段有:
+名称, 创建时间, 最后执行时间
+metadata.name, metadata.creationTimestamp, status.lastScheduleTime
+
+daemonSet展示的字段有:
+名称, 创建时间, 当前可用数
+metadata.name, metadata.creationTimestamp, status.numberAvailable
+
+deployment展示的字段有:
+名称, 创建时间, 当前可用数
+metadata.name, metadata.creationTimestamp, status.availableReplicas
+
+job展示的字段有:
+名称, 创建时间, 完成时间
+metadata.name, metadata.creationTimestamp, status.completionTime
+
+pod展示的字段有:
+名称, 创建时间, 状态, 启动时间
+metadata.name, metadata.creationTimestamp, status.phase, status.startTime
+
+replicaSet展示的字段有:
+名称, 创建时间, 当前可用数
+metadata.name, metadata.creationTimestamp, status.availableReplicas
+
+replicationController展示的字段有:
+名称, 创建时间, 当前副本数
+metadata.name, metadata.creationTimestamp, status.replicas
+
+statefulSet展示的字段有:
+名称, 创建时间, 当前副本数
+metadata.name, metadata.creationTimestamp, status.currentReplicas
+
+service展示的字段有:
+名称, 创建时间
+metadata.name, metadata.creationTimestamp
+
+configMap展示的字段有:
+名称, 创建时间
+metadata.name, metadata.creationTimestamp
+
+pvc展示的字段有:
+名称, 创建时间, 状态
+metadata.name, metadata.creationTimestamp, status.phase
+
+secret展示的字段有:
+名称, 创建时间
+metadata.name, metadata.creationTimestamp
+
+roleBinding展示的字段有:
+名称, 创建时间
+metadata.name, metadata.creationTimestamp
+
+role展示的字段有:
+名称, 创建时间
+metadata.name, metadata.creationTimestamp
+
+serviceAccount展示的字段有:
+名称, 创建时间
+metadata.name, metadata.creationTimestamp
 
 <a name="实例日志"></a>
 ## 实例日志
 ### 请求语法
 ```
-GET /app/<pod>/logs HTTP/1.1
+GET /app/<id>/logs HTTP/1.1
 ```
 ### 请求参数
 以下参数为URL PATH参数
 
 |名称|说明|默认值|是否必填|
 |---|---|---|---|
-|pod| pod名称, 即[实例详情]接口返回中result.details.pod.metadata.name的值 |无|是|
+|pod| 实例主键 |无|是|
 
 ### 返回值
 
@@ -396,7 +310,10 @@ GET /app/<pod>/logs HTTP/1.1
 ```json
 {
   "code": 0,
-  "result": "春江潮水连海平，海上明月共潮生"
+  "result": [{
+    "name": "POD名称",
+    "value": "春江潮水连海平，海上明月共潮生"
+  }]
 }
 ```
 
@@ -1110,7 +1027,70 @@ resourceName的值为[实例详情]接口返回的result.details.<resourceType>.
 
 ### 返回值
 
-还未定义
+每种resourceType的返回值请看 [实例详情] 接口, 下面样例是service的返回
+
+在详情中, cronJob展示的字段有:
+名称, 创建时间, 最后执行时间
+metadata.name, metadata.creationTimestamp, status.lastScheduleTime
+
+在详情中, daemonSet展示的字段有:
+名称, 创建时间, 当前可用数
+metadata.name, metadata.creationTimestamp, status.numberAvailable
+
+在详情中, deployment展示的字段有:
+名称, 创建时间, 当前可用数
+metadata.name, metadata.creationTimestamp, status.availableReplicas
+
+在详情中, job展示的字段有:
+名称, 创建时间, 完成时间
+metadata.name, metadata.creationTimestamp, status.completionTime
+
+在详情中, pod展示的字段有:
+名称, 创建时间, 状态, 启动时间
+metadata.name, metadata.creationTimestamp, status.phase, status.startTime
+
+在详情中, replicaSet展示的字段有:
+名称, 创建时间, 当前可用数
+metadata.name, metadata.creationTimestamp, status.availableReplicas
+
+在详情中, replicationController展示的字段有:
+名称, 创建时间, 当前副本数
+metadata.name, metadata.creationTimestamp, status.replicas
+
+在详情中, statefulSet展示的字段有:
+名称, 创建时间, 当前副本数
+metadata.name, metadata.creationTimestamp, status.currentReplicas
+
+在详情中, service展示的字段有:
+名称, 创建时间
+metadata.name, metadata.creationTimestamp
+
+在详情中, configMap展示的字段有:
+名称, 创建时间
+metadata.name, metadata.creationTimestamp
+
+在详情中, pvc展示的字段有:
+名称, 创建时间, 状态
+metadata.name, metadata.creationTimestamp, status.phase
+
+在详情中, secret展示的字段有:
+名称, 创建时间
+metadata.name, metadata.creationTimestamp
+
+在详情中, roleBinding展示的字段有:
+名称, 创建时间
+metadata.name, metadata.creationTimestamp
+
+在详情中, role展示的字段有:
+名称, 创建时间
+metadata.name, metadata.creationTimestamp
+
+在详情中, serviceAccount展示的字段有:
+名称, 创建时间
+metadata.name, metadata.creationTimestamp
+
+
+
 
 ```json
 {
@@ -1124,41 +1104,7 @@ resourceName的值为[实例详情]接口返回的result.details.<resourceType>.
       "creationTimestamp": "2021-12-16T10:12:19Z",
       "annotations": {
         "kubectl.kubernetes.io/last-applied-configuration": "{\"apiVersion\":\"v1\",\"kind\":\"Service\",\"metadata\":{\"annotations\":{},\"name\":\"crab\",\"namespace\":\"island-system\"},\"spec\":{\"ports\":[{\"port\":80,\"targetPort\":3000}],\"selector\":{\"app\":\"island\",\"component\":\"ui\"},\"type\":\"NodePort\"}}\n"
-      },
-      "managedFields": [{
-        "manager": "kubectl-client-side-apply",
-        "operation": "Update",
-        "apiVersion": "v1",
-        "time": "2021-12-16T10:12:19Z",
-        "fieldsType": "FieldsV1",
-        "fieldsV1": {
-          "f:metadata": {
-            "f:annotations": {
-              ".": {},
-              "f:kubectl.kubernetes.io/last-applied-configuration": {}
-            }
-          },
-          "f:spec": {
-            "f:externalTrafficPolicy": {},
-            "f:ports": {
-              ".": {},
-              "k:{\"port\":80,\"protocol\":\"TCP\"}": {
-                ".": {},
-                "f:port": {},
-                "f:protocol": {},
-                "f:targetPort": {}
-              }
-            },
-            "f:selector": {
-              ".": {},
-              "f:app": {},
-              "f:component": {}
-            },
-            "f:sessionAffinity": {},
-            "f:type": {}
-          }
-        }
-      }]
+      }
     },
     "spec": {
       "ports": [{

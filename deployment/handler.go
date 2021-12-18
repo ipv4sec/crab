@@ -1,26 +1,17 @@
 package deployment
 
 import (
-	"context"
 	"crab/aam/v1alpha1"
-	"crab/cluster"
-	"crab/db"
 	"crab/utils"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog/v2"
 )
 
 func PutDeploymentHandlerFunc(c *gin.Context) {
-	// todo
+	// id := c.Param("id")
 	manifestFileHeader, err := c.FormFile("manifest")
-	if err != nil {
-		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "接收文件错误"))
-		return
-	}
-	instanceFileHeader, err := c.FormFile("instance")
 	if err != nil {
 		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "接收文件错误"))
 		return
@@ -36,17 +27,6 @@ func PutDeploymentHandlerFunc(c *gin.Context) {
 		return
 	}
 
-	instanceFile, err := instanceFileHeader.Open()
-	if err != nil {
-		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "打开文件错误"))
-		return
-	}
-	instanceBytes, err := ioutil.ReadAll(instanceFile)
-	if err != nil {
-		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "读取文件错误"))
-		return
-	}
-
 	var manifest v1alpha1.Application
 	err = yaml.Unmarshal(manifestBytes, &manifest)
 	if err != nil {
@@ -55,27 +35,14 @@ func PutDeploymentHandlerFunc(c *gin.Context) {
 		return
 	}
 
-	var instance Deployment
-	err = yaml.Unmarshal(instanceBytes, &instance)
-	if err != nil {
-		klog.Errorln("解析描述文件错误:", err.Error())
-		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "解析描述文件错误"))
-		return
-	}
+	//island, err := cluster.Client.Clientset.CoreV1().ConfigMaps("island-system").
+	//	Get(context.Background(), "island-info", metav1.GetOptions{})
+	//if err != nil {
+	//	klog.Errorln("获取根域失败", err.Error())
+	//	c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "获取根域失败"))
+	//	return
+	//}
 
-	island, err := cluster.Client.Clientset.CoreV1().ConfigMaps("island-system").
-		Get(context.Background(), "island-info", metav1.GetOptions{})
-	if err != nil {
-		klog.Errorln("获取根域失败", err.Error())
-		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "获取根域失败"))
-		return
-	}
-	mirror, _ := island.Data["mirror"]
-	savedMirrorPath := "/usr/local/workloads/"
-	err = utils.InitRepo(savedMirrorPath, mirror)
-	if err != nil {
-		klog.Errorln("更新工作负载错误:", err.Error())
-	}
 	//val, err := provider.Yaml(string(manifestBytes), instance.ID, instance.Domain, instance.Configurations,
 	//	provider.ConvertToDependency(instance.Dependencies), savedMirrorPath)
 	//if err != nil {
@@ -84,13 +51,13 @@ func PutDeploymentHandlerFunc(c *gin.Context) {
 	//	return
 	//}
 	// TODO
-	err = db.Client.Table("t_app").Where("id = ?", instance.ID).Updates(map[string]interface{}{
-		"status": 2}).Error
-	if err != nil {
-		klog.Errorln("数据库更新错误:", err.Error())
-		c.JSON(200, utils.ErrorResponse(0, "更新状态错误"))
-		return
-	}
+	//err = db.Client.Table("t_app").Where("id = ?", instance.ID).Updates(map[string]interface{}{
+	//	"status": 2}).Error
+	//if err != nil {
+	//	klog.Errorln("数据库更新错误:", err.Error())
+	//	c.JSON(200, utils.ErrorResponse(0, "更新状态错误"))
+	//	return
+	//}
 
 	//err = provider.Exec(instance.ID, val)
 	//if err != nil {
