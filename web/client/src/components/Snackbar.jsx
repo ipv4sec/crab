@@ -23,7 +23,7 @@ const SnackbarCmp = (props) => {
             <Snackbar 
                 open={Boolean(store.getState().common.snackbar)}
                 anchorOrigin={{vertical: 'bottom', horizontal: 'center'}}
-                autoHideDuration={500000}
+                autoHideDuration={5000}
                 onClose={close}
                 TransitionComponent={TransitionUp}
                 message={store.getState().common.snackbar}

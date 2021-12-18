@@ -27,27 +27,33 @@ let list = [
                     "url": "/home/reset",
                     "sub": [],
                 },
-                // {
-                //     "name": "根域设置",
-                //     "url": "",
-                //     "sub": [
-                //         {
-                //             "name": "k8s集群",
-                //             "url": "k8s.island.com",
-                //             "sub": []
-                //         },
-                //         {
-                //             "name": "服务治理",
-                //             "url": "istio.island.com",
-                //             "sub": []
-                //         },
-                //         {
-                //             "name": "存储管理",
-                //             "url": "ceph.island.com",
-                //             "sub": []
-                //         }
-                //     ],
-                // }
+                {
+                    "name": "在线工具",
+                    "url": "",
+                    "showChild": false,
+                    "sub": [
+                        {
+                            "name": "创建应用",
+                            "url": "/home/online/create",
+                            "sub": []
+                        },
+                        {
+                            "name": "创建Trait",
+                            "url": "/home/online/trait",
+                            "sub": []
+                        },
+                        {
+                            "name": "创建WorkloadType",
+                            "url": "/home/online/workloadtype",
+                            "sub": []
+                        },
+                        {
+                            "name": "创建WorkloadVendor",
+                            "url": "/home/online/workloadvendor",
+                            "sub": []
+                        }
+                    ],
+                }
             ]
 
 const LeftNav = (props) => {
@@ -57,7 +63,7 @@ const LeftNav = (props) => {
     const [curNav, setCurNav] = useState(sessionStorage.getItem('curNav'))
     const [navList, setNavList] = useState([])
 
-    console.log('leftNav props=',props)
+    // console.log('leftNav props=',props)
     useEffect(() => {
         let menus = handleMenu(list)
         setNavList(menus)
@@ -137,6 +143,7 @@ const LeftNav = (props) => {
             setNavList(newList)
         }else {
             setCurNav(path)
+            console.log('path==',path)
             sessionStorage.setItem('curNav', path)
            
             if(path.indexOf('.') > -1) {
@@ -170,7 +177,7 @@ const LeftNav = (props) => {
                                         item.sub.map((ele, i) => {
                                             return (
                                                 <div className="list-item"  key={ele.id}>
-                                                    <div className={`item-content item-content-child ${curNav == item.url ? "blueBorder" :""}`} data-id={ele.id} data-path={ele.url} data-href={ele.url || ''} onClick={changeNav}>
+                                                    <div className={`item-content item-content-child ${curNav == ele.url ? "blueBorder" :""}`} data-id={ele.id} data-path={ele.url} data-href={ele.url || ''} onClick={changeNav}>
                                                         <i className={`iconfont ${ele.icon || ''}`}></i>
                                                         <span >{ele.name}</span> 
                                                     </div>

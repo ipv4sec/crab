@@ -1,0 +1,132 @@
+.online-container {
+    padding: 0 20px;
+
+    .online-btns {
+        margin-bottom: 20px;
+        text-align: right;
+        .online-btn {
+            margin-left: 20px;
+        }
+    }
+
+    .online-title {
+        font-size: 18px;
+        font-weight: bold;
+        line-height: 30px;
+        span {
+            margin-left: 4px;
+            color: red;
+        }
+    }
+
+    .online-textarea {
+        height: 200px;
+        margin-bottom: 20px;
+        position: relative;
+    }
+
+    .vartextarea {
+        margin-bottom: 30px;
+    }
+
+    .textarea-input {
+        width: 100%;
+        height: 100%;
+        resize: none;
+        outline: none;
+        border:1px solid #dcdcdc;
+        border-radius: 4px;
+        padding: 0.5rem;
+        white-space: nowrap;
+    }
+
+    .online-btn{
+        // width: 60px;
+        height: 32px;
+    } 
+
+    .createapp-content {
+        display: flex;
+        .createapp-left, .createapp-right {
+            flex-shrink: 0;
+            width: 50%;
+        }
+        .createapp-left {
+
+        }
+        .createapp-right {
+            padding-left: 20px;
+
+            .createapp-preview {
+
+                .preview-pre {
+                    width: 100%;
+                    height: calc(90vh - 110px);
+                    overflow: auto;
+                    border:1px solid #dcdcdc;
+                    border-radius: 4px;
+                    padding: 0.5rem;
+                }
+            }
+        }
+
+        .createapp-removebtn {
+            position: absolute;
+            bottom: -18px;
+            right: 0;
+            padding: 0;
+        }
+        .createapp-addbtn {
+            margin-top: -10px;
+            margin-bottom: 20px;
+        }
+    }
+
+    .trait-content {
+        .trait-textarea {
+            height: calc(100vh - 160px);
+            margin-bottom: 20px;
+        }
+    }
+
+    .vendor-content {
+        display: flex;
+
+        .vendor-left, .vendor-right {
+            flex-shrink: 0;
+            width: 50%;
+        }
+        .vendor-left {
+            padding-right: 20px;
+        }
+
+        .yaml-textarea {
+            height: calc(100vh - 180px);
+            margin-bottom: 20px;
+        }
+
+        .vendor-textarea {
+           height: 200px;
+           margin-bottom: 20px;
+        }
+
+        .vendor-preview {
+            height: 50vh;
+            margin-bottom: 20px;
+            .preview-pre {
+                width: 100%;
+                height: 100%;
+                overflow: auto;
+                border:1px solid #dcdcdc;
+                border-radius: 4px;
+                padding: 0.5rem;
+            }
+
+        }
+
+    }
+
+   
+    
+
+}
