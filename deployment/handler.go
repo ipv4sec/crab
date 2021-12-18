@@ -2,15 +2,26 @@ package deployment
 
 import (
 	"crab/aam/v1alpha1"
+	app2 "crab/app"
+	"crab/db"
+	"crab/exec"
+	"crab/provider"
 	"crab/utils"
+	"encoding/json"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"k8s.io/klog/v2"
+	"time"
+)
+
+var (
+	executor = exec.CommandExecutor{}
 )
 
 func PutDeploymentHandlerFunc(c *gin.Context) {
-	// id := c.Param("id")
+	id := c.Param("id")
 	manifestFileHeader, err := c.FormFile("manifest")
 	if err != nil {
 		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "接收文件错误"))
@@ -35,35 +46,53 @@ func PutDeploymentHandlerFunc(c *gin.Context) {
 		return
 	}
 
-	//island, err := cluster.Client.Clientset.CoreV1().ConfigMaps("island-system").
-	//	Get(context.Background(), "island-info", metav1.GetOptions{})
-	//if err != nil {
-	//	klog.Errorln("获取根域失败", err.Error())
-	//	c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "获取根域失败"))
-	//	return
-	//}
+	var app app2.App
+	err = db.Client.Where("id = ?", id).Find(&app).Error
+	if err != nil {
+		klog.Errorln("数据库查询错误:", err.Error())
+		c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseInternalServer, "该实例不存在"))
+		return
+	}
 
-	//val, err := provider.Yaml(string(manifestBytes), instance.ID, instance.Domain, instance.Configurations,
-	//	provider.ConvertToDependency(instance.Dependencies), savedMirrorPath)
-	//if err != nil {
-	//	klog.Errorln("连接到翻译器错误:", err.Error())
-	//	c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "连接到翻译器错误"))
-	//	return
-	//}
-	// TODO
-	//err = db.Client.Table("t_app").Where("id = ?", instance.ID).Updates(map[string]interface{}{
-	//	"status": 2}).Error
-	//if err != nil {
-	//	klog.Errorln("数据库更新错误:", err.Error())
-	//	c.JSON(200, utils.ErrorResponse(0, "更新状态错误"))
-	//	return
-	//}
+	var vals []struct{
+		Name string `json:"name"`
 
-	//err = provider.Exec(instance.ID, val)
-	//if err != nil {
-	//	klog.Errorln("调度器执行失败:", err.Error())
-	//	c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "更新状态错误"))
-	//	return
-	//}
+		ID string `json:"id"`
+		Location string `json:"location"`
+
+		EntryService string
+	}
+	err = json.Unmarshal([]byte(app.Additional), &vals)
+	if err != nil {
+		klog.Errorln("序列化依赖失败", err.Error())
+	}
+	var parameters interface{}
+	err = json.Unmarshal([]byte(app.Parameters), &parameters)
+	if err != nil {
+		klog.Errorln("序列化运行时配置失败", err.Error())
+		parameters = ""
+	}
+
+	val, err := provider.Yaml(string(manifestBytes), app.ID, app.Entry, parameters, provider.ConvertToDependency(vals))
+	if err != nil {
+		klog.Errorln("连接到翻译器错误:", err.Error())
+		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "连接到翻译器错误"))
+		return
+	}
+	klog.Infoln("要执行的文件内容为:", val)
+	timeNow := time.Now().Unix()
+	saved := fmt.Sprintf("/tmp/%v.yaml", timeNow)
+	err = ioutil.WriteFile(saved, []byte(val),0777)
+	if err != nil {
+		klog.Errorln("保存文件错误", saved, err.Error())
+		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "保存文件错误"))
+	}
+	command := fmt.Sprintf("/usr/local/bin/kubectl apply -f %s", saved)
+	output, err := executor.ExecuteCommandWithCombinedOutput("bash", "-c", command)
+	if err != nil {
+		klog.Errorln("执行命令错误", err.Error())
+		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "执行命令错误"))
+	}
+	klog.Infoln("执行命令结果:", output)
 	c.JSON(200, utils.SuccessResponse("部署成功"))
 }

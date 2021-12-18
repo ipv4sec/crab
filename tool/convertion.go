@@ -1,9 +1,17 @@
 package tool
 
 import (
+	"crab/exec"
 	"crab/utils"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"io/ioutil"
 	"k8s.io/klog/v2"
+	"time"
+)
+
+var (
+	executor = exec.CommandExecutor{}
 )
 
 func PostConvertionHandlerFunc(c *gin.Context) {
@@ -16,6 +24,18 @@ func PostConvertionHandlerFunc(c *gin.Context) {
 		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "参数错误"))
 		return
 	}
-	// TODO
-	c.JSON(200, utils.SuccessResponse(param.Value))
+	timeNow := time.Now().Unix()
+	saved := fmt.Sprintf("/tmp/%v.yaml", timeNow)
+	err = ioutil.WriteFile(saved, []byte(param.Value),0777)
+	if err != nil {
+		klog.Errorln("保存文件错误", saved, err.Error())
+		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "保存文件错误"))
+	}
+	cmd := fmt.Sprintf("cue import %s -l 'strings.ToCamel(kind)' -l metadata.name -o -", saved)
+	output, err := executor.ExecuteCommandWithCombinedOutput("bash", "-c", cmd)
+	if err != nil {
+		klog.Errorln("执行命令错误", saved, err.Error())
+		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "执行命令错误"))
+	}
+	c.JSON(200, utils.SuccessResponse(output))
 }

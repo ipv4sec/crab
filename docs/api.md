@@ -1027,8 +1027,6 @@ resourceName的值为[实例详情]接口返回的result.details.<resourceType>.
 
 ### 返回值
 
-每种resourceType的返回值请看 [实例详情] 接口, 下面样例是service的返回
-
 在详情中, cronJob展示的字段有:
 名称, 创建时间, 最后执行时间
 metadata.name, metadata.creationTimestamp, status.lastScheduleTime
@@ -1091,7 +1089,7 @@ metadata.name, metadata.creationTimestamp
 
 
 
-
+每种resourceType的返回值请看 [实例详情] 接口, 下面样例是service的返回
 ```json
 {
   "code": 0,
