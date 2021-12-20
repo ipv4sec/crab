@@ -236,8 +236,9 @@ func parseDependencies(application v1alpha1.Application, dependencies Dependency
 //获取WorkloadType
 func GetWorkloadType(typeName string) (v1alpha1.WorkloadType, error) {
 	var t v1alpha1.WorkloadType
-	value, err := GetWorkloadDef("type", typeName)
+	value, err := GetWorkloadDef("workload/type", typeName)
 	if err != nil {
+		klog.Errorln("获取type失败: ", err.Error())
 		return t, err
 	}
 	err = yaml.Unmarshal([]byte(value), &t)
@@ -259,7 +260,7 @@ func GetTrait(name string) (v1alpha1.Trait, error) {
 //获取WorkloadVendor
 func GetWorkloadVendor(name string) (v1alpha1.WorkloadVendor, error) {
 	var v v1alpha1.WorkloadVendor
-	value, err := GetWorkloadDef("vendor", name)
+	value, err := GetWorkloadDef("workload/vendor", name)
 	if err != nil {
 		return v, err
 	}
@@ -534,11 +535,11 @@ func FileExist(path string) bool {
 //获取workload定义
 func GetWorkloadDef(kind, name string) (string, error) {
 	type def struct {
-		Id         string `json:"id"`
+		Id         int `json:"id"`
 		Name       string `json:"name"`
 		ApiVersion string `json:"apiVersion"`
 		Value      string `json:"value"`
-		Type       string `json:"type"`
+		Type       int `json:"type"`
 	}
 	var err error
 	kind = strings.TrimSpace(kind)
@@ -549,7 +550,7 @@ func GetWorkloadDef(kind, name string) (string, error) {
 	if name == "" {
 		return "", errors.New("name不能为空")
 	}
-	res, err := HTTPClient.Get(fmt.Sprintf("http://127.0.0.1:3000/workload/%s/%s", kind, name), nil)
+	res, err := HTTPClient.Get(fmt.Sprintf("http://127.0.0.1:3000/%s/%s", kind, name), nil)
 	if err != nil {
 		return "", fmt.Errorf("请求api错误: %w", err)
 	}
@@ -557,6 +558,7 @@ func GetWorkloadDef(kind, name string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("读取api返回错误: %w", err)
 	}
+	klog.Infoln("api返回内容:", string(bodyBytes))
 	var reply struct {
 		Code   int         `json:"code"`
 		Result def `json:"result"`
