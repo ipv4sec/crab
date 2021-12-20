@@ -56,7 +56,7 @@ data:
     `created_at` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT '创建时间',
     `updated_at` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT '更新时间',
     PRIMARY KEY (`id`) USING BTREE,
-    UNIQUE KEY (`ver`, `name`) USING BTREE
+    UNIQUE KEY (`name`) USING BTREE
     ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
     DROP TABLE IF EXISTS `t_type`;
@@ -69,7 +69,7 @@ data:
     `created_at` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT '创建时间',
     `updated_at` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT '更新时间',
     PRIMARY KEY (`id`) USING BTREE,
-    UNIQUE KEY (`ver`, `name`) USING BTREE
+    UNIQUE KEY (`name`) USING BTREE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
     DROP TABLE IF EXISTS `t_vendor`;
@@ -82,7 +82,7 @@ data:
     `created_at` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT '创建时间',
     `updated_at` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT '更新时间',
     PRIMARY KEY (`id`) USING BTREE,
-    UNIQUE KEY (`ver`, `name`) USING BTREE
+    UNIQUE KEY (`name`) USING BTREE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
     insert into t_type(`name`, `ver`,`value`)values("webservice", "aam.globalsphare.com/v1alpha1", "apiVersion: aam.globalsphare.com/v1alpha1\nkind: WorkloadType\nmetadata:\n  name: webservice\nspec:\n  parameter: |\n    image: string\n    port:  *80 | int\n    cmd?: [...string]\n    args?: [...string]\n    cpu?: string\n    env?: [...{\n        name:   string\n        value?: string\n        valueFrom?: {\n            secretKeyRef: {\n                name: string\n                key:  string\n            }\n        }\n    }]\n    configs?: [...{\n        path:     string\n        subPath?: string\n        data: [...{\n            name:  string\n            value: string\n        }]\n    }]\n    storage?: {\n        capacity: string\n        path:     string\n    }\n  traits:\n    - ingress");
