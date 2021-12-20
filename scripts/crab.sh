@@ -1,5 +1,21 @@
 #!/bin/bash
 
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+  --domain)
+    domain="$2"
+    shift
+    ;;
+  esac
+  shift $(($# > 0 ? 1 : 0))
+done
+
+if [ x$domain == x ]
+then
+  echo "Missing options"
+fi
+
 cat <<EOF | kubectl apply -f -
 apiVersion: v1
 kind: Namespace
@@ -43,31 +59,17 @@ spec:
         - name: island-setup
           image: harbor1.zlibs.com/island/island-setup:alpha
           imagePullPolicy: Always
+          env:
+            - name: ISLAND_DOMAIN
+              value: $domain
       restartPolicy: OnFailure
       serviceAccountName: crab
----
-
-apiVersion: v1
-kind: Service
-metadata:
-  name: crab
-  namespace: island-system
-spec:
-  selector:
-    app: island
-    component: ui
-  ports:
-    - port: 80
-      targetPort: 3000
-  type: NodePort
 EOF
-
-port=$(kubectl get svc crab -n island-system -o jsonpath='{.spec.ports[?(@.port==80)].nodePort}')
 
 echo
 echo "================================================================================"
 echo
-echo "系统正在部署中, 之后请访问集群端口:"$port
+echo "系统正在部署中, 之后请访问: http://crab."$domain
 echo
 echo "注意: 默认登录用户名为root, 默认密码为toor, 登录成功后请尽快修改此密码"
 echo

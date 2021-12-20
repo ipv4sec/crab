@@ -40,6 +40,10 @@
 
 - [资源详情](#资源详情)
 
+- [Trait详情](#Trait详情)
+- [WorkloadType详情](#WorkloadType详情)
+- [WorkloadVendor详情](#WorkloadVendor详情)
+
 
 
 <a name="说明"></a>
