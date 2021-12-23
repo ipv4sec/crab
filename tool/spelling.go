@@ -19,18 +19,19 @@ func PostSpellingHandlerFunc(c *gin.Context) {
 		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "参数错误"))
 		return
 	}
+	if param.Value == "" {
+		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "参数错误"))
+		return
+	}
 	timeNow := time.Now().Unix()
 	saved := fmt.Sprintf("/tmp/%v.cue", timeNow)
 	err = ioutil.WriteFile(saved, []byte(param.Value),0777)
 	if err != nil {
 		klog.Errorln("保存文件错误", saved, err.Error())
 		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "保存文件错误"))
+		return
 	}
 	cmd := fmt.Sprintf("cue vet %s", saved)
-	output, err := executor.ExecuteCommandWithCombinedOutput("bash", "-c", cmd)
-	if err != nil {
-		klog.Errorln("执行命令错误", saved, err.Error())
-		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "执行命令错误"))
-	}
+	output, _ := executor.ExecuteCommandWithCombinedOutput("bash", "-c", cmd)
 	c.JSON(200, utils.SuccessResponse(output))
 }

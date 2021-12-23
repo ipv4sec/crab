@@ -88,11 +88,7 @@ func PutDeploymentHandlerFunc(c *gin.Context) {
 		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "保存文件错误"))
 	}
 	command := fmt.Sprintf("/usr/local/bin/kubectl apply -f %s", saved)
-	output, err := executor.ExecuteCommandWithCombinedOutput("bash", "-c", command)
-	if err != nil {
-		klog.Errorln("执行命令错误", err.Error())
-		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "执行命令错误"))
-	}
+	output, _ := executor.ExecuteCommandWithCombinedOutput("bash", "-c", command)
 	klog.Infoln("执行命令结果:", output)
 	c.JSON(200, utils.SuccessResponse("部署成功"))
 }

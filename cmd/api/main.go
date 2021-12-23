@@ -90,7 +90,7 @@ func main() {
 
 	routers.POST("/tool/spelling", tool.PostSpellingHandlerFunc)
 	routers.POST("/tool/convertion", tool.PostConvertionHandlerFunc)
-	routers.POST("/tool/systemTemplate", tool.GetTemplateHandlerFunc)
+	routers.GET("/tool/systemTemplate", tool.GetTemplateHandlerFunc)
 
 	routers.GET("/resource/:namespace/:resourceType/:resourceName", cluster.GetResourceHandlerFunc)
 
