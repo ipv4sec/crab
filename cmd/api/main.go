@@ -18,6 +18,7 @@ import (
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"k8s.io/klog/v2"
+	"os"
 )
 
 func main() {
@@ -44,11 +45,13 @@ func main() {
 		panic(err)
 	}
 
-	//klog.Infoln("开始集群认证")
-	//err = cluster.Init()
-	//if err != nil {
-	//	panic(fmt.Errorf("获取集群认证失败: %w", err))
-	//}
+	klog.Infoln("开始集群认证")
+	err = cluster.Init()
+	if err != nil {
+		if os.Getenv("CRAB_DEBUG") == "" {
+			panic(fmt.Errorf("获取集群认证失败: %w", err))
+		}
+	}
 
 	klog.Infoln("开始提供服务")
 	gin.SetMode(gin.ReleaseMode)
