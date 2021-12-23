@@ -636,7 +636,7 @@ type: 0 内置, 不可删除 1 可删除
 ## WorkloadType列表
 ### 请求语法
 ```
-GET /workload/type?limit=<limit>&offset=<offset> HTTP/1.1
+GET /workloadType?limit=<limit>&offset=<offset> HTTP/1.1
 ```
 ### 请求参数
 以下参数为URL PATH参数
@@ -675,7 +675,7 @@ type: 0 内置, 不可删除 1 可删除
 ## WorkloadVendor列表
 ### 请求语法
 ```
-GET /workload/vendor?limit=<limit>&offset=<offset> HTTP/1.1
+GET /workloadVendor?limit=<limit>&offset=<offset> HTTP/1.1
 ```
 ### 请求参数
 以下参数为URL PATH参数
@@ -740,7 +740,7 @@ PUT /trait/<id> HTTP/1.1
 ## 修改WorkloadType
 ### 请求语法
 ```
-PUT /workload/type/<id> HTTP/1.1
+PUT /workloadType/<id> HTTP/1.1
 ```
 ### 请求参数
 以下参数为URL PATH参数
@@ -768,7 +768,7 @@ PUT /workload/type/<id> HTTP/1.1
 ## 修改WorkloadVendor
 ### 请求语法
 ```
-PUT /workload/vendor/<id> HTTP/1.1
+PUT /workloadVendor/<id> HTTP/1.1
 ```
 ### 请求参数
 以下参数为URL PATH参数
@@ -815,7 +815,7 @@ DELETE /trait/<id> HTTP/1.1
 ## 删除WorkloadType
 ### 请求语法
 ```
-DELETE /workload/type/<id> HTTP/1.1
+DELETE /workloadType/<id> HTTP/1.1
 ```
 ### 请求参数
 以下参数为URL PATH参数
@@ -835,7 +835,7 @@ DELETE /workload/type/<id> HTTP/1.1
 ## 删除WorkloadVendor
 ### 请求语法
 ```
-DELETE /workload/vendor/<id> HTTP/1.1
+DELETE /workloadVendor/<id> HTTP/1.1
 ```
 ### 请求参数
 以下参数为URL PATH参数
@@ -899,7 +899,7 @@ POST /trait HTTP/1.1
 ## 添加WorkloadType
 ### 请求语法
 ```
-POST /workload/type HTTP/1.1 
+POST /workloadType HTTP/1.1 
 ```
 ### 请求参数
 
@@ -923,7 +923,7 @@ POST /workload/type HTTP/1.1
 ## 添加WorkloadVendor
 ### 请求语法
 ```
-POST /workload/vendor HTTP/1.1 
+POST /workloadVendor HTTP/1.1 
 ```
 ### 请求参数
 
@@ -1167,7 +1167,7 @@ GET /trait/<IdorName> HTTP/1.1
 ## WorkloadType详情
 ### 请求语法
 ```
-GET /workload/type/<IdorName> HTTP/1.1
+GET /workloadType/<IdorName> HTTP/1.1
 ```
 ### 请求参数
 以下参数为URL PATH参数
@@ -1197,7 +1197,7 @@ GET /workload/type/<IdorName> HTTP/1.1
 ## WorkloadVendor详情
 ### 请求语法
 ```
-GET /workload/vendor/<IdorName> HTTP/1.1
+GET /workloadVendor/<IdorName> HTTP/1.1
 ```
 ### 请求参数
 以下参数为URL PATH参数
