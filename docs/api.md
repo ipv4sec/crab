@@ -656,7 +656,7 @@ type: 0 内置, 不可删除 1 可删除
   "result": {
     "rows": [
       {
-        "pk": 1,
+        "id": 1,
         "name": "worker",
         "apiVersion": "aam.globalsphare.com/v1alpha1",
         "value": "具体定义",
@@ -695,7 +695,7 @@ type: 0 内置, 不可删除 1 可删除
   "result": {
     "rows": [
       {
-        "pk": 1,
+        "id": 1,
         "name": "webservice",
         "apiVersion": "aam.globalsphare.com/v1alpha1",
         "value": "具体定义",
@@ -954,7 +954,7 @@ POST /tool/convertion HTTP/1.1
 
 ```json
 {
-  "value": "具体的yaml"
+  "value": "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: nginx-deployment\n  labels:\n    app: nginx\nspec:\n  replicas: 3\n  selector:\n    matchLabels:\n      app: nginx\n  template:\n    metadata:\n      labels:\n        app: nginx\n    spec:\n      containers:\n        - name: nginx\n          image: nginx:1.14.2\n          ports:\n            - containerPort: 80"
 }
 
 ```
@@ -964,7 +964,7 @@ POST /tool/convertion HTTP/1.1
 ```json
 {
   "code": 0,
-  "result": "翻译后的CUE模板"
+  "result": "翻译后的CUE模板或者为报错的信息, 直接展示即可, 让用户判断"
 }
 ```
 
@@ -980,7 +980,7 @@ POST /tool/spelling HTTP/1.1
 
 ```json
 {
-  "value": "具体的CUE模板"
+  "value": "deployment: \"nginx-deployment\": {\n\tapiVersion: \"apps/v1\"\n\tkind:       \"Deployment\"\n\tmetadata: {\n\t\tname: \"nginx-deployment\"\n\t\tlabels: app: \"nginx\"\n\t}\n\tspec: {\n\t\treplicas: 3\n\t\tselector: matchLabels: app: \"nginx\"\n\t\ttemplate: {\n\t\t\tmetadata: labels: app: \"nginx\"\n\t\t\tspec: containers: [{\n\t\t\t\tname:  \"nginx\"\n\t\t\t\timage: \"nginx:1.14.2\"\n\t\t\t\tports: [{\n\t\t\t\t\tcontainerPort: 80\n\t\t\t\t}]\n\t\t\t}]\n\t\t}\n\t}\n}"
 }
 
 ```
@@ -991,7 +991,7 @@ POST /tool/spelling HTTP/1.1
 ```json
 {
   "code": 0,
-  "result": "检查的结果, 前端无论拿到什么都直接显示就好"
+  "result": "执行CUE命令的结果, 错误时为报错信息, 正确时为空"
 }
 ```
 

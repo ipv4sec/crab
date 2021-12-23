@@ -44,11 +44,11 @@ func main() {
 		panic(err)
 	}
 
-	klog.Infoln("开始集群认证")
-	err = cluster.Init()
-	if err != nil {
-		panic(fmt.Errorf("获取集群认证失败: %w", err))
-	}
+	//klog.Infoln("开始集群认证")
+	//err = cluster.Init()
+	//if err != nil {
+	//	panic(fmt.Errorf("获取集群认证失败: %w", err))
+	//}
 
 	klog.Infoln("开始提供服务")
 	gin.SetMode(gin.ReleaseMode)

@@ -5,7 +5,7 @@ import "time"
 type Trait struct {
 	Id    int64 `gorm:"primaryKey" json:"id"`
 	Name  string `json:"name"`
-	Ver   string `json:"apiVersion"`
+	Ver   string `json:"apiVersion" gorm:"column:ver"`
 	Value string `json:"value"`
 
 	Type int `json:"type"`

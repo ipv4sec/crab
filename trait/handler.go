@@ -59,6 +59,10 @@ func GetTraitHandlerFunc(c *gin.Context) {
 			return
 		}
 	}
+	if val.Ver == "" {
+		c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseBadRequest, "该资源不存在"))
+		return
+	}
 	c.JSON(200, utils.SuccessResponse(val))
 }
 
