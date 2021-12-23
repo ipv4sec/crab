@@ -13,7 +13,8 @@ done
 
 if [ x$domain == x ]
 then
-  echo "Missing options"
+  echo "Missing domain."
+  exit 0
 fi
 
 cat <<EOF | kubectl apply -f -

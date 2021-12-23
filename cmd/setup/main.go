@@ -67,11 +67,9 @@ func main() {
 	}
 	var n = 0
 	var components = []string{"istio-egressgateway", "istio-ingressgateway", "istiod"}
-	for i := 0; i < len(components); i++ {
-		for j := 0; j < len(svcs.Items); j++ {
-			if utils.Contains(components, svcs.Items[j].ObjectMeta.Name) {
-				n++
-			}
+	for i := 0; i < len(svcs.Items); i++ {
+		if utils.Contains(components, svcs.Items[i].ObjectMeta.Name) {
+			n++
 		}
 	}
 	if n ==0 {
