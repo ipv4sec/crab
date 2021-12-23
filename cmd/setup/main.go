@@ -96,8 +96,9 @@ func main() {
 			}
 			time.Sleep(time.Second * 5)
 		}
+		n = len(components)
 	}
-	if n != len(components) * len(svcs.Items) {
+	if n != len(components) {
 		panic(errors.New("网格中必备组件缺失"))
 	}
 	pods, err := cluster.Client.Clientset.CoreV1().Pods("istio-system").List(context.Background(), metav1.ListOptions{
@@ -195,14 +196,9 @@ data:
 	}
 	for i := 0; i < len(files); i++ {
 		klog.Infoln("要安装的应用为: ", files[i].Name())
-		yaml, err := ioutil.ReadFile("assets/island/"+files[i].Name())
-		if err != nil {
-			panic(fmt.Errorf("读取yaml错误: %w", err))
-		}
-		err = cluster.Client.Apply(context.Background(), yaml)
-		if err != nil {
-			panic(fmt.Errorf("安装应用失败: %s %w", files[i].Name(), err))
-		}
+		command := fmt.Sprintf("/usr/local/bin/kubectl apply -f assets/island/%s", files[i].Name())
+		output, _ := executor.ExecuteCommandWithCombinedOutput("bash", "-c", command)
+		klog.Infoln("执行命令结果:", output)
 	}
 
 	klog.Infoln("开始设置访问路由")
@@ -216,13 +212,9 @@ spec:
   hosts:
     - "*"
   gateways:
-    - island-ui
-  tls:
-    - match:
-        - port: 80
-          sniHosts:
-            - "*"
-      route:
+    - crab
+  http:
+    - route:
         - destination:
             host: island-ui
             port:
@@ -232,7 +224,7 @@ spec:
 apiVersion: networking.istio.io/v1alpha3
 kind: Gateway
 metadata:
-  name: island-ui
+  name: crab
   namespace: island-system
 spec:
   selector:
@@ -243,7 +235,7 @@ spec:
         name: http
         protocol: HTTP
       hosts:
-        - "%s"
+        - "crab.%s"
 `
 	err = cluster.Client.Apply(context.Background(), []byte(fmt.Sprintf(yaml, os.Getenv("ISLAND_DOMAIN"))))
 	if err != nil {
