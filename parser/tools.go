@@ -236,7 +236,7 @@ func parseDependencies(application v1alpha1.Application, dependencies Dependency
 //获取WorkloadType
 func GetWorkloadType(typeName string) (v1alpha1.WorkloadType, error) {
 	var t v1alpha1.WorkloadType
-	value, err := GetWorkloadDef("workload/type", typeName)
+	value, err := GetWorkloadDef("workloadType", typeName)
 	if err != nil {
 		klog.Errorln("获取type失败: ", err.Error())
 		return t, err
@@ -260,7 +260,7 @@ func GetTrait(name string) (v1alpha1.Trait, error) {
 //获取WorkloadVendor
 func GetWorkloadVendor(name string) (v1alpha1.WorkloadVendor, error) {
 	var v v1alpha1.WorkloadVendor
-	value, err := GetWorkloadDef("workload/vendor", name)
+	value, err := GetWorkloadDef("workloadVendor", name)
 	if err != nil {
 		return v, err
 	}
