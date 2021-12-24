@@ -408,7 +408,7 @@ func GetPodLogsHandlerFunc(c *gin.Context) {
 		Name string `json:"name"`
 		Value string `json:"value"`
 	}
-	var result []Logs
+	result := []Logs{}
 	for i := 0; i < len(pods.Items); i++ {
 		logs, err := GetPodLogs(id, pods.Items[i].Name)
 		if err != nil {
