@@ -20,6 +20,7 @@ type App struct {
 	Additional string `json:"additional"`
 
 	Deployment string `gorm:"column:deployment" json:"deployment"`
+	Status int64 // 0 未部署 1 已部署
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`

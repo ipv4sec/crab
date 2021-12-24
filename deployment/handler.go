@@ -2,7 +2,7 @@ package deployment
 
 import (
 	"crab/aam/v1alpha1"
-	app2 "crab/app"
+	"crab/app"
 	"crab/db"
 	"crab/exec"
 	"crab/provider"
@@ -22,7 +22,7 @@ var (
 
 func PutDeploymentHandlerFunc(c *gin.Context) {
 	id := c.Param("id")
-	manifestFileHeader, err := c.FormFile("manifest")
+	manifestFileHeader, err := c.FormFile("file")
 	if err != nil {
 		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "接收文件错误"))
 		return
@@ -46,8 +46,8 @@ func PutDeploymentHandlerFunc(c *gin.Context) {
 		return
 	}
 
-	var app app2.App
-	err = db.Client.Where("id = ?", id).Find(&app).Error
+	var ins app.App
+	err = db.Client.Where("id = ?", id).Find(&ins).Error
 	if err != nil {
 		klog.Errorln("数据库查询错误:", err.Error())
 		c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseInternalServer, "该实例不存在"))
@@ -62,18 +62,18 @@ func PutDeploymentHandlerFunc(c *gin.Context) {
 
 		EntryService string
 	}
-	err = json.Unmarshal([]byte(app.Additional), &vals)
+	err = json.Unmarshal([]byte(ins.Additional), &vals)
 	if err != nil {
 		klog.Errorln("序列化依赖失败", err.Error())
 	}
 	var parameters interface{}
-	err = json.Unmarshal([]byte(app.Parameters), &parameters)
+	err = json.Unmarshal([]byte(ins.Parameters), &parameters)
 	if err != nil {
 		klog.Errorln("序列化运行时配置失败", err.Error())
 		parameters = ""
 	}
 
-	val, err := provider.Yaml(string(manifestBytes), app.ID, app.Entry, parameters, provider.ConvertToDependency(vals))
+	val, err := provider.Yaml(string(manifestBytes), ins.ID, ins.Entry, parameters, provider.ConvertToDependency(vals))
 	if err != nil {
 		klog.Errorln("连接到翻译器错误:", err.Error())
 		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "连接到翻译器错误"))

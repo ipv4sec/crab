@@ -43,63 +43,21 @@ func GetAppsHandlerFunc(c *gin.Context) {
 	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
 	var apps []App
 	var total int64
-	err := db.Client.Limit(limit).Offset(offset).Find(&apps).Error
+	err := db.Client.Limit(limit).Offset(offset).Where("status = ?", 1).Find(&apps).Error
 	if err != nil {
 		klog.Errorln("数据库查询错误:", err.Error())
 		c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseInternalServer, "数据库查询错误"))
 		return
 	}
-	err = db.Client.Model(&App{}).Count(&total).Error
+	err = db.Client.Model(&App{}).Where("status = ?", 1).Count(&total).Error
 	if err != nil {
 		klog.Errorln("数据库查询错误:", err.Error())
 		c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseInternalServer, "数据库查询错误"))
 		return
-	}
-	var val []DTO
-	for i := 0; i < len(apps); i++ {
-		var manifest v1alpha1.Application
-		err = yaml.Unmarshal([]byte(apps[i].Manifest), &manifest)
-		if err != nil {
-			klog.Errorln("解析描述文件错误:", err.Error())
-			continue
-		}
-
-		dependencies := map[string]interface{}{}
-		for i := 0; i < len(manifest.Spec.Dependencies); i++ {
-			d := Dependency{
-				Instances: []Instance{},
-			}
-			d.Type, d.Link = Link(manifest.Spec.Dependencies[i].Location)
-			if d.Type == Mutable {
-				var apps []App
-				err = db.Client.Where("name = ?", manifest.Spec.Dependencies[i].Name).Find(&apps).Error
-				if err != nil {
-					klog.Errorln("数据库查询错误:", err.Error())
-					continue
-				}
-				for j := 0; j < len(apps); j++ {
-					v, err := semver.Parse(apps[j].Version)
-					if err != nil {
-						continue
-					}
-					ra, err := semver.ParseRange(manifest.Spec.Dependencies[i].Version)
-					if ra(v) {
-						d.Instances = append(d.Instances, Instance{ID: apps[j].ID, Name: apps[j].Name})
-					}
-				}
-			}
-			dependencies[manifest.Spec.Dependencies[i].Name] = d
-		}
-		dto := DTO{
-			App:    &apps[i],
-			Configurations: manifest.Spec.Userconfigs,
-			Dependencies:  dependencies,
-		}
-		val = append(val, dto)
 	}
 	c.JSON(200, utils.SuccessResponse(Pagination{
 		Total: total,
-		Rows:  val,
+		Rows:  apps,
 	}))
 }
 
@@ -263,6 +221,7 @@ func PostAppHandlerFunc(c *gin.Context) {
 		Additional: "",
 		Parameters: "",
 		Deployment: "",
+		Status: 0,
 	}
 	err = db.Client.Create(&app).Error
 	if err != nil {
@@ -388,7 +347,7 @@ func PutAppHandlerFunc(c *gin.Context) {
 		}
 
 		err = db.Client.Model(App{}).Where("pk = ?", app.PK).Updates(map[string]interface{}{
-			"deployment": val, "parameters": string(parameters), "additional": additional}).Error
+			"deployment": val, "parameters": string(parameters), "additional": additional, "status": 1}).Error
 		if err != nil {
 			klog.Errorln("数据库更新错误:", err.Error())
 			c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseInternalServer, "更新状态错误"))
