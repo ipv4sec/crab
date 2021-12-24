@@ -580,7 +580,7 @@ Content-Type: multipart/form-data;
 
 |名称|说明|默认值|是否必填|
 |---|---|---|---|
-|manifest|应用描述文件|无|是|
+|file|应用描述文件|无|是|
 
 
 ### 返回值
