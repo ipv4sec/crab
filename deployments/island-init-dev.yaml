@@ -1,0 +1,47 @@
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: island-system
+---
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: crab
+  namespace: island-system
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: crab
+subjects:
+  - kind: ServiceAccount
+    name: crab
+    namespace: island-system
+    apiGroup: ""
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin
+  apiGroup: rbac.authorization.k8s.io
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: island-info
+  namespace: island-system
+data:
+  root-domain: "example.com"
+  mirror: https://github.com/GlobalSphare/workloads
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: island-administrator
+  namespace: island-system
+data:
+  root: toor
+---

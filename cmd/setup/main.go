@@ -15,6 +15,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/remotecommand"
 	"k8s.io/klog/v2"
+	"os"
 	"strings"
 	"time"
 )
@@ -28,9 +29,7 @@ func main() {
 	if err != nil {
 		panic(fmt.Errorf("获取集群认证失败: %w", err))
 	}
-	klog.Infoln("集群认证成功")
 
-	klog.Infoln("现有集群检查")
 	klog.Infoln("集群版本检查")
 	ver, err := cluster.Client.Clientset.ServerVersion()
 	if err != nil {
@@ -60,29 +59,21 @@ func main() {
 			klog.Errorln(fmt.Errorf("创建网格命名空间错误: %w", err).Error())
 		}
 	}
-	// klog.Infoln("ns:", ns)
 
 	svcs, err := cluster.Client.Clientset.CoreV1().Services("istio-system").List(context.Background(),
 		metav1.ListOptions{})
 	if err != nil {
 		panic(fmt.Errorf("列出集群资源错误: %w",err))
 	}
-	// klog.Infoln("svc:", svcs)
 	var n = 0
 	var components = []string{"istio-egressgateway", "istio-ingressgateway", "istiod"}
-	for i := 0; i < len(components); i++ {
-		for j := 0; j < len(svcs.Items); j++ {
-			// klog.Infoln(svcs.Items[j].ObjectMeta.Name)
-			if utils.Contains(components, svcs.Items[j].ObjectMeta.Name) {
-				n++
-			}
+	for i := 0; i < len(svcs.Items); i++ {
+		if utils.Contains(components, svcs.Items[i].ObjectMeta.Name) {
+			n++
 		}
 	}
 	if n ==0 {
-		output, err := executor.ExecuteCommandWithCombinedOutput("scripts/istio.sh")
-		if err != nil {
-			panic(fmt.Errorf("初始化网格失败: %w", err))
-		}
+		output, _ := executor.ExecuteCommandWithCombinedOutput("scripts/istio.sh")
 		klog.Infoln("初始化网格: ", output)
 		yaml, err := ioutil.ReadFile("assets/istio/operator.yaml")
 		if err != nil {
@@ -105,8 +96,9 @@ func main() {
 			}
 			time.Sleep(time.Second * 5)
 		}
+		n = len(components)
 	}
-	if n != len(components) * len(svcs.Items) {
+	if n != len(components) {
 		panic(errors.New("网格中必备组件缺失"))
 	}
 	pods, err := cluster.Client.Clientset.CoreV1().Pods("istio-system").List(context.Background(), metav1.ListOptions{
@@ -167,7 +159,6 @@ func main() {
 	if err != nil {
 		panic(fmt.Errorf("设置端口错误: %w", err))
 	}
-	klog.Infoln("设置端口完成")
 
 	klog.Infoln("开始设置根域")
 	yaml := `
@@ -177,14 +168,13 @@ metadata:
   name: island-info
   namespace: island-system
 data:
-  root-domain: ""
+  root-domain: %s
   mirror: https://github.com/GlobalSphare/workloads
 `
-	err = cluster.Client.Apply(context.Background(), []byte(yaml))
+	err = cluster.Client.Apply(context.Background(), []byte(fmt.Sprintf(yaml, os.Getenv("ISLAND_DOMAIN"))))
 	if err != nil {
 		klog.Errorln("设置根域失败: ", err.Error())
 	}
-	klog.Infoln("设置根域完成")
 
 	klog.Infoln("开始设置密码")
 	_, err = cluster.Client.Clientset.CoreV1().ConfigMaps("island-system").
@@ -198,7 +188,6 @@ data:
 	if err != nil {
 		klog.Errorln("设置密码失败: ", err.Error())
 	}
-	klog.Infoln("设置密码完成")
 
 	klog.Infoln("开始部署应用")
 	files, err := ioutil.ReadDir("assets/island/")
@@ -207,15 +196,50 @@ data:
 	}
 	for i := 0; i < len(files); i++ {
 		klog.Infoln("要安装的应用为: ", files[i].Name())
-		yaml, err := ioutil.ReadFile("assets/island/"+files[i].Name())
-		if err != nil {
-			panic(fmt.Errorf("读取yaml错误: %w", err))
-		}
-		err = cluster.Client.Apply(context.Background(), yaml)
-		if err != nil {
-			panic(fmt.Errorf("安装应用失败: %s %w", files[i].Name(), err))
-		}
+		command := fmt.Sprintf("/usr/local/bin/kubectl apply -f assets/island/%s", files[i].Name())
+		output, _ := executor.ExecuteCommandWithCombinedOutput("bash", "-c", command)
+		klog.Infoln("执行命令结果:", output)
 	}
-	klog.Infoln("部署应用完成")
+
+	klog.Infoln("开始设置访问路由")
+	yaml = `
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: island-ui
+  namespace: island-system
+spec:
+  hosts:
+    - "*"
+  gateways:
+    - crab
+  http:
+    - route:
+        - destination:
+            host: island-ui
+            port:
+              number: 80
+---
+
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: crab
+  namespace: island-system
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - "crab.%s"
+`
+	err = cluster.Client.Apply(context.Background(), []byte(fmt.Sprintf(yaml, os.Getenv("ISLAND_DOMAIN"))))
+	if err != nil {
+		klog.Errorln("设置访问路由失败: ", err.Error())
+	}
 	klog.Info("结束退出程序")
 }

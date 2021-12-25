@@ -3,26 +3,28 @@ context: {
 	componentName: string
 	namespace:     string
 }
-authorization?: [...{
-	service:   string
-	namespace: string
-	resources?: [...{
-		uri: string
-		action: [...string]
+parameter: {
+	authorization?: [...{
+		service:   string
+		namespace: string
+		resources?: [...{
+			uri: string
+			action: [...string]
+		}]
 	}]
-}]
-serviceEntry?: [...{
-	name:     string
-	host:     string
-	address:  string
-	port:     int
-	protocol: string
-}]
-dependencies: [...{[string]: host: string}]
-userconfigs: string
-ingress?: {
-	host: string
-	path?: [...string]
+	serviceEntry?: [...{
+		name:     string
+		host:     string
+		address:  string
+		port:     int
+		protocol: string
+	}]
+	dependencies: [...{[string]: host: string}]
+	userconfigs: string
+	ingress?: {
+		host: string
+		path?: [...string]
+	}
 }
 
 construct: namespace: {
@@ -52,13 +54,13 @@ construct: "default-authorizationPolicy": {
 	}
 	spec: {}
 }
-if serviceEntry != _|_ {
-	for k, v in serviceEntry {
-		"construct": "serviceEntry-\(context.componentName)-to-\(v.name)": {
+if parameter.serviceEntry != _|_ {
+	for k, v in parameter.serviceEntry {
+		"construct": "serviceEntry-\(context.workloadName)-to-\(v.name)": {
 			apiVersion: "networking.istio.io/v1alpha3"
 			kind:       "ServiceEntry"
 			metadata: {
-				name:      "\(context.componentName)-to-\(v.name)"
+				name:      "\(context.workloadName)-to-\(v.name)"
 				namespace: context.namespace
 			}
 			spec: {
@@ -83,8 +85,8 @@ if serviceEntry != _|_ {
 		}
 	}
 }
-if authorization != _|_ {
-	for k, v in authorization {
+if parameter.authorization != _|_ {
+	for k, v in parameter.authorization {
 		"construct": "island-allow-\(context.namespace)-to-\(v.namespace)-\(v.service)": {
 			apiVersion: "security.istio.io/v1beta1"
 			kind:       "AuthorizationPolicy"
@@ -96,7 +98,7 @@ if authorization != _|_ {
 				action: "ALLOW"
 				selector: {
 					matchLabels: {
-						"workload": v.service
+						workload: v.service
 					}
 				}
 				rules: [
@@ -121,8 +123,8 @@ if authorization != _|_ {
 	}
 }
 
-if ingress != _|_ {
-	"ingress": "ingressgateway-http": {
+if parameter.ingress != _|_ {
+	ingress: "ingressgateway-http": {
 		apiVersion: "networking.istio.io/v1alpha3"
 		kind:       "Gateway"
 		metadata: {
@@ -139,13 +141,13 @@ if ingress != _|_ {
 						protocol: "HTTP"
 					}
 					hosts: [
-						ingress.host,
+						parameter.ingress.host,
 					]
 				},
 			]
 		}
 	}
-	"ingress": "ingressgateway-https": {
+	ingress: "ingressgateway-https": {
 		apiVersion: "networking.istio.io/v1alpha3"
 		kind:       "Gateway"
 		metadata: {
@@ -167,13 +169,13 @@ if ingress != _|_ {
 						privateKey:        "/etc/istio/ingressgateway-certs/tls.key"
 					}
 					hosts: [
-						ingress.host,
+						parameter.ingress.host,
 					]
 				},
 			]
 		}
 	}
-	"ingress": "virtualservice-http": {
+	ingress: "virtualservice-http": {
 		apiVersion: "networking.istio.io/v1alpha3"
 		kind:       "VirtualService"
 		metadata: {
@@ -185,19 +187,19 @@ if ingress != _|_ {
 			gateways: ["island-system/\(context.namespace)-http"]
 			http: [
 				{
-					name: context.componentName
+					name: context.workloadName
 					if ingress.http != _|_ {
 						match: []
 					}
 					route: [{
 						destination: {
 							port: number: 80
-							host: context.componentName
+							host: context.workloadName
 						}
 						headers: {
 							request: {
 								add: {
-									"X-Forwarded-Host": ingress.host
+									"X-Forwarded-Host": parameter.ingress.host
 								}
 							}
 						}
@@ -206,7 +208,7 @@ if ingress != _|_ {
 			]
 		}
 	}
-	"ingress": "virtualservice-https": {
+	ingress: "virtualservice-https": {
 		apiVersion: "networking.istio.io/v1alpha3"
 		kind:       "VirtualService"
 		metadata: {
@@ -222,7 +224,7 @@ if ingress != _|_ {
 					route: [
 						{
 							destination: {
-								host: context.componentName
+								host: context.workloadName
 								port: {
 									number: 80
 								}
@@ -230,7 +232,7 @@ if ingress != _|_ {
 							headers: {
 								request: {
 									add: {
-										"X-Forwarded-Host": ingress.host
+										"X-Forwarded-Host": parameter.ingress.host
 									}
 								}
 							}
