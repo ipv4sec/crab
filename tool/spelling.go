@@ -33,5 +33,9 @@ func PostSpellingHandlerFunc(c *gin.Context) {
 	}
 	cmd := fmt.Sprintf("cue vet %s", saved)
 	output, _ := executor.ExecuteCommandWithCombinedOutput("bash", "-c", cmd)
-	c.JSON(200, utils.SuccessResponse(output))
+	if output == "" {
+		c.JSON(200, utils.SuccessResponse("正确"))
+		return
+	}
+	c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, output))
 }

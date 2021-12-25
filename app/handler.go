@@ -55,6 +55,9 @@ func GetAppsHandlerFunc(c *gin.Context) {
 		c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseInternalServer, "数据库查询错误"))
 		return
 	}
+	for i := 0; i < len(apps); i++ {
+		apps[i].Entry = "http://"+apps[i].Entry
+	}
 	c.JSON(200, utils.SuccessResponse(Pagination{
 		Total: total,
 		Rows:  apps,
@@ -408,7 +411,7 @@ func GetPodLogsHandlerFunc(c *gin.Context) {
 		Name string `json:"name"`
 		Value string `json:"value"`
 	}
-	var result []Logs
+	result := []Logs{}
 	for i := 0; i < len(pods.Items); i++ {
 		logs, err := GetPodLogs(id, pods.Items[i].Name)
 		if err != nil {
