@@ -26,6 +26,14 @@ app.use((req, res, next) => {
     next()
 })
 
+// app.use((req, res, next) => {
+//     res.set({
+//         'Access-Allow-Control-Origin': 'localhost:3001',
+//         'Access-Allow-Control-Methods': 'GET, POST, DELETE, PUT, OPTIONS'
+//     })
+//     next()
+// })
+
 app.use('/api', apiRouter)
 
 app.use('/', renderRouter)

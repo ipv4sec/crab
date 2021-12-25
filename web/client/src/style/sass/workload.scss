@@ -18,6 +18,46 @@
                 height: 32px;
             }
         }
+
+        
+    }
+
+    .table-list {
+        margin-bottom: 30px;
+        
+        .table-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
     }
     
+}
+
+.workload-dialog {
+    
+    .workdialog-view {
+       
+        .preview-pre {
+            width: 500px;
+            height: 50vh;
+            overflow: auto;
+            border:1px solid #dcdcdc;
+            border-radius: 4px;
+            padding: 0.5rem;
+        }
+    }
+
+    .workdialog-edit {
+       
+        .textarea-input {
+            width: 500px;
+            height: 50vh;
+            resize: none;
+            outline: none;
+            border:1px solid #dcdcdc;
+            border-radius: 4px;
+            padding: 0.5rem;
+            white-space: nowrap;
+        }
+    }
 }

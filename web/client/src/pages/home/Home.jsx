@@ -2,14 +2,20 @@ import React, { useState , lazy, Suspense} from 'react'
 import '../../style/sass/home.scss'
 import LeftNav from '../../components/LeftNav'
 import { Route, Switch, useHistory } from 'react-router-dom'
-
+import SuspenseLoading from '../../components/SuspenseLoading'
 import Loading from '../../components/Loading'
 import SnackbarCmp from '../../components/Snackbar'
 
-import Manager from '../manager/Manager'
-import WorkLoad from '../workload/WorkLoad'
-import Domain from '../domain/Domain'
-import Reset from '../reset/Reset'
+// import Manager from '../manager/Manager'
+// import WorkLoad from '../workload/WorkLoad'
+// import Domain from '../domain/Domain'
+// import Reset from '../reset/Reset'
+
+const Manager = lazy(() => import('../manager/Manager'))
+const WorkLoad = lazy(() => import('../workload/WorkLoad'))
+const Domain = lazy(() => import('../domain/Domain'))
+const Reset = lazy(() => import('../reset/Reset'))
+const Online = lazy(() => import('../online/Online'))
 
 const Home = (props) => {
 
@@ -25,12 +31,15 @@ const Home = (props) => {
                 <LeftNav change={changeNav}/>
             </div>
             <div className="content-right">
-                <Switch> 
-                    <Route path="/home/workload" component={WorkLoad} />
-                    <Route path="/home/domain" component={Domain} />
-                    <Route path="/home/reset" component={Reset} />
-                    <Route path="/home" component={Manager} />
-                </Switch>
+                <Suspense fallback={SuspenseLoading()}>
+                    <Switch> 
+                        <Route path="/home/online" component={Online} />
+                        <Route path="/home/workload" component={WorkLoad} />
+                        <Route path="/home/domain" component={Domain} />
+                        <Route path="/home/reset" component={Reset} />
+                        <Route path="/home" component={Manager} />
+                    </Switch>
+                </Suspense>
             </div>
 
             <Loading />

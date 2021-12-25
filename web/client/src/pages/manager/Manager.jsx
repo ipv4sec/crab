@@ -14,6 +14,7 @@ import moment from 'moment'
 import AddFile from '../../components/AddFile'
 import ReadLog from '../../components/ReadLog'
 import axios from 'axios'
+import copy from 'copy-to-clipboard'
 
 const testConfigData = {
     "id": "ins1635146904",
@@ -92,7 +93,7 @@ const Manager = (props) => {
     const uploadRef = useRef(null)
     const [showConfigDialog, setShowConfigDialog] = useState(false)
     const [configData, setConfigData] = useState({})
-    const [appList, setAppList] = useState([])
+    const [appList, setAppList] = useState(testAppList)
     const [total, setTotal] = useState(0)
     const [anchorEl, setAnchorEl] = useState()
     const openMenu = Boolean(anchorEl);
@@ -106,9 +107,14 @@ const Manager = (props) => {
 
     useEffect(() => {
         getDomain()
+
+        // // 测试用
+        // setHadDomain(1)
+
     }, [])
 
     useEffect(() => {
+        // 测试用
         getAppList()
     }, [page])
 
@@ -363,14 +369,13 @@ const Manager = (props) => {
 
     const clickMenu = (item) => {
         setCurInstance(item)
-        console.log('sdlfjlksd===',curInstance)
+        // console.log('sdlfjlksd===',curInstance)
         setAnchorEl(event.target)
-
     }
 
     // 查看日志
     const readLogs = () => {
-        setAnchorEl(null)
+        closePopover()
 
         // 测试数据
         // setShowLog(true)
@@ -424,15 +429,30 @@ const Manager = (props) => {
 
     }
 
+    const goDetailPage = () => {
+        closePopover()
+        window.open(`${window.location.origin}/detail/${curInstance.id}/${curInstance.name}`,'_blank')
+    }  
+    
+    // 部署链接
+    const copyLink = () => {
+        closePopover()
+        copy(curInstance.entry ? (window.location.protocol + '//' + curInstance.entry ) : '')
+        store.dispatch({
+            type: TYPE.SNACKBAR,
+            val: '部署链接已复制到剪切板'
+        })
+    }  
+
     // 导出配置
     const outputFile = () => {
-        setAnchorEl(null)
+        closePopover()
         window.open('/api/app/output?id='+curInstance.id)
     }
 
     // 删除实例
     const deleteInstance = () => {
-        setAnchorEl(null)
+        closePopover()
 
         store.dispatch({
             type: TYPE.LOADING,
@@ -496,7 +516,7 @@ const Manager = (props) => {
                 hadDomain === 1 ? (
                     <React.Fragment>
                     <div className="upload-content">
-                        <Button className="input-btn" variant="contained" color="primary" onClick={upload}>上传</Button>
+                        <Button className="input-btn" variant="contained" color="primary" onClick={upload}>添加应用</Button>
                         <input className="upload-file" type="file" ref={uploadRef} onChange={uploadFileChange}/>
                     </div>
                     <div className="instance-list">
@@ -507,7 +527,7 @@ const Manager = (props) => {
                                     <th width="10%">所属应用</th>
                                     <th width="8%">版本</th>
                                     <th width="25%">访问链接</th>
-                                    <th width="10%">状态</th>
+                                    {/* <th width="10%">状态</th> */}
                                     <th width="15%">创建时间</th>
                                     <th width="15%">更新时间</th>
                                     <th width="5%">操作</th>
@@ -526,7 +546,7 @@ const Manager = (props) => {
                                             <td>{item.name}</td>
                                             <td>{item.version}</td>
                                             <td className="list-entry"><a href={item.entry} target="_blank">{item.entry}</a></td>
-                                            <td>{item.status}</td>
+                                            {/* <td>{item.status}</td> */}
                                             <td>{moment(item.created_at).format('YYYY-MM-DD hh:mm:ss')}</td>
                                             <td>{moment(item.updated_at).format('YYYY-MM-DD hh:mm:ss')}</td>
                                             <td data-item={item} onClick={() => {clickMenu(item)}}><i className="iconfont icon_navigation_more" style={{cursor: "pointer"}}></i></td>
@@ -571,13 +591,26 @@ const Manager = (props) => {
                 onClose={closePopover}
             >
                 <MenuList>
-                    <MenuItem key='1' style={{minHeight: '40px', lineHeight: '40px'}} onClick={readLogs}>
+                    {/* <MenuItem key='1' style={{minHeight: '40px', lineHeight: '40px'}} onClick={readLogs}>
                         <div className="staticPopoverMenu"><i className="iconfont icon_view"></i>  查看日志</div>
                     </MenuItem>
                     <MenuItem key='2' style={{minHeight: '40px', lineHeight: '40px'}} onClick={outputFile}>
                         <div className="staticPopoverMenu"><i className="iconfont icon_daochu"></i>  导出配置</div>
                     </MenuItem>
                     <MenuItem key='3' style={{minHeight: '40px', lineHeight: '40px'}} onClick={deleteInstance}>
+                        <div className="staticPopoverMenu"><i className="iconfont icon_baseline_delete"></i>  删除</div>
+                    </MenuItem> */}
+
+                    <MenuItem key='1' style={{minHeight: '40px', lineHeight: '40px'}} onClick={goDetailPage}>
+                        <div className="staticPopoverMenu"><i className="iconfont icon_view"></i>  部署详情</div>
+                    </MenuItem>
+                    <MenuItem key='2' style={{minHeight: '40px', lineHeight: '40px'}} onClick={copyLink}>
+                        <div className="staticPopoverMenu" ><i className="iconfont icon_baseline_copy"></i>  部署链接</div>
+                    </MenuItem>
+                    <MenuItem key='3' style={{minHeight: '40px', lineHeight: '40px'}} onClick={outputFile}>
+                        <div className="staticPopoverMenu"><i className="iconfont icon_daochu"></i>  导出K8S描述文件</div>
+                    </MenuItem>
+                    <MenuItem key='4' style={{minHeight: '40px', lineHeight: '40px'}} onClick={deleteInstance}>
                         <div className="staticPopoverMenu"><i className="iconfont icon_baseline_delete"></i>  删除</div>
                     </MenuItem>
                 </MenuList>

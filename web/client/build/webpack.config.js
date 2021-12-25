@@ -60,7 +60,7 @@ let config = {
 
 if(isDev) {
     config.devtool = 'eval-cheap-source-map'
-    config.plugins.push(new webpack.HotModuleReplacementPlugin())
+    // config.plugins.push(new webpack.HotModuleReplacementPlugin())
     config.devServer = {
         contentBase: path.resolve(__dirname, '../../public'),
         host: '0.0.0.0',
