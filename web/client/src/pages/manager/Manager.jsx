@@ -14,7 +14,7 @@ import moment from 'moment'
 import AddFile from '../../components/AddFile'
 import ReadLog from '../../components/ReadLog'
 import axios from 'axios'
-import ClipboardJS from 'clipboard'
+import copy from 'copy-to-clipboard'
 
 const testConfigData = {
     "id": "ins1635146904",
@@ -106,39 +106,16 @@ const Manager = (props) => {
     const [hadDomain, setHadDomain] = useState(-1)
 
     useEffect(() => {
-        // getDomain()
+        getDomain()
 
-        // 测试用
-        setHadDomain(1)
+        // // 测试用
+        // setHadDomain(1)
 
-        let clipboardBtns = new ClipboardJS('.clipboard-btn')
-        clipboardBtns.on('success', (e) => {
-            console.log(`copy ${e.text} success`)
-            store.dispatch({
-                type: TYPE.SNACKBAR,
-                val: '部署链接已复制到剪切板'
-            })
-            e.clearSelection()
-        })
-        clipboardBtns.on('error', (e) => {
-            console.log('clipboard copy error: ', e)
-            if(e) {
-                store.dispatch({
-                    type: TYPE.SNACKBAR,
-                    val: '部署链接复制失败'
-                })
-            }
-          
-        })
-
-        return () => {
-            clipboardBtns.destroy();
-        }
     }, [])
 
     useEffect(() => {
         // 测试用
-        // getAppList()
+        getAppList()
     }, [page])
 
     const getDomain = () => {
@@ -394,12 +371,11 @@ const Manager = (props) => {
         setCurInstance(item)
         // console.log('sdlfjlksd===',curInstance)
         setAnchorEl(event.target)
-
     }
 
     // 查看日志
     const readLogs = () => {
-        setAnchorEl(null)
+        closePopover()
 
         // 测试数据
         // setShowLog(true)
@@ -454,18 +430,29 @@ const Manager = (props) => {
     }
 
     const goDetailPage = () => {
+        closePopover()
         window.open(`${window.location.origin}/detail/${curInstance.id}/${curInstance.name}`,'_blank')
-    }   
+    }  
+    
+    // 部署链接
+    const copyLink = () => {
+        closePopover()
+        copy(curInstance.entry ? (window.location.protocol + '//' + curInstance.entry ) : '')
+        store.dispatch({
+            type: TYPE.SNACKBAR,
+            val: '部署链接已复制到剪切板'
+        })
+    }  
 
     // 导出配置
     const outputFile = () => {
-        setAnchorEl(null)
+        closePopover()
         window.open('/api/app/output?id='+curInstance.id)
     }
 
     // 删除实例
     const deleteInstance = () => {
-        setAnchorEl(null)
+        closePopover()
 
         store.dispatch({
             type: TYPE.LOADING,
@@ -617,8 +604,8 @@ const Manager = (props) => {
                     <MenuItem key='1' style={{minHeight: '40px', lineHeight: '40px'}} onClick={goDetailPage}>
                         <div className="staticPopoverMenu"><i className="iconfont icon_view"></i>  部署详情</div>
                     </MenuItem>
-                    <MenuItem key='2' style={{minHeight: '40px', lineHeight: '40px'}} onClick={closePopover}>
-                        <div className="staticPopoverMenu clipboard-btn" data-clipboard-text={curInstance && curInstance.entry ? curInstance.entry : ''} ><i className="iconfont icon_baseline_copy"></i>  部署链接</div>
+                    <MenuItem key='2' style={{minHeight: '40px', lineHeight: '40px'}} onClick={copyLink}>
+                        <div className="staticPopoverMenu" ><i className="iconfont icon_baseline_copy"></i>  部署链接</div>
                     </MenuItem>
                     <MenuItem key='3' style={{minHeight: '40px', lineHeight: '40px'}} onClick={outputFile}>
                         <div className="staticPopoverMenu"><i className="iconfont icon_daochu"></i>  导出K8S描述文件</div>

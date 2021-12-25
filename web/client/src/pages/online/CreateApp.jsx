@@ -231,7 +231,7 @@ const CreateApp = (props) => {
             if(res.data.code == 0) {
                 store.dispatch({
                     type: TYPE.SNACKBAR,
-                    val: res.data.result
+                    val: '部署成功'
                 })
             }else {
                 store.dispatch({

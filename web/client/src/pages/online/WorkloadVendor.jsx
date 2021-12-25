@@ -148,6 +148,11 @@ const WorkloadVendor = (props) => {
 
                 preRef.current.innerText = res.data.result || ''
 
+                store.dispatch({
+                    type: TYPE.SNACKBAR,
+                    val: '转换完成'
+                })
+
             }else {
                 store.dispatch({
                     type: TYPE.SNACKBAR,
@@ -187,10 +192,12 @@ const WorkloadVendor = (props) => {
             data: {value: cueData},
             headers: { 'Content-Type': 'application/json'}
         }).then(res => {
+        
             store.dispatch({
                 type: TYPE.SNACKBAR,
-                val: res.data.result
+                val: res.data.code === 0 ? '检查正确' : res.data.result
             })
+           
         }).catch(err => {
             console.log(err)
             store.dispatch({

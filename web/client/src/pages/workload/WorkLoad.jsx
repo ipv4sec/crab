@@ -77,7 +77,7 @@ const WorkLoad = (props) => {
     const [openDialog, setOpenDialog] = useState(false)
     const [dialogTitle, setDialogTitle] = useState('')
     const [dialogType, setDialogType] = useState('')
-    let curClickDialogType = ''
+    const [curClickDialogType, setCurClickDialogType] = useState('')
 
     const getTraitList = () => {
         store.dispatch({
@@ -93,7 +93,7 @@ const WorkLoad = (props) => {
             }
         }).then((res) => {
             if(res.data.code === 0) {
-                setTraitList(res.data.result)
+                setTraitList(res.data.result.rows || [])
             }else {
                 store.dispatch({
                     type: TYPE.SNACKBAR,
@@ -124,7 +124,7 @@ const WorkLoad = (props) => {
             }
         }).then((res) => {
             if(res.data.code === 0) {
-                setWorkloadList(res.data.result)
+                setWorkloadList(res.data.result.rows || [])
             }else {
                 store.dispatch({
                     type: TYPE.SNACKBAR,
@@ -155,7 +155,7 @@ const WorkLoad = (props) => {
             }
         }).then((res) => {
             if(res.data.code === 0) {
-                setVendorList(res.data.result)
+                setVendorList(res.data.result.rows || [])
             }else {
                 store.dispatch({
                     type: TYPE.SNACKBAR,
@@ -176,9 +176,9 @@ const WorkLoad = (props) => {
     useEffect(() => {
         getClusterMirror()
         
-        // getTraitList()
-        // getWorkloadList()
-        // getVendorList()
+        getTraitList()
+        getWorkloadList()
+        getVendorList()
 
     }, [])
 
@@ -272,7 +272,8 @@ const WorkLoad = (props) => {
     }
 
     const clickMenu = (item, type) => {
-        curClickDialogType = type
+        setCurClickDialogType(type)
+        console.log('click type ===', curClickDialogType)
         setCurInstance(item)
         console.log('curInstance: ',curInstance)
         setAnchorEl(event.target)
@@ -366,6 +367,8 @@ const WorkLoad = (props) => {
             val: true
         })
 
+        console.log('confirm type ===', curClickDialogType)
+
         let url = ''
         if(curClickDialogType === 'trait') {
             url = `/api/cluster/edittrait?id=${curInstance.id || ''}`
@@ -396,13 +399,11 @@ const WorkLoad = (props) => {
                 }else if(curClickDialogType === 'vendor') {
                     getVendorList()
                 }
-               
-            }else {
-                store.dispatch({
-                    type: TYPE.SNACKBAR,
-                    val: res.data.result || ''
-                })
             }
+            store.dispatch({
+                type: TYPE.SNACKBAR,
+                val: res.data.result || ''
+            })
         }).catch((err) => {
             console.error(err)
             store.dispatch({

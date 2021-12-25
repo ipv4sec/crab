@@ -70,9 +70,6 @@ const Detail = (props) => {
     const [instanceInfo, setInstanceInfo] = useState({})
     const [detailData, setDetailData] = useState({})
     const [instanceList, setInstanceList] = useState([])
-
-    // console.log('--props--', props)
-
     const [crumbs, setCrumbs] = useState([])
     const [navList, setNavList] = useState([])
     const [curNav, setCurNav] = useState('')
@@ -89,7 +86,7 @@ const Detail = (props) => {
     },[])
 
     const parseDetailData = (data) => {
-        console.log('--parseDetailData--', data)
+        // console.log('--parseDetailData--', data)
         if(!data || !data.details || !(Object.keys(data.details).length)) { return }
 
         let detailInfo = []
@@ -215,10 +212,10 @@ const Detail = (props) => {
             detailInfo.push(tmp)
         })
 
-        console.log('detailInfo===',detailInfo)
+        // console.log('detailInfo===',detailInfo)
 
         setInstanceList(detailInfo)
-        if(detailInfo.length && detailInfo[0].navList.length) {
+        if(detailInfo.length) {
             const crumbs = [{id: detailInfo[0].id, name: detailInfo[0].name}]
             setCrumbs(crumbs)
             setCurNav(detailInfo[0].id)
@@ -235,7 +232,8 @@ const Detail = (props) => {
 
         axios({
             method: "GET",
-            url: '/api/app/testdata',
+            url: '/api/app/detail',
+            // url: '/api/app/testdata',
             params: {id: props.match.params.id || ''}
         }).then((res) => {
             if(res.data.code === 0) {
@@ -264,12 +262,12 @@ const Detail = (props) => {
 
     const changeCrumb = (curNav, id) => {
 
-        console.log('--changecrumb---', id, type)
+        // console.log('--changecrumb---', id, type)
         if(type !== 'list') {
            
             setType('list')
             let data = instanceList.find((item) => item.id == id)
-            console.log('====+++++=',data)
+            // console.log('====+++++=',data)
             setListData(data || [])
         }
       
@@ -312,8 +310,6 @@ const Detail = (props) => {
                 type: TYPE.SET_SERVICE,
                 val: data.parent
             })
-            console.log('changenav ---',data)
-            console.log(instanceList[data.index])
             setListData(instanceList[data.index])
         }
 
@@ -323,7 +319,6 @@ const Detail = (props) => {
     }
 
     const goTail = (data) => {
-        console.log('go tail ===', data)
         setTailData(data)
         setType('tail')
         let newCrumbs = crumbs.slice()

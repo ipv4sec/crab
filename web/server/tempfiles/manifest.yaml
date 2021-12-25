@@ -1,9 +1,9 @@
 apiVersion: aam.globalsphare.com/v1alpha1
 kind: Application
 metadata:
-  name: example
+  name: example1
   version: 0.0.1
-  description: 样例应用
+  description: 样例应用1
   keywords:
     - 样例应用
   author: example@example.com
@@ -31,7 +31,6 @@ userconfig:
     - username
     - password
 workloads:
-  
   name: example
   type: webservice
   vendor: webservice
