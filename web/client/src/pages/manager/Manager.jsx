@@ -107,14 +107,9 @@ const Manager = (props) => {
 
     useEffect(() => {
         getDomain()
-
-        // // 测试用
-        // setHadDomain(1)
-
     }, [])
 
     useEffect(() => {
-        // 测试用
         getAppList()
     }, [page])
 
@@ -125,7 +120,7 @@ const Manager = (props) => {
         }).then((res) => {
             if(res.data.code === 0 && res.data.result !== '') {
                 setHadDomain(1)
-                getAppList()
+                // getAppList()
             }else {
                 setHadDomain(0)
             }
@@ -437,7 +432,7 @@ const Manager = (props) => {
     // 部署链接
     const copyLink = () => {
         closePopover()
-        copy(curInstance.entry ? (window.location.protocol + '//' + curInstance.entry ) : '')
+        copy(window.location.origin + '/api/deployment/'+curInstance.id)
         store.dispatch({
             type: TYPE.SNACKBAR,
             val: '部署链接已复制到剪切板'

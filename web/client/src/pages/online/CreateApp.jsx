@@ -51,14 +51,14 @@ traits:
 
 
 const defaultDependencies = `- name: gitlab
-version: ">=0.0.1"
-location: user-defined(https://gitlab.com)
-items:
-  /*:
-    - create
-    - read
-    - update
-    - delete`
+   version: ">=0.0.1"
+   location: user-defined(https://gitlab.com)
+   items:
+     /*:
+       - create
+       - read
+       - update
+       - delete`
 
 const defaultExports = `/user:
   - create
@@ -97,7 +97,7 @@ const CreateApp = (props) => {
     }
     const addWorkload = () => {
         const newWorkloads = workloads.slice()
-        newWorkloads.push('')
+        newWorkloads.push(defaultWorkloads[0])
         setWorkloads(newWorkloads)
     }
     const removeWorkload = (e) => {

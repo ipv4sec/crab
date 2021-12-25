@@ -65,11 +65,17 @@ const WorkLoad = (props) => {
     const [host, setHost] = useState('')
     const [inputErr, setInputErr] = useState('')
     const [traitList, setTraitList] = useState([])
-    const [traitPage, setTraitPage] = useState(1)
+    const [traitPage, setTraitPage] = useState(1)    
+    const [traitTotal, setTraitTotal] = useState(0)
+
     const [workloadList, setWorkloadList] = useState([])
     const [workloadPage, setWorkloadPage] = useState(1)
+    const [workloadTotal, setWorkloadTotal] = useState(0)
+
     const [vendorList, setVendorList] = useState([])
     const [vendorPage, setVendorPage] = useState(1)
+    const [vendorTotal, setVendorTotal] = useState(0)
+
     const limit = 3 // 每页多少条
     const [anchorEl, setAnchorEl] = useState()
     const openMenu = Boolean(anchorEl);
@@ -93,6 +99,7 @@ const WorkLoad = (props) => {
             }
         }).then((res) => {
             if(res.data.code === 0) {
+                setTraitTotal(res.data.result.total || 0)
                 setTraitList(res.data.result.rows || [])
             }else {
                 store.dispatch({
@@ -124,6 +131,7 @@ const WorkLoad = (props) => {
             }
         }).then((res) => {
             if(res.data.code === 0) {
+                setWorkloadTotal(res.data.result.total || 0)
                 setWorkloadList(res.data.result.rows || [])
             }else {
                 store.dispatch({
@@ -155,6 +163,7 @@ const WorkLoad = (props) => {
             }
         }).then((res) => {
             if(res.data.code === 0) {
+                setVendorTotal(res.data.result.total || 0)
                 setVendorList(res.data.result.rows || [])
             }else {
                 store.dispatch({
@@ -181,7 +190,17 @@ const WorkLoad = (props) => {
         getVendorList()
 
     }, [])
+    useEffect(() => {
+        getTraitList()
+    }, [traitPage])
 
+    useEffect(() => {
+        getWorkloadList()
+    }, [workloadPage])
+
+    useEffect(() => {
+        getVendorList()
+    }, [vendorPage])
 
 
     const getClusterMirror = () => {
@@ -258,6 +277,7 @@ const WorkLoad = (props) => {
 
     const changeTraitPage = (event, page) => {
         setTraitPage(page)
+
     }
     const changeWorkloadPage = (event, page) => {
         setWorkloadPage(page)
@@ -474,7 +494,7 @@ const WorkLoad = (props) => {
     
                     <div className="pagination-content">
                         <Pagination 
-                            count={Math.ceil(traitList.length/limit)} 
+                            count={Math.ceil(traitTotal/limit)} 
                             page={traitPage} 
                             shape="rounded" 
                             onChange={changeTraitPage} />
@@ -523,7 +543,7 @@ const WorkLoad = (props) => {
     
                     <div className="pagination-content">
                         <Pagination 
-                            count={Math.ceil(workloadList.length/limit)} 
+                            count={Math.ceil(workloadTotal/limit)} 
                             page={workloadPage} 
                             shape="rounded" 
                             onChange={changeWorkloadPage} />
@@ -572,7 +592,7 @@ const WorkLoad = (props) => {
     
                     <div className="pagination-content">
                         <Pagination 
-                            count={Math.ceil(vendorList.length/limit)} 
+                            count={Math.ceil(vendorTotal/limit)} 
                             page={vendorPage} 
                             shape="rounded" 
                             onChange={changeVendorPage} />

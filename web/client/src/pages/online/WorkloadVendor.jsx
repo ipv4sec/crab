@@ -33,7 +33,6 @@ kind: WorkloadVendor
 metadata:
   name: example`
 
-
 const WorkloadVendor = (props) => {
     const preRef = useRef(null)
     
@@ -82,7 +81,7 @@ const WorkloadVendor = (props) => {
         const reg = /\n/g
         return (
             metadata +
-            '\nspec:\n  ' + systemSpec.replace(reg, '\n  ') + 
+            '\nspec: | \n  ' + systemSpec.replace(reg, '\n  ') + 
             '\n  '+cueData.replace(reg, '\n    ') 
         ) 
 
