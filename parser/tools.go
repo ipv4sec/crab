@@ -103,8 +103,7 @@ metadata:
 	//自动追加的部分
 	//处理workload
 	for k, v := range vela.Services {
-		ctx := make(map[string]ContextObj, 0)
-		ctx["context"] = ContextObj{
+		ctx := ContextObj{
 			vela.Name,
 			k,
 			instanceId,
@@ -134,10 +133,12 @@ metadata:
 	return finalContext, nil
 }
 
-func Export(ctxObj map[string]ContextObj, workloadParam WorkloadParam, workload interface{}) (string, error) {
+func Export(ctxObj ContextObj, workloadParam WorkloadParam, workload interface{}) (string, error) {
 	var k8s = ""
 	template := workloadParam.VendorCue
-	ctxObjData, err := json.Marshal(ctxObj)
+	ctxData := make(map[string]interface{}, 0)
+	ctxData["context"] = ctxObj
+	ctxObjData, err := json.Marshal(ctxData)
 	if err != nil {
 		klog.Errorln("ctxObj 序列化失败: ", err.Error())
 		return "", errors.New("ctxObj 序列化失败")
@@ -148,6 +149,11 @@ func Export(ctxObj map[string]ContextObj, workloadParam WorkloadParam, workload 
 		return "", errors.New("vela.Services 序列化失败")
 	}
 	cueStr := fmt.Sprintf("%s\nparameter:%s\n%s", ctxObjData, serviceData, template)
+	err = ioutil.WriteFile(fmt.Sprintf("/tmp/%s-%s.cue", ctxObj.Namespace, ctxObj.WorkloadName), []byte(cueStr), 0644)
+	if err != nil {
+		klog.Errorln("保存cue文件错误: ", err.Error())
+		return "", err
+	}
 	//处理cue内置的pkg
 	cueStr = MoveCuePkgToTop(cueStr)
 	var ctx *cue.Context
