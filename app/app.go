@@ -7,7 +7,6 @@ import (
 type App struct {
 	PK     int64  `gorm:"primaryKey" json:"-"`
 	ID     string `json:"id"`
-	Status int    `json:"status"`
 
 	Name           string `json:"name"`
 	Version        string `json:"version"`
@@ -15,11 +14,13 @@ type App struct {
 	Dependencies   string `json:"dependencies"`
 
 	Manifest string `json:"manifest"`
+	Entry string `json:"entry"`
 
 	Parameters string `json:"parameters"`
 	Additional string `json:"additional"`
 
 	Deployment string `gorm:"column:deployment" json:"deployment"`
+	Status int64 // 0 未部署 1 已部署
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`

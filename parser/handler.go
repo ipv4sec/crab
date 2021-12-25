@@ -8,14 +8,14 @@ import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"k8s.io/klog/v2"
+	"strings"
 )
-
 type Params struct {
 	Content      string      `json:"Content"`
 	Instanceid   string      `json:"InstanceId"`
 	Userconfig   interface{} `json:"UserConfig"`
 	Dependencies Dependency  `json:"Dependencies"`
-	RootDomain   string      `json:"RootDomain"`
+	Host         string      `json:"Host"`
 	WorkloadPath string      `json:"WorkloadPath"`
 }
 type Result struct {
@@ -29,39 +29,39 @@ func PostManifestHandlerFunc(c *gin.Context) {
 	err = c.BindJSON(&p)
 	if err != nil {
 		klog.Infoln(err)
-		c.JSON(200, Result{ErrBadRequest, "参数错误"})
+		c.JSON(200, Result{ErrBadRequest, "参数格式错误"})
 		return
 	}
-	if p.Content == "" || p.Instanceid == "" || p.RootDomain == "" || p.WorkloadPath == "" {
+	if p.Content == "" || p.Instanceid == "" {
 		c.JSON(200, Result{ErrBadRequest, "缺少参数"})
 		return
 	}
 	userconfig, err := json.Marshal(p.Userconfig)
 	if err != nil {
-		c.JSON(200, Result{ErrInternalServer, "序列化失败"})
+		c.JSON(200, Result{ErrInternalServer, "运行时配置序列化失败"})
 		return
 	}
-	userconfigStr := string(userconfig)
+	userconfigStr := strings.TrimSpace(string(userconfig))
 	if userconfigStr == "null" || userconfigStr == "" {
 		userconfigStr = "{}"
 	}
+
 	//解析描述文件
 	var application v1alpha1.Application
 	err = yaml.Unmarshal([]byte(p.Content), &application)
 	if err != nil {
-		c.JSON(200, Result{ErrBadRequest, "文件解析失败"})
+		c.JSON(200, Result{ErrBadRequest, "描述文件解析失败"})
 		return
 	}
-
 	//验证参数，返回参数json,返回vendor内容
-	workloadResource, err := checkParams(application, p.WorkloadPath)
+	workloadResource, err := checkParams(application)
 	if err != nil {
-		c.JSON(200, Result{ErrBadRequest, err.Error()})
+		klog.Errorln("检查参数错误: " + err.Error())
+		c.JSON(200, Result{ErrBadRequest, "检查参数错误: " + err.Error()})
 		return
 	}
-
 	//生成vale.yaml文件
-	vale, err := GenValeYaml(p.Instanceid, application, string(userconfigStr), p.RootDomain, p.Dependencies)
+	vale, err := GenValeYaml(p.Instanceid, application, userconfigStr, p.Host, p.Dependencies)
 	if err != nil {
 		c.JSON(200, Result{ErrInternalServer, err.Error()})
 		return
@@ -71,7 +71,7 @@ func PostManifestHandlerFunc(c *gin.Context) {
 		klog.Errorln(err)
 		return
 	}
-	tmpName := fmt.Sprintf("/tmp/%s-vela.json", RandomStr())
+	tmpName := fmt.Sprintf("/tmp/%s-service.json", p.Instanceid)
 	ioutil.WriteFile(tmpName, str, 0644)
 
 	//生成k8s.yaml文件
@@ -81,20 +81,15 @@ func PostManifestHandlerFunc(c *gin.Context) {
 		c.JSON(200, Result{ErrInternalServer, err.Error()})
 		return
 	}
-	k8s2, err := yaml.Marshal(k8s)
-	if err != nil {
-		klog.Errorln(err)
-		return
-	}
-	tmpName = fmt.Sprintf("/tmp/%s-k8s.yaml", RandomStr())
-	ioutil.WriteFile(tmpName, k8s2, 0644)
-	c.JSON(200, Result{0, string(k8s2)})
+	tmpName = fmt.Sprintf("tmp/%s-k8s.yaml", p.Instanceid)
+	ioutil.WriteFile(tmpName, []byte(k8s), 0644)
+	c.JSON(200, Result{0, k8s})
 }
 
-func GetSystemTemplateFunc(c *gin.Context){
-	text,err := ioutil.ReadFile("assets/cue/common.cue")
+func GetSystemTemplateFunc(c *gin.Context) {
+	text, err := ioutil.ReadFile("assets/cue/systemTemplate.cue")
 	if err != nil {
-		fmt.Println(err)
+		klog.Errorln("获取系统模板失败")
 		c.JSON(200, Result{
 			Code:   ErrInternalServer,
 			Result: "模板不存在",

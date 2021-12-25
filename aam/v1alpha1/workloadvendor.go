@@ -1,7 +1,7 @@
 package v1alpha1
 
 type WorkloadVendor struct {
-	ApiVersion string
+	ApiVersion string `yaml:"apiVersion"`
 	Kind       string
 	Metadata   struct{
 		Name string
