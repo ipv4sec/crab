@@ -81,7 +81,7 @@ func PostManifestHandlerFunc(c *gin.Context) {
 		c.JSON(200, Result{ErrInternalServer, err.Error()})
 		return
 	}
-	tmpName = fmt.Sprintf("tmp/%s-k8s.yaml", p.Instanceid)
+	tmpName = fmt.Sprintf("/tmp/%s-k8s.yaml", p.Instanceid)
 	ioutil.WriteFile(tmpName, []byte(k8s), 0644)
 	c.JSON(200, Result{0, k8s})
 }
