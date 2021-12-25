@@ -7,23 +7,12 @@ import store from '../../store/store'
 import * as TYPE from '../../store/actions'
 
 const defaultMetadata = `apiVersion: aam.globalsphare.com/v1alpha1
-kind: Application
+kind: Trait
 metadata:
-  name: example
-  version: 0.0.1
-  description: 样例应用
-  keywords:
-    - 样例应用
-  author: example@example.com
-  maintainers:
-    - email: example@example.com
-      name: example
-      web: https://example.com
-  repositories: ["https://github.com/example/example.git"]
-  bugs: https://github.com/example/example/issues
-  licenses:
-    - type: LGPL
-      url: https://license.spec.com`
+  name: expose
+spec:
+  parameter: |
+    k1: *"v1" | string`
 
 
 const Trait = (props) => {

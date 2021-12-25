@@ -17,11 +17,11 @@ let list = [
                     "url": "/home/workload",
                     "sub": [],
                 },
-                {
-                    "name": "根域设置",
-                    "url": "/home/domain",
-                    "sub": [],
-                },
+                // { // 先注释掉，后期可能会用到
+                //     "name": "根域设置",
+                //     "url": "/home/domain",
+                //     "sub": [],
+                // },
                 {
                     "name": "密码设置",
                     "url": "/home/reset",
@@ -143,7 +143,7 @@ const LeftNav = (props) => {
             setNavList(newList)
         }else {
             setCurNav(path)
-            console.log('path==',path)
+            // console.log('path==',path)
             sessionStorage.setItem('curNav', path)
            
             if(path.indexOf('.') > -1) {

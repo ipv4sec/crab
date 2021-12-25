@@ -460,6 +460,39 @@ router.post('/online/createvendor', (req, res) => {
     })
 })
 
+// 流水线接口
+router.post('/deployment/:id', (req, res) => {
+    const dirPath = path.resolve(__dirname,'../tempfiles')
+    if (!fs.existsSync(dirPath)) {
+        fs.mkdirSync(dirPath, { recursive: true })
+    }
+    var form = new multiparty.Form({uploadDir: dirPath});
+    form.parse(req, function (err, fields, files) {
+        let filePath = files.file[0].path,
+        fileName = files.file[0].originalFilename;
+         if(fields.folder_name) {
+             let fileInfo = filePath.split('/')
+             let names =  fileName.split('/')
+            fileName = names[names.length - 1]
+            filePath = 'tempfiles/'+fileInfo[fileInfo.length - 1]
+        }
+        const newPath = path.join(path.dirname(filePath), fileName) // 得到newPath新地址用于创建读取流
+        fs.renameSync(filePath, newPath)
+        let file = fs.createReadStream(newPath)
+        let formData = new FormData()
+        formData.append('file', file)
+        let headers = formData.getHeaders()
+        let header = Object.assign({}, headers)
+        request.putForm('/deployment/'+req.params.id, formData, header, function(response) {
+            if (fs.existsSync(newPath)) {
+                fs.unlink(newPath, (err) => {})
+            }
+            res.send(response.data)
+        })
+
+    })
+})
+
 
 function zipYaml () {
     return new Promise((resolve, reject) => {
