@@ -11,9 +11,9 @@ function get(url, params, header, callback){
         params: params
     }).then((data) => {
         callback(data)
-    }).catch((err) => {
+    }).catch((error) => {
         console.log('--- request error ---')
-        console.log(err)
+        console.log(error.message)
         callback({ code: 400, result: '请求错误'})
     })
 }
@@ -29,7 +29,7 @@ function post(url, data, header, callback) {
         callback(res)
     }).catch((error) => {
         console.log('--- request error ---')
-        console.log(error)
+        console.log(error.message)
         callback({ code: 400, result: '请求错误'})
     })
 }
@@ -64,7 +64,7 @@ function put(url, data,header, callback) {
         callback(res)
     }).catch((error) => {
         console.log('--- request error ---')
-        console.log(error)
+        console.log(error.message)
         callback({ code: 400, result: '请求错误'})
     })
 }
@@ -80,7 +80,7 @@ function del(url, data, header, callback) {
         callback(res)
     }).catch((error) => {
         console.log('--- request error ---')
-        console.log(error)
+        console.log(error.message)
         callback({ code: 400, result: '请求错误'})
     })
 }
