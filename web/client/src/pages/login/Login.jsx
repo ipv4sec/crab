@@ -25,6 +25,7 @@ const Login = (props) => {
     function changePassword(value) {
         setPasswordErr('')
         setPassword(value)
+       
     }
 
     function login() {
@@ -85,7 +86,7 @@ const Login = (props) => {
                 </div>
             
                 <div className="input-item">
-                    <Input type="password" label="密码：" value={password} change={changePassword} inputErr={passwordErr}/>
+                    <Input type="password" label="密码：" value={password} change={changePassword} enter={true} inputErr={passwordErr}/>
                 </div>
             
                 <div className="form-btn">

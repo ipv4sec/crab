@@ -34,12 +34,13 @@ metadata:
   name: example`
 
 const WorkloadVendor = (props) => {
-    const preRef = useRef(null)
+    // const preRef = useRef(null)
     
     const [yamlData, setYamlData] = useState(defaultYaml)
     const [metadata, setMetadata] = useState(defaultMetadata)
     const [systemSpec, setSystemSpec] = useState('')
-    const [cueData, setCueData] = useState('')
+    // const [cueData, setCueData] = useState('')
+    const [cueTpl, setCueTpl] = useState('')
 
     const changeYaml = (e) => {
         setYamlData(e.target.value)
@@ -76,13 +77,17 @@ const WorkloadVendor = (props) => {
         setSystemSpec(e.target.value)
     }
 
+    const changeCueTpl = (e) => {
+        setCueTpl(e.target.value)
+    }
+
     // 生成需要的数据
     function getWorkloadVendor() {
         const reg = /\n/g
         return (
             metadata +
             '\nspec: | \n  ' + systemSpec.replace(reg, '\n  ') + 
-            '\n  '+cueData.replace(reg, '\n    ') 
+            '\n  '+cueTpl.replace(reg, '\n    ') 
         ) 
 
     }
@@ -110,7 +115,7 @@ const WorkloadVendor = (props) => {
             return false
         }
 
-        if(cueData.trim() === '') {
+        if(cueTpl.trim() === '') {
             store.dispatch({
                 type: TYPE.SNACKBAR,
                 val: 'translate spec cue 不能为空'
@@ -143,9 +148,10 @@ const WorkloadVendor = (props) => {
             if(res.data.code == 0) {
                 // window.open(window.location.origin+res.data.result)
                 
-                setCueData(res.data.result || '')
+                // setCueData(res.data.result || '')
 
-                preRef.current.innerText = res.data.result || ''
+                // preRef.current.innerText = res.data.result || ''
+                setCueTpl(res.data.result || '')
 
                 store.dispatch({
                     type: TYPE.SNACKBAR,
@@ -173,7 +179,7 @@ const WorkloadVendor = (props) => {
     }
 
     const checkcue = () => {
-        if(cueData.trim() === '') { 
+        if(cueTpl.trim() === '') { 
             store.dispatch({
                 type: TYPE.SNACKBAR,
                 val: 'cue 不能为空'
@@ -188,7 +194,7 @@ const WorkloadVendor = (props) => {
         axios({
             method: 'POST',
             url: '/api/online/checkcue',
-            data: {value: cueData},
+            data: {value: cueTpl},
             headers: { 'Content-Type': 'application/json'}
         }).then(res => {
         
@@ -271,9 +277,12 @@ const WorkloadVendor = (props) => {
 
                     <div className="online-title"><p>translate spec:</p></div>
                     <p>cue template</p>
-                    <div className="vendor-preview">
-                        <pre className="preview-pre" ref={preRef}></pre>
+                    <div className="vendor-textarea vendor-preview">
+                        <textarea className="textarea-input" value={cueTpl} onChange={changeCueTpl}></textarea>
                     </div>
+                    {/* <div className="vendor-preview">
+                        <pre className="preview-pre" ref={preRef}></pre>
+                    </div> */}
                     <div className="online-btns">
                         <Button className="online-btn" variant="contained" color="primary" onClick={checkcue}>检查</Button>
                     </div>

@@ -45,9 +45,9 @@ vendor: webservice
 properties:
     image: nginx:1.21
 traits:
-    - type: expose
-      properties:
-        k1: "v1"`]
+    - type: ingress
+       properties:
+          k1: "v1"`]
 
 
 const defaultDependencies = `- name: gitlab
@@ -118,10 +118,11 @@ const CreateApp = (props) => {
     // 预览
     function preview() {
         const reg = /\n/g
+        console.log()
         previewData = (
             metadata + 
             '\nuserconfig:\n  ' + userconfig.replace(reg, '\n  ') + 
-            '\nworkloads:\n  '+workloads.map(item => item.replace(reg, '\n  ')).join('\n  ') + 
+            '\nworkloads:\n  '+workloads.map(item => '-  ' + item.replace(reg, '\n      ')).join('\n  ') + 
             '\ndependecies:\n  '+dependencies.replace(reg, '\n  ') + 
             '\nexports:\n  '+ exportsData.replace(reg, '\n  ')
         ) 
