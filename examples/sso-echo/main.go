@@ -12,14 +12,27 @@ import (
 var (
 	HTTPClient = httpclient.NewClient(httpclient.WithHTTPTimeout(time.Second * 30))
 )
+type item struct {
+	Id int `json:"id"`
+	Url string `json:"url"`
+	Desc string `json:"desc"`
+}
 func main() {
-
-	bytes, err := ioutil.ReadFile("/etc/configs/sso-alpha.host")
+	bytes, err := ioutil.ReadFile("/etc/configs/sso-alpha")
 	if err != nil {
 		klog.Errorln("读取依赖地址错误:", err.Error())
 	}
 	klog.Infoln("读取到的地址为:", string(bytes))
 	route := gin.Default()
+	route.GET("/", func(c *gin.Context) {
+		l := make([]item, 0)
+		l = append(l, item{
+			Id:   1,
+			Url:  "/user",
+			Desc: "从应用sso-alpha获取数据",
+		})
+		c.JSON(200, l)
+	})
 	user := route.Group("/user")
 	{
 		user.GET("/", func(c *gin.Context) {
