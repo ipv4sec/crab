@@ -3,9 +3,9 @@ import '../style/sass/components.scss'
 
 const Input = (props) => {
 
-    const change = () => {
+    const change = (e) => {
         if(props.change) {
-            props.change(event.target.value)
+            props.change(e.target.value)
         }
     }
 

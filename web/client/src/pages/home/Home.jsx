@@ -5,6 +5,7 @@ import { Route, Switch, useHistory } from 'react-router-dom'
 import SuspenseLoading from '../../components/SuspenseLoading'
 import Loading from '../../components/Loading'
 import SnackbarCmp from '../../components/Snackbar'
+import axios from 'axios'
 
 // import Manager from '../manager/Manager'
 // import WorkLoad from '../workload/WorkLoad'
@@ -25,8 +26,24 @@ const Home = (props) => {
         history.push(data)
     }
 
+    const logout = () => {
+        axios({
+            method: 'GET',
+            url: '/api/user/logout'
+        }).then(res => {
+            
+        }).catch(err => {
+            console.log('退出登陆失败')
+            console.log(err)
+        })
+    }
+
     return (
         <div className="home-container">
+            {/* <div className="user-info">
+                <p className="userinfo-name">{window.sessionStorage.getItem('user') || ''}</p>
+                <button onClick={logout} className="userinfo-logout">退出登陆</button>
+            </div> */}
             <div className="content-left">
                 <LeftNav change={changeNav}/>
             </div>
