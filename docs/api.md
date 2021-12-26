@@ -122,7 +122,7 @@ Content-Type: multipart/form-data;
 ### 请求参数
 |名称|说明|默认值|是否必填|
 |---|---|---|---|
-|file|实例描述文件（即manifest.yaml文件）|无|是|
+|file|实例描述文件（即manifest.yaml压缩后的zip文件）|无|是|
 ### 返回值
 ```json
 {
@@ -387,7 +387,7 @@ PUT /app/<id> HTTP/1.1
       "param3_1": "bbb",
       "param3_2": 456
     }
-  }
+  }3
 }
 ```
 ### 返回值
