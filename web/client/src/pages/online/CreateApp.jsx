@@ -122,7 +122,7 @@ const CreateApp = (props) => {
         previewData = (
             metadata + '\nspec: ' +
             '\n  userconfig:\n     ' + userconfig.replace(reg, '\n     ') + 
-            '\n  workloads:\n     '+workloads.map(item => '-  ' + item.replace(reg, '\n      ')).join('\n     ') + 
+            '\n  workloads:\n     '+workloads.map(item => '- ' + item.replace(reg, '\n      ')).join('\n     ') + 
             '\n  dependecies:\n     '+dependencies.replace(reg, '\n     ') + 
             '\n  exports:\n     '+ exportsData.replace(reg, '\n     ')
         ) 
