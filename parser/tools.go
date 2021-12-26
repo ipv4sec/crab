@@ -45,15 +45,11 @@ func GenValeYaml(instanceId string, application v1alpha1.Application, userconfig
 		)
 	}
 	//依赖内部应用的host
-	dependHost := make([]dependencyHost, 0)
+	dependHost := make(dependencyHost, 0)
 	for _, v := range dependencies.Internal {
-		dependHost = append(dependHost,
-			dependencyHost{
-				v.Name: dependencyHostItem{
-					fmt.Sprintf("%s.%s.svc.cluster.local", v.EntryService, v.Instanceid),
-				},
-			},
-		)
+		dependHost[v.Name] = dependencyHostItem{
+			fmt.Sprintf("%s.%s.svc.cluster.local", v.EntryService, v.Instanceid),
+		}
 	}
 	for _, workload := range application.Spec.Workloads {
 		properties := GetProperties(workload.Properties)
