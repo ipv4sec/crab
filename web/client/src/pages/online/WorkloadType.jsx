@@ -9,10 +9,10 @@ import * as TYPE from '../../store/actions'
 const defaultMetadata = `apiVersion: aam.globalsphare.com/v1alpha1
 kind: WorkloadType
 metadata:
-  name: example
+    name: example
 spec:
-  parameter: |
-    image: *"example" | string`
+    parameter: |
+        image: *"example" | string`
 
 
 const WorkloadType = (props) => {
