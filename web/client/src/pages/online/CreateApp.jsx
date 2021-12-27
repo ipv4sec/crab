@@ -125,7 +125,7 @@ const CreateApp = (props) => {
         console.log()
         let pData = (
             metadata + '\nspec:' +
-            '\n    userconfig:\n        ' + userconfig.replace(reg, '\n        ') + 
+            '\n    userconfigs:\n        ' + userconfig.replace(reg, '\n        ') + 
             '\n    workloads:\n        '+workloads.map(item => '- ' + item.replace(reg, '\n          ')).join('\n        ') + 
             '\n    dependecies:\n        '+dependencies.replace(reg, '\n        ') + 
             '\n    exports:\n        '+ exportsData.replace(reg, '\n        ')
@@ -403,7 +403,7 @@ const CreateApp = (props) => {
                         <textarea className="textarea-input" value={metadata} onChange={changeMetadata}></textarea>
                     </div>
 
-                    <div className="online-title"><p>userconfig</p></div>
+                    <div className="online-title"><p>userconfigs</p></div>
                     <div className="online-textarea">
                         <textarea className="textarea-input" value={userconfig} onChange={changeUserconfig}></textarea>
                     </div>
