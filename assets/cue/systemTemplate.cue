@@ -1,7 +1,7 @@
 context: {
-	appName:       string
-	componentName: string
-	namespace:     string
+	appName:      string
+	workloadName: string
+	namespace:    string
 }
 parameter: {
 	authorization?: [...{
