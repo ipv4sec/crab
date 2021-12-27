@@ -27,15 +27,18 @@ const Home = (props) => {
     }
 
     const logout = () => {
-        axios({
-            method: 'GET',
-            url: '/api/user/logout'
-        }).then(res => {
+        // axios({
+        //     method: 'GET',
+        //     url: '/api/user/logout'
+        // }).then(res => {
             
-        }).catch(err => {
-            console.log('退出登陆失败')
-            console.log(err)
-        })
+        // }).catch(err => {
+        //     console.log('退出登陆失败')
+        //     console.log(err)
+        // })
+
+        sessionStorage.removeItem('user')
+        window.location.replace('/login')
     }
 
     return (

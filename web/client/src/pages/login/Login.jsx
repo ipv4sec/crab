@@ -44,15 +44,16 @@ const Login = (props) => {
         })
 
         axios({
-            method: "GET",
+            method: "POST",
             url: "/api/user/login",
-            params: {
+            headers: {'Content-Type': 'application/json'},
+            data: {
                 username: name,
                 password: password
             }
         }).then((res) => {
             if(res.data.code === 0) {
-                window.sessionStorage.setItem('user', res.data.result.username || '')
+                window.sessionStorage.setItem('user', name || '')
                 window.sessionStorage.setItem('curNav', '/home')
                 window.location.replace('/home')
             }else {

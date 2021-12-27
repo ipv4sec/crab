@@ -8,10 +8,10 @@ const FormData = require('form-data')
 const archiver = require('archiver')
 
 // 登录
-router.get('/user/login', (req, res) => {
-    request.get('/user/'+req.query.username, '', req.headers, function(response) {
-        if(response.data.code === 0 && response.data.result.password === req.query.password) {
-            req.session['user'] = req.query.username 
+router.post('/user/login', (req, res) => {
+    request.get('/user/'+req.body.username, '', req.headers, function(response) {
+        if(response.data.code === 0 && response.data.result.password === req.body.password) {
+            // req.session['user'] = req.query.username 
             res.send({
                 code: 0,
                 result: {
@@ -27,7 +27,7 @@ router.get('/user/login', (req, res) => {
 
 // 退出登陆
 router.get('/user/logout', (req, res) => {
-    delete req.session['user']
+    // delete req.session['user']
     res.send({
         code: 40404,
         result: '退出登陆'
@@ -382,7 +382,7 @@ router.get('/online/downloadyaml', (req, res) => {
 })
 
 
-// 下载manifest.yaml文件
+// 部署
 router.post('/online/arrange', async (req, res) => {
     const text = req.body.yaml
 
