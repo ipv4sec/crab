@@ -5,6 +5,7 @@ import '../../style/sass/online.scss'
 import axios from 'axios'
 import store from '../../store/store'
 import * as TYPE from '../../store/actions'
+import AddFile from '../../components/AddFile'
 
 const defaultMetadata = `apiVersion: aam.globalsphare.com/v1alpha1
 kind: Application
@@ -79,6 +80,9 @@ const CreateApp = (props) => {
     const [workloads, setWorkloads] = useState(defaultWorkloads)
     const [dependencies, setDependencies] = useState(defaultDependencies)
     const [exportsData, setExportsData] = useState(defaultExports)
+
+    const [showConfigDialog, setShowConfigDialog] = useState(false)
+    const [configData, setConfigData] = useState({})
 
     let previewData = ''
 
@@ -230,9 +234,13 @@ const CreateApp = (props) => {
             headers: { 'Content-Type': 'application/json'}
         }).then(res => {
             if(res.data.code == 0) {
+                
+                setShowConfigDialog(true)
+                setConfigData(res.data.result)
+
                 store.dispatch({
                     type: TYPE.SNACKBAR,
-                    val: '部署成功'
+                    val: '添加应用成功'
                 })
             }else {
                 store.dispatch({
@@ -252,6 +260,134 @@ const CreateApp = (props) => {
                 val: false
             })
         })
+    }
+
+    const getAppSelect = (data) => {
+        // 遍历找到所有应用的所有选择的版本
+        let selectData = []
+        let appConfig = {}
+        const configs = (config, attr, obj) => {
+            if(config) {
+                if(config.type == 'object' && config.properties) {
+                    obj[attr] = {}
+                    Object.keys(config.properties).forEach((key) => {
+                        configs(config.properties[key], key, obj[attr])
+                    })
+                }else {
+                    obj[attr] = config.val
+                }
+            }
+        }
+
+        if(data && data.dependencies ) {
+            Object.keys(data.dependencies).forEach((key) => {
+                if(data.dependencies[key].location.selected) {
+                    selectData.push({
+                        "name": key,
+                        "location": data.dependencies[key].location.location
+                    })
+
+                    
+                }else {
+                    data.dependencies[key].instances.forEach((item) => {
+                        if(item.selected) {
+                            selectData.push({
+                                "name": item.instance.name,
+                                "id": item.instance.id
+                            })
+                        }
+                    })
+                }
+            })
+
+        }
+        if(data.userconfigs) {
+            configs(data.userconfigs, 'userconfigs', appConfig)
+        }
+       
+        return {
+            id: data.id,
+            dependencies: selectData,
+            userconfigs: appConfig.userconfigs || null
+        }
+    }
+
+    // 关闭弹框回调
+    const closeDialog = () => {
+        setShowConfigDialog(false)
+    }
+
+    // 弹框确认按钮回调
+    const submitDialog = (data) => {
+        if(data.notHadServe.length) {
+            // 依赖中存在某些应用没有服务的情况
+            store.dispatch({
+                type: TYPE.SNACKBAR,
+                val: data.notHadServe.join('、') + '以上应用中不存在服务，请创建'
+            })
+            return 
+        }
+        if(data.allAppSelectServe.length) {
+            // 依赖中存在没有选择服务的应用
+            store.dispatch({
+                type: TYPE.SNACKBAR,
+                val: data.allAppSelectServe.join('、') + '以上应用未选择服务，请选择'
+            })
+            return
+        }
+
+        store.dispatch({
+            type: TYPE.LOADING,
+            val: true
+        })
+
+        let selectData = getAppSelect(data.appInfo)
+
+        selectData['status'] = 1
+
+        console.log('selectData===',selectData)
+
+        // return
+
+        axios({
+            method: "POST",
+            url: `/api/app/run`,
+            headers: {'Content-Type': 'application/json'},
+            data: selectData
+        }).then((res) => {
+
+            console.log('res==',res)
+
+            if(res.data.code === 0) {
+                store.dispatch({
+                    type: TYPE.SNACKBAR,
+                    val: '部署完成'
+                })
+
+                closeDialog()
+            }
+
+            store.dispatch({
+                type: TYPE.SNACKBAR,
+                val: res.data.result || ''
+            })
+
+            store.dispatch({
+                type: TYPE.LOADING,
+                val: false
+            })
+            
+        }).catch((err) => {
+            store.dispatch({
+                type: TYPE.SNACKBAR,
+                val: '请求错误'
+            })
+            store.dispatch({
+                type: TYPE.LOADING,
+                val: false
+            })
+        })
+
     }
 
 
@@ -318,7 +454,8 @@ const CreateApp = (props) => {
             
 
 
-            
+            <AddFile open={showConfigDialog} title="配置实例" data={configData} close={closeDialog} submit={submitDialog}/>
+
         </section>
     )
 }

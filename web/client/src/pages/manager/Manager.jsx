@@ -267,7 +267,7 @@ const Manager = (props) => {
 
         axios({
             method: "POST",
-            url: `api/app/run`,
+            url: `/api/app/run`,
             headers: {'Content-Type': 'application/json'},
             data: selectData
         }).then((res) => {
