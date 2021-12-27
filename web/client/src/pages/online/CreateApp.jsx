@@ -84,7 +84,7 @@ const CreateApp = (props) => {
     const [showConfigDialog, setShowConfigDialog] = useState(false)
     const [configData, setConfigData] = useState({})
 
-    let previewData = ''
+    const [previewData, setPreviewData] = useState('')
 
     const changeMetadata = (e) => {
         setMetadata(e.target.value)
@@ -123,7 +123,7 @@ const CreateApp = (props) => {
     function preview() {
         const reg = /\n/g
         console.log()
-        previewData = (
+        let pData = (
             metadata + '\nspec:' +
             '\n    userconfig:\n        ' + userconfig.replace(reg, '\n        ') + 
             '\n    workloads:\n        '+workloads.map(item => '- ' + item.replace(reg, '\n          ')).join('\n        ') + 
@@ -131,7 +131,9 @@ const CreateApp = (props) => {
             '\n    exports:\n        '+ exportsData.replace(reg, '\n        ')
         ) 
 
-        preRef.current.innerText = previewData
+        setPreviewData(pData)
+
+        preRef.current.innerText = pData
     }
 
     useEffect(() => {
