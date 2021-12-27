@@ -44,10 +44,9 @@ const Login = (props) => {
         })
 
         axios({
-            method: "POST",
+            method: "GET",
             url: "/api/user/login",
-            headers: {'Content-Type': 'application/json'},
-            data: {
+            params: {
                 username: name,
                 password: password
             }
