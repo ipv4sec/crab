@@ -9,29 +9,29 @@ import * as TYPE from '../../store/actions'
 const defaultYaml = `apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nginx-deployment
-  labels:
-    app: nginx
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: nginx
-  template:
-    metadata:
-      labels:
+    name: nginx-deployment
+    labels:
         app: nginx
+spec:
+    replicas: 3
+    selector:
+        matchLabels:
+            app: nginx
+    template:
+        metadata:
+            labels:
+                app: nginx
     spec:
-      containers:
-        - name: nginx
-          image: nginx:1.14.2
-          ports:
-            - containerPort: 80`
+        containers:
+          - name: nginx
+            image: nginx:1.14.2
+            ports:
+                - containerPort: 80`
 
 const defaultMetadata = `apiVersion: aam.globalsphare.com/v1alpha1
 kind: WorkloadVendor
 metadata:
-  name: example`
+    name: example`
 
 const WorkloadVendor = (props) => {
     // const preRef = useRef(null)
@@ -86,8 +86,8 @@ const WorkloadVendor = (props) => {
         const reg = /\n/g
         return (
             metadata +
-            '\nspec: | \n  ' + systemSpec.replace(reg, '\n  ') + 
-            '\n  '+cueTpl.replace(reg, '\n    ') 
+            '\nspec: | \n    ' + systemSpec.replace(reg, '\n    ') + 
+            '\n    '+cueTpl.replace(reg, '\n        ') 
         ) 
 
     }

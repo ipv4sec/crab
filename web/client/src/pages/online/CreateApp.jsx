@@ -9,21 +9,21 @@ import * as TYPE from '../../store/actions'
 const defaultMetadata = `apiVersion: aam.globalsphare.com/v1alpha1
 kind: Application
 metadata:
-  name: example
-  version: 0.0.1
-  description: 样例应用
-  keywords:
-    - 样例应用
-  author: example@example.com
-  maintainers:
-    - email: example@example.com
-      name: example
-      web: https://example.com
-  repositories: ["https://github.com/example/example.git"]
-  bugs: https://github.com/example/example/issues
-  licenses:
-    - type: LGPL
-      url: https://license.spec.com`
+    name: example
+    version: 0.0.1
+    description: 样例应用
+    keywords:
+        - 样例应用
+    author: example@example.com
+    maintainers:
+        - email: example@example.com
+          name: example
+          web: https://example.com
+    repositories: ["https://github.com/example/example.git"]
+    bugs: https://github.com/example/example/issues
+    licenses:
+        - type: LGPL
+          url: https://license.spec.com`
 
 const defaultUserconfigs = `"$schema": http://json-schema.org/draft-07/schema#
 "$id": http://example.com/product.schema.json
@@ -31,13 +31,13 @@ title: User
 description: init user description
 type: object
 properties:
-  username:
-    type: string
-  password:
-    type: string
+    username:
+        type: string
+    password:
+        type: string
 required:
-  - username
-  - password`
+    - username
+    - password`
 
 const defaultWorkloads = [`name: example
 type: webservice
@@ -46,30 +46,30 @@ properties:
     image: nginx:1.21
 traits:
     - type: ingress
-       properties:
+      properties:
           k1: "v1"`]
 
 
 const defaultDependencies = `- name: gitlab
-   version: ">=0.0.1"
-   location: user-defined(https://gitlab.com)
-   items:
-     /*:
-       - create
-       - read
-       - update
-       - delete`
+  version: ">=0.0.1"
+  location: user-defined(https://gitlab.com)
+  items:
+      /*:
+          - create
+          - read
+          - update
+          - delete`
 
 const defaultExports = `/user:
-  - create
-  - read
-  - update
-  - delete
+    - create
+    - read
+    - update
+    - delete
 /admin:
-  - create
-  - read
-  - update
-  - delete`
+    - create
+    - read
+    - update
+    - delete`
 
 
 const CreateApp = (props) => {
@@ -120,11 +120,11 @@ const CreateApp = (props) => {
         const reg = /\n/g
         console.log()
         previewData = (
-            metadata + '\nspec: ' +
-            '\n  userconfig:\n     ' + userconfig.replace(reg, '\n     ') + 
-            '\n  workloads:\n     '+workloads.map(item => '- ' + item.replace(reg, '\n      ')).join('\n     ') + 
-            '\n  dependecies:\n     '+dependencies.replace(reg, '\n     ') + 
-            '\n  exports:\n     '+ exportsData.replace(reg, '\n     ')
+            metadata + '\nspec:' +
+            '\n    userconfig:\n        ' + userconfig.replace(reg, '\n        ') + 
+            '\n    workloads:\n        '+workloads.map(item => '- ' + item.replace(reg, '\n          ')).join('\n        ') + 
+            '\n    dependecies:\n        '+dependencies.replace(reg, '\n        ') + 
+            '\n    exports:\n        '+ exportsData.replace(reg, '\n        ')
         ) 
 
         preRef.current.innerText = previewData

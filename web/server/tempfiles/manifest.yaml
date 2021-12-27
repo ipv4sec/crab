@@ -1,63 +1,64 @@
 apiVersion: aam.globalsphare.com/v1alpha1
 kind: Application
 metadata:
-  name: example1
-  version: 0.0.1
-  description: 样例应用1
-  keywords:
-    - 样例应用
-  author: example@example.com
-  maintainers:
-    - email: example@example.com
-      name: example
-      web: https://example.com
-  repositories: ["https://github.com/example/example.git"]
-  bugs: https://github.com/example/example/issues
-  licenses:
-    - type: LGPL
-      url: https://license.spec.com
-userconfig:
-  "$schema": http://json-schema.org/draft-07/schema#
-  "$id": http://example.com/product.schema.json
-  title: User
-  description: init user description
-  type: object
-  properties:
-    username:
-      type: string
-    password:
-      type: string
-  required:
-    - username
-    - password
-workloads:
-  name: example
-  type: webservice
-  vendor: webservice
-  properties:
-      image: nginx:1.21
-  traits:
-      - type: expose
+    name: example
+    version: 0.0.1
+    description: 样例应用
+    keywords:
+        - 样例应用
+    author: example@example.com
+    maintainers:
+        - email: example@example.com
+          name: example
+          web: https://example.com
+    repositories: ["https://github.com/example/example.git"]
+    bugs: https://github.com/example/example/issues
+    licenses:
+        - type: LGPL
+          url: https://license.spec.com
+spec:
+    userconfig:
+        "$schema": http://json-schema.org/draft-07/schema#
+        "$id": http://example.com/product.schema.json
+        title: User
+        description: init user description
+        type: object
         properties:
-          k1: "v1"
-dependecies:
-  - name: gitlab
-  version: ">=0.0.1"
-  location: user-defined(https://gitlab.com)
-  items:
-    /*:
-      - create
-      - read
-      - update
-      - delete
-exports:
-  /user:
-    - create
-    - read
-    - update
-    - delete
-  /admin:
-    - create
-    - read
-    - update
-    - delete
+            username:
+                type: string
+            password:
+                type: string
+        required:
+            - username
+            - password
+    workloads:
+        - name: example
+          type: webservice
+          vendor: webservice
+          properties:
+              image: nginx:1.21
+          traits:
+              - type: ingress
+                properties:
+                    k1: "v1"
+    dependecies:
+        - name: gitlab
+          version: ">=0.0.1"
+          location: user-defined(https://gitlab.com)
+          items:
+              /*:
+                  - create
+                  - read
+                  - update
+                  - delete
+    exports:
+        /user:
+            - create
+            - read
+            - update
+            - delete
+        /admin:
+            - create
+            - read
+            - update
+            - delete

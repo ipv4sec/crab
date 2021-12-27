@@ -9,10 +9,10 @@ import * as TYPE from '../../store/actions'
 const defaultMetadata = `apiVersion: aam.globalsphare.com/v1alpha1
 kind: Trait
 metadata:
-  name: expose
+    name: expose
 spec:
-  parameter: |
-    k1: *"v1" | string`
+    parameter: |
+        k1: *"v1" | string`
 
 
 const Trait = (props) => {
