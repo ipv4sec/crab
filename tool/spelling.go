@@ -1,12 +1,14 @@
 package tool
 
 import (
+	"bytes"
 	"crab/provider"
 	"crab/utils"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"io/ioutil"
 	"k8s.io/klog/v2"
+	"os/exec"
 	"time"
 )
 
@@ -38,11 +40,18 @@ func PostSpellingHandlerFunc(c *gin.Context) {
 		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "保存文件错误"))
 		return
 	}
-	cmd := fmt.Sprintf("cue vet %s", saved)
-	output, _ := executor.ExecuteCommandWithCombinedOutput("bash", "-c", cmd)
-	if output == "" {
+	cmd := exec.Command("bash","-c", fmt.Sprintf("cue eval %s", saved))
+	var erro bytes.Buffer
+	cmd.Stderr = &erro
+	err = cmd.Run()
+	if err != nil {
+		klog.Errorln("执行命令错误", err.Error())
+		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "执行命令错误"))
+		return
+	}
+	if string(erro.Bytes()) == "" {
 		c.JSON(200, utils.SuccessResponse("正确"))
 		return
 	}
-	c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, output))
+	c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, string(erro.Bytes())))
 }
