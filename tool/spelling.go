@@ -1,6 +1,7 @@
 package tool
 
 import (
+	"crab/provider"
 	"crab/utils"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -23,9 +24,15 @@ func PostSpellingHandlerFunc(c *gin.Context) {
 		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "参数错误"))
 		return
 	}
+	result, err := provider.Template()
+	if err != nil {
+		klog.Errorln("请求模板错误", err.Error())
+		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "请求模板错误"))
+		return
+	}
 	timeNow := time.Now().Unix()
 	saved := fmt.Sprintf("/tmp/%v.cue", timeNow)
-	err = ioutil.WriteFile(saved, []byte(param.Value),0777)
+	err = ioutil.WriteFile(saved, []byte(fmt.Sprintf("%s\n%s", result, param.Value)),0777)
 	if err != nil {
 		klog.Errorln("保存文件错误", saved, err.Error())
 		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "保存文件错误"))
