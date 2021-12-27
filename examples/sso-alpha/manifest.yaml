@@ -11,7 +11,7 @@ spec:
       properties:
         image: nginx:1.21
         configs:
-          - path: /usr/share/nginx/html/
+          - path: /usr/share/nginx/html
             subPath: user.json
             data:
               - name: user.json
