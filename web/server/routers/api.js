@@ -8,9 +8,9 @@ const FormData = require('form-data')
 const archiver = require('archiver')
 
 // 登录
-router.post('/user/login', (req, res) => {
-    request.get('/user/'+req.body.username, '', req.headers, function(response) {
-        if(response.data.code === 0 && response.data.result.password === req.body.password) {
+router.get('/user/login', (req, res) => {
+    request.get('/user/'+req.query.username, '', req.headers, function(response) {
+        if(response.data.code === 0 && response.data.result.password === req.query.password) {
             // req.session['user'] = req.query.username 
             res.send({
                 code: 0,
