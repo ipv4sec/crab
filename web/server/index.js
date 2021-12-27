@@ -9,12 +9,12 @@ const app = express()
 const renderRouter = require('./routers/render')
 const apiRouter = require('./routers/api')
 
-app.use(session({
-    resave: false,
-    saveUninitialized: false,
-    secret: 'c1',
-    cookie: { maxAge: 3600 * 1000 * 24 }
-}))
+// app.use(session({
+//     resave: false,
+//     saveUninitialized: false,
+//     secret: 'c1',
+//     cookie: { maxAge: 3600 * 1000 * 24 }
+// }))
 
 app.use(cookieParser())
 
@@ -34,14 +34,14 @@ app.use((req, res, next) => {
     next()
 })
 
-app.use((req, res, next) => {
-    if((req.path !== '/api/user/login') && !req.session['user']) {
-        res.send({code: 40404 }) 
-        return
-    }
+// app.use((req, res, next) => {
+//     if((req.path !== '/api/user/login') && !req.session['user']) {
+//         res.send({code: 40404 }) 
+//         return
+//     }
     
-    next()
-})
+//     next()
+// })
 
 app.use('/api', apiRouter)
 
