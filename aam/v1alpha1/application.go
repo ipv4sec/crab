@@ -17,8 +17,8 @@ type Application struct {
 	} `yaml:"metadata" json:"metadata"`
 	Spec struct {
 		Workloads    []Workload `yaml:"workloads" json:"workloads"`
-		Exports      map[string][]string
-		Dependencies []Dependency
+		Exports      map[string][]string `yaml:"exports" json:"exports"`
+		Dependencies []Dependency `yaml:"dependencies" json:"dependencies"`
 		Userconfigs  map[string]interface{} `yaml:"userconfigs" json:"userconfigs"`
 	} `yaml:"spec" json:"spec"`
 }
