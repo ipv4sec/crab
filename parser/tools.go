@@ -109,20 +109,21 @@ metadata:
 			klog.Errorln(err)
 			return "", err
 		}
-		if strings.Index(k8sStr, "---") != -1 {
-			s := strings.Split(k8sStr, "---")
-			for _, v := range s {
-				v = strings.TrimSpace(v)
-				if v == "" {
-					continue
-				}
-				if strings.Index(finalContext, v) == -1 {
-					finalContext += v + "\n---\n"
-				}
-			}
-		} else {
-			finalContext += k8sStr + "\n---\n"
-		}
+
+		//if strings.Index(k8sStr, "---") != -1 {
+		//	s := strings.Split(k8sStr, "---")
+		//	for _, v := range s {
+		//		v = strings.TrimSpace(v)
+		//		if v == "" {
+		//			continue
+		//		}
+		//		if strings.Index(finalContext, v) == -1 {
+		//			finalContext += v + "\n---\n"
+		//		}
+		//	}
+		//} else {
+		finalContext += k8sStr + "\n---\n"
+		//}
 	}
 	finalContext = strings.Trim(strings.TrimSpace(finalContext), "---")
 	finalContext = fmt.Sprintf("# appName: %s\n%s", vela.Name, finalContext)
