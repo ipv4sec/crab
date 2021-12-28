@@ -2,7 +2,7 @@
 
 ### 请求语法
 ```
-PUT 部署链接 HTTP/1.1
+POST 部署链接 HTTP/1.1
 Content-Type: multipart/form-data; 
 ```
 
