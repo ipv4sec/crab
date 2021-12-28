@@ -58,7 +58,7 @@ spec:
     spec:
       containers:
         - name: island-setup
-          image: harbor1.zlibs.com/island/island-setup:alpha
+          image: harbor1.zlibs.com/island/island-setup:0.1.0
           imagePullPolicy: Always
           env:
             - name: ISLAND_DOMAIN
