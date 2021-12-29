@@ -32,7 +32,7 @@ spec:
     spec:
       containers:
         - name: island-api
-          image: harbor1.zlibs.com/island/island-api:0.1.0
+          image: harbor1.zlibs.com/island/island-api:alpha
           imagePullPolicy: Always
       restartPolicy: Always
       serviceAccountName: crab
