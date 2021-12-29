@@ -19,6 +19,7 @@ const Trait = (props) => {
     const [trait, setTrait] = useState(defaultMetadata)
 
     const changeTrait = (e) => {
+        console.log(e.target.value)
         setTrait(e.target.value)
     }
 
