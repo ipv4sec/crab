@@ -4,7 +4,7 @@
 ### 安装
 
 在现有集群上执行
-`curl -fsSL http://island-resource.develenv.com/crab.sh | bash`
+`curl -fsSL http://island-resource.develenv.com/crab.sh | bash -s -- --domain {root-domain}`
 
 ### 流程
 
