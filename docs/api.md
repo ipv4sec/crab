@@ -699,6 +699,8 @@ type: 0 内置, 不可删除 1 可删除
         "name": "webservice",
         "apiVersion": "aam.globalsphare.com/v1alpha1",
         "value": "具体定义",
+        "yaml": "",
+        "cue": "",
         "type": 0,
         "created_at": "2021-10-23T06:49:51.498Z",
         "updated_at": "2021-10-23T06:49:51.498Z"
@@ -781,7 +783,9 @@ PUT /workloadVendor/<id> HTTP/1.1
 
 |名称|说明|默认值|是否必填|
 |---|---|---|---|
-|value| 具体定义 |无|是|
+|value| 最终的值 |无|是|
+|yaml| YAML的值, 页面上YAML框的值 |无|是|
+|cue| CUE的值, 即translate spec框的值 |无|是|
 
 ### 返回值
 ```json
@@ -923,15 +927,16 @@ POST /workloadType HTTP/1.1
 ## 添加WorkloadVendor
 ### 请求语法
 ```
-POST /workloadVendor HTTP/1.1 
+POST /workloadVendor HTTP/1.1
 ```
 ### 请求参数
 
 ```json
 {
-  "value": "具体的yaml"
+  "yaml": "编写的原生YAML格式的K8S文件内容",
+  "cue":  "点击转换之后的CUE格式的文件内容",
+  "value": "最终保存的文件内容"
 }
-
 ```
 
 
@@ -1211,13 +1216,15 @@ GET /workloadVendor/<IdorName> HTTP/1.1
 {
     "code": 0,
     "result": {
-        "id": 1,
-        "name": "ingress",
-        "apiVersion": "aam.globalsphare.com/v1alpha1",
-        "value": "\napiVersion: aam.globalsphare.com/v1alpha1\nkind: Trait\nmetadata:\n    name: ingssssress\nspec:\n    parameter: |\n",
-        "type": 1,
-        "created_at": "2021-12-16T15:48:48.129+08:00",
-        "updated_at": "2021-12-16T16:06:19.228+08:00"
+      "id": 1,
+      "name": "ingress",
+      "apiVersion": "aam.globalsphare.com/v1alpha1",
+      "yaml": "",
+      "cue": "",
+      "value": "\napiVersion: aam.globalsphare.com/v1alpha1\nkind: Trait\nmetadata:\n    name: ingssssress\nspec:\n    parameter: |\n",
+      "type": 1,
+      "created_at": "2021-12-16T15:48:48.129+08:00",
+      "updated_at": "2021-12-16T16:06:19.228+08:00"
     }
 }
 ```
