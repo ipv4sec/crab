@@ -4,7 +4,9 @@ import (
 	"crab/aam/v1alpha1"
 	"crab/db"
 	"crab/utils"
+	"errors"
 	"github.com/gin-gonic/gin"
+	"github.com/go-sql-driver/mysql"
 	"gopkg.in/yaml.v3"
 	"k8s.io/klog/v2"
 	"strconv"
@@ -23,13 +25,13 @@ func GetVendorsHandlerFunc(c *gin.Context) {
 	err := db.Client.Limit(limit).Offset(offset).Find(&vendors).Error
 	if err != nil {
 		klog.Errorln("数据库查询错误:", err.Error())
-		c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseInternalServer, "数据库查询错误"))
+		c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseInternalServer, "内部错误"))
 		return
 	}
 	err = db.Client.Model(&WorkloadVendor{}).Count(&total).Error
 	if err != nil {
 		klog.Errorln("数据库查询错误:", err.Error())
-		c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseInternalServer, "数据库查询错误"))
+		c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseInternalServer, "内部错误"))
 		return
 	}
 	c.JSON(200, utils.SuccessResponse(Pagination{
@@ -71,6 +73,7 @@ func PostVendorHandlerFunc(c *gin.Context) {
 		Value string `json:"value"`
 		Yaml string `json:"yaml"`
 		Cue string `json:"cue"`
+		Metadata string `json:"metadata"`
 	}
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -90,12 +93,18 @@ func PostVendorHandlerFunc(c *gin.Context) {
 		Ver:       val.ApiVersion,
 		Yaml:  param.Yaml,
 		Cue: param.Cue,
+		Metadata: param.Metadata,
 		Value:     param.Value,
 		Type:      1,
 	}).Error
 	if err != nil {
 		klog.Errorln("保存到数据库错误", err.Error())
-		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "保存到数据库错误"))
+		var mysqlErr *mysql.MySQLError
+		if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
+			c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "名称重复"))
+			return
+		}
+		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "内部错误"))
 		return
 	}
 	c.JSON(200, utils.SuccessResponse("创建成功"))
@@ -122,6 +131,7 @@ func PutVendorHandlerFunc(c *gin.Context) {
 		Value string `json:"value"`
 		Yaml string `json:"yaml"`
 		Cue string `json:"cue"`
+		Metadata string `json:"metadata"`
 	}
 	err = c.ShouldBindJSON(&param)
 	if err != nil {
@@ -141,12 +151,18 @@ func PutVendorHandlerFunc(c *gin.Context) {
 		Ver:       v1alpha1WorkloadVendor.ApiVersion,
 		Yaml:  param.Yaml,
 		Cue: param.Cue,
+		Metadata: param.Metadata,
 		Value:     param.Value,
 		Type:      1,
 	}).Error
 	if err != nil {
 		klog.Errorln("保存到数据库错误", err.Error())
-		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "保存到数据库错误"))
+		var mysqlErr *mysql.MySQLError
+		if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
+			c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "名称重复"))
+			return
+		}
+		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "内部错误"))
 		return
 	}
 	c.JSON(200, utils.SuccessResponse("修改成功"))

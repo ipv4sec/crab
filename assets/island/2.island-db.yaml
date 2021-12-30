@@ -80,6 +80,7 @@ data:
     `value` longtext CHARACTER SET utf8mb4 COMMENT '最终的值',
     `yaml` longtext CHARACTER SET utf8mb4 COMMENT 'YAML的值',
     `cue` longtext CHARACTER SET utf8mb4 COMMENT 'CUE的值',
+    `metadata` longtext CHARACTER SET utf8mb4 COMMENT 'Metadata的值',
     `type` tinyint(4) NOT NULL DEFAULT '0' COMMENT '类型0内置不可删除1新增',
     `created_at` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT '创建时间',
     `updated_at` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT '更新时间',
