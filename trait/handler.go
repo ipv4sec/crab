@@ -4,7 +4,9 @@ import (
 	"crab/aam/v1alpha1"
 	"crab/db"
 	"crab/utils"
+	"errors"
 	"github.com/gin-gonic/gin"
+	"github.com/go-sql-driver/mysql"
 	"gopkg.in/yaml.v3"
 	"k8s.io/klog/v2"
 	"strconv"
@@ -91,7 +93,12 @@ func PostTraitHandlerFunc(c *gin.Context) {
 	}).Error
 	if err != nil {
 		klog.Errorln("保存到数据库错误", err.Error())
-		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "保存到数据库错误"))
+		var mysqlErr *mysql.MySQLError
+		if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
+			c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "名称重复"))
+			return
+		}
+		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "内部错误"))
 		return
 	}
 	c.JSON(200, utils.SuccessResponse("创建成功"))
@@ -138,7 +145,12 @@ func PutTraitHandlerFunc(c *gin.Context) {
 	}).Error
 	if err != nil {
 		klog.Errorln("保存到数据库错误", err.Error())
-		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "保存到数据库错误"))
+		var mysqlErr *mysql.MySQLError
+		if errors.As(err, &mysqlErr) && mysqlErr.Number == 1062 {
+			c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "名称重复"))
+			return
+		}
+		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "内部错误"))
 		return
 	}
 	c.JSON(200, utils.SuccessResponse("修改成功"))
