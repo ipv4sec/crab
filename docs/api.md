@@ -1221,6 +1221,7 @@ GET /workloadVendor/<IdorName> HTTP/1.1
       "apiVersion": "aam.globalsphare.com/v1alpha1",
       "yaml": "",
       "cue": "",
+      "metadata": "name: ingress",
       "value": "\napiVersion: aam.globalsphare.com/v1alpha1\nkind: Trait\nmetadata:\n    name: ingssssress\nspec:\n    parameter: |\n",
       "type": 1,
       "created_at": "2021-12-16T15:48:48.129+08:00",

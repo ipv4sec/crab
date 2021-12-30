@@ -1,0 +1,53 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: zed
+  namespace: xxx
+data:
+  uri: |
+    http://www.baidu.com/xxx.json
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zed
+  namespace: xxx
+  labels:
+    app: zed
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: zed
+      labels:
+        app: zed
+    spec:
+      containers:
+        - name: main
+          image: harbor1.zlibs.com/tars/zed:alpha
+          imagePullPolicy: Always
+          volumeMounts:
+            - mountPath: /opt
+              name: conf
+      restartPolicy: Always
+      volumes:
+        - name: conf
+          configMap:
+            name: zed
+  selector:
+    matchLabels:
+      app: zed
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: zed
+  namespace: xxx
+spec:
+  selector:
+    app: zed
+  ports:
+    - port: 80
+      name: http
+  type: ClusterIP
