@@ -77,7 +77,7 @@ data:
     `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '自增主键',
     `name` varchar(128) COLLATE utf8mb4_bin NOT NULL DEFAULT '' COMMENT '名称',
     `ver` varchar(128) COLLATE utf8mb4_bin NOT NULL DEFAULT '' COMMENT '版本',
-    `value` longtext CHARACTER SET utf8mb4 NOT NULL DEFAULT '' COMMENT '最终的值',
+    `value` longtext CHARACTER SET utf8mb4 COMMENT '最终的值',
     `yaml` longtext CHARACTER SET utf8mb4 COMMENT 'YAML的值',
     `cue` longtext CHARACTER SET utf8mb4 COMMENT 'CUE的值',
     `type` tinyint(4) NOT NULL DEFAULT '0' COMMENT '类型0内置不可删除1新增',
