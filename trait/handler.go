@@ -103,25 +103,36 @@ func PutTraitHandlerFunc(c *gin.Context) {
 		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "参数错误"))
 		return
 	}
+	var val Trait
+	err := db.Client.Where("id = ?", id).Find(&val).Error
+	if err != nil {
+		klog.Errorln("数据库查询错误:", err.Error())
+		c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseBadRequest, "该资源不存在"))
+		return
+	}
+	if val.Type == 0 {
+		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "该资源无法修改"))
+		return
+	}
 	var param struct {
 		Value string `json:"value"`
 	}
-	err := c.ShouldBindJSON(&param)
+	err = c.ShouldBindJSON(&param)
 	if err != nil {
 		klog.Errorln("参数错误", err.Error())
 		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "参数错误"))
 		return
 	}
-	var val v1alpha1.Trait
-	err = yaml.Unmarshal([]byte(param.Value), &val)
+	var v1alpha1Trait v1alpha1.Trait
+	err = yaml.Unmarshal([]byte(param.Value), &v1alpha1Trait)
 	if err != nil {
 		klog.Errorln("反序列化错误", err.Error())
 		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "参数错误"))
 		return
 	}
 	err = db.Client.Model(Trait{Id: int64(id)}).Updates(Trait{
-		Name:      val.Metadata.Name,
-		Ver:       val.ApiVersion,
+		Name:      v1alpha1Trait.Metadata.Name,
+		Ver:       v1alpha1Trait.ApiVersion,
 		Value:     param.Value,
 		Type:      1,
 	}).Error

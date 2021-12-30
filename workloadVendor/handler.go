@@ -107,27 +107,38 @@ func PutVendorHandlerFunc(c *gin.Context) {
 		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "参数错误"))
 		return
 	}
+	var val WorkloadVendor
+	err := db.Client.Where("id = ?", id).Find(&val).Error
+	if err != nil {
+		klog.Errorln("数据库查询错误:", err.Error())
+		c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseBadRequest, "该资源不存在"))
+		return
+	}
+	if val.Type == 0 {
+		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "该资源无法删除"))
+		return
+	}
 	var param struct {
 		Value string `json:"value"`
 		Yaml string `json:"yaml"`
 		Cue string `json:"cue"`
 	}
-	err := c.ShouldBindJSON(&param)
+	err = c.ShouldBindJSON(&param)
 	if err != nil {
 		klog.Errorln("参数错误", err.Error())
 		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "参数错误"))
 		return
 	}
-	var val v1alpha1.WorkloadVendor
-	err = yaml.Unmarshal([]byte(param.Value), &val)
+	var v1alpha1WorkloadVendor v1alpha1.WorkloadVendor
+	err = yaml.Unmarshal([]byte(param.Value), &v1alpha1WorkloadVendor)
 	if err != nil {
 		klog.Errorln("反序列化错误", err.Error())
 		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "参数错误"))
 		return
 	}
 	err = db.Client.Model(WorkloadVendor{Id: int64(id)}).Updates(WorkloadVendor{
-		Name:      val.Metadata.Name,
-		Ver:       val.ApiVersion,
+		Name:      v1alpha1WorkloadVendor.Metadata.Name,
+		Ver:       v1alpha1WorkloadVendor.ApiVersion,
 		Yaml:  param.Yaml,
 		Cue: param.Cue,
 		Value:     param.Value,

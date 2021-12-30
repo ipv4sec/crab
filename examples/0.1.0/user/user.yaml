@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user
+  labels:
+    app: user
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: user
+      labels:
+        app: user
+    spec:
+      containers:
+        - name: main
+          image: nginx:1.21
+          imagePullPolicy: Always
+      restartPolicy: Always
+      serviceAccountName:
+  selector:
+    matchLabels:
+      app: user
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: user
+spec:
+  selector:
+    app: user
+  ports:
+    - port: 80
+      name: http
+  type: ClusterIP
