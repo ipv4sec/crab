@@ -5,6 +5,9 @@ import '../../style/sass/online.scss'
 import axios from 'axios'
 import store from '../../store/store'
 import * as TYPE from '../../store/actions'
+import Loading from '../../components/Loading'
+import SnackbarCmp from '../../components/Snackbar'
+import AutoTextarea from '../../components/AutoTextarea'
 
 const defaultYaml = `apiVersion: apps/v1
 kind: Deployment
@@ -28,36 +31,154 @@ spec:
             ports:
                 - containerPort: 80`
 
-const defaultMetadata = `apiVersion: aam.globalsphare.com/v1alpha1
+const metaHeader = `apiVersion: aam.globalsphare.com/v1alpha1
 kind: WorkloadVendor
-metadata:
-    name: example`
+metadata:`
+
+const defaultMetadata = `name: example`
 
 const WorkloadVendor = (props) => {
-    // const preRef = useRef(null)
     
-    const [yamlData, setYamlData] = useState(defaultYaml)
-    const [metadata, setMetadata] = useState(defaultMetadata)
-    const [systemSpec, setSystemSpec] = useState('')
-    // const [cueData, setCueData] = useState('')
-    const [cueTpl, setCueTpl] = useState('')
+    const metaDataRef = useRef(null)
+    const metaRef = useRef(null)
+    const specRef = useRef(null)
+    const cueRef = useRef(null)
+    const yamlRef = useRef(null)
+    const [specFold, setSpecFold] = useState(false)
 
-    const changeYaml = (e) => {
-        setYamlData(e.target.value)
+    const [name, setName] = useState('')
+    const [vendorInfo, setVendorInfo] = useState(null)
+
+    const [btnDisable, setBtnDisable] = useState(false)
+
+    const getName = () => {
+        let name = ''
+        if(window.location.search) {
+            const params = window.location.search.substring(1, )
+            if(params.indexOf('&')) {
+                const kvs =  params.split('&')
+            
+                for(let i = 0, len = kvs.length; i < len; i++) {
+                    const kv = kvs[i].split('=')
+                    if(kv && kv[0] === 'name') {
+                        name = kv[1]
+                        break;
+                    }
+                }
+            }
+           
+        }
+
+        return name
+    }
+
+    useEffect(() => {
+        const name = getName()
+        metaRef.current.innerText = metaHeader
+        metaDataRef.current.setData(defaultMetadata)
+        if(name) {
+            setName(name)
+            getWorkloadVendorInfo(name)
+        }else {
+            yamlRef.current.setData(defaultYaml)
+        }
+    }, [])
+
+    const getWorkloadVendorInfo = (name) => {
+        store.dispatch({
+            type: TYPE.LOADING,
+            val: true
+        })
+        axios({
+            method: 'GET',
+            url: '/api/online/getworkloadvendor',
+            params: {name}
+        }).then(res => {
+           
+            if(res.data.code == 0) {
+                setVendorInfo(res.data.result || {})
+                yamlRef.current.setData(res.data.result.yaml || '')
+                cueRef.current.setData(res.data.result.cue || '')
+
+            }else {
+                store.dispatch({
+                    type: TYPE.SNACKBAR,
+                    val: res.data.result
+                })
+            }
+           
+        }).catch(err => {
+            console.log(err)
+            store.dispatch({
+                type: TYPE.SNACKBAR,
+                val: '请求错误'
+            })
+        }).finally(() => {
+            store.dispatch({
+                type: TYPE.LOADING,
+                val: false
+            })
+        })
     }
 
 
-    const changeMetadata = (e) => {
-        setMetadata(e.target.value)
+    const editWorkloadVendor = () => {
+        store.dispatch({
+            type: TYPE.LOADING,
+            val: true
+        })
+
+        let url = `/api/cluster/editvendor?id=${vendorInfo.id || ''}`
+        setBtnDisable(true)
+        axios({
+            url: url,
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            data: {
+                metadata: metaDataRef.current.getData(),
+                yaml: yamlRef.current.getData(),
+                cue: cueRef.current.getData(),
+                value: getWorkloadVendor()
+            }
+        }).then((res) => {
+            if(res.data.code == 0) {
+                setTimeout(() => {
+                    setBtnDisable(false)  
+                    window.opener.postMessage('workloadtype', window.location.origin)
+                    window.close()
+                }, 1000)
+              
+            }else {
+                setBtnDisable(false)  
+            }
+            store.dispatch({
+                type: TYPE.SNACKBAR,
+                val: res.data.result || ''
+            })
+        }).catch((err) => {
+            console.error(err)
+            setBtnDisable(false)  
+            store.dispatch({
+                type: TYPE.SNACKBAR,
+                val: '请求错误'
+            })
+        }).finally(() => {
+            store.dispatch({
+                type: TYPE.LOADING,
+                val: false
+            })
+        })
+
     }
 
+    
     const getDefaultSystemSpec = () => {
         axios({
             method: 'GET',
             url: '/api/online/systemspec'
         }).then(res => {
             if(res.data.code == 0) {
-                setSystemSpec(res.data.result || '')
+                specRef.current.setData(res.data.result || '')
             }else {
                 store.dispatch({
                     type: TYPE.SNACKBAR,
@@ -73,33 +194,24 @@ const WorkloadVendor = (props) => {
         })
     }
 
-    const changeSystemSpec = (e) => {
-        setSystemSpec(e.target.value)
-    }
-
-    const changeCueTpl = (e) => {
-        setCueTpl(e.target.value)
-    }
 
     // 生成需要的数据
     function getWorkloadVendor() {
         const reg = /\n/g
         return (
-            metadata +
-            '\nspec: | \n    ' + systemSpec.replace(reg, '\n    ') + 
-            '\n    '+cueTpl.replace(reg, '\n        ') 
+            metaHeader + 
+            '\n    ' + metaDataRef.current.getData().replace(reg, '\n    ') + 
+            '\nspec: | \n    ' + specRef.current.getData().replace(reg, '\n    ') +
+            '\n    '+cueRef.current.getData().replace(reg, '\n        ') 
         ) 
-
     }
-
 
     useEffect(() => {
         getDefaultSystemSpec()
     }, [])
 
-
     const checkRule = () => {
-        if(metadata.trim() === '') {
+        if(metaDataRef.current.getData().trim() === '') {
             store.dispatch({
                 type: TYPE.SNACKBAR,
                 val: 'metadata 不能为空'
@@ -107,18 +219,18 @@ const WorkloadVendor = (props) => {
             return false
         }
 
-        if(systemSpec.trim() === '') {
+        if(specRef.current.getData().trim() === '') {
             store.dispatch({
                 type: TYPE.SNACKBAR,
-                val: 'system spec 不能为空'
+                val: 'spec 不能为空'
             })
             return false
         }
 
-        if(cueTpl.trim() === '') {
+        if(cueRef.current.getData().trim() === '') {
             store.dispatch({
                 type: TYPE.SNACKBAR,
-                val: 'translate spec cue 不能为空'
+                val: 'cue 不能为空'
             })
             return false
         }
@@ -127,6 +239,7 @@ const WorkloadVendor = (props) => {
     }
 
     const changeYamlToCue = () => {
+        const yamlData = yamlRef.current.getData()
         if(yamlData.trim() === '') { 
             store.dispatch({
                 type: TYPE.SNACKBAR,
@@ -146,12 +259,8 @@ const WorkloadVendor = (props) => {
             headers: { 'Content-Type': 'application/json'}
         }).then(res => {
             if(res.data.code == 0) {
-                // window.open(window.location.origin+res.data.result)
-                
-                // setCueData(res.data.result || '')
 
-                // preRef.current.innerText = res.data.result || ''
-                setCueTpl(res.data.result || '')
+                cueRef.current.setData(res.data.result || '')
 
                 store.dispatch({
                     type: TYPE.SNACKBAR,
@@ -179,7 +288,8 @@ const WorkloadVendor = (props) => {
     }
 
     const checkcue = () => {
-        if(cueTpl.trim() === '') { 
+        const cueData = cueRef.current.getData()
+        if(cueData.trim() === '') { 
             store.dispatch({
                 type: TYPE.SNACKBAR,
                 val: 'cue 不能为空'
@@ -194,7 +304,7 @@ const WorkloadVendor = (props) => {
         axios({
             method: 'POST',
             url: '/api/online/checkcue',
-            data: {value: cueTpl},
+            data: {value: cueData},
             headers: { 'Content-Type': 'application/json'}
         }).then(res => {
         
@@ -218,24 +328,41 @@ const WorkloadVendor = (props) => {
     }
 
     const save = () => {
+
         if(!(checkRule())) { return }
 
         store.dispatch({
             type: TYPE.LOADING,
             val: true
         })
+        setBtnDisable(true)  
         axios({
             method: 'POST',
             url: '/api/online/createvendor',
-            data: {value: getWorkloadVendor()},
+            data: {
+                metadata: metaDataRef.current.getData(),
+                yaml: yamlRef.current.getData(),
+                cue: cueRef.current.getData(),
+                value: getWorkloadVendor()
+            },
             headers: { 'Content-Type': 'application/json'}
         }).then(res => {
             store.dispatch({
                 type: TYPE.SNACKBAR,
                 val: res.data.result
             })
+            if(res.data.code == 0) {
+                setTimeout(() =>{
+                    setBtnDisable(false)  
+                    window.opener.postMessage('workloadvendor', window.location.origin)
+                    window.close()
+                }, 1000)
+            }else {
+                setBtnDisable(false)  
+            }
         }).catch(err => {
             console.log(err)
+            setBtnDisable(false)  
             store.dispatch({
                 type: TYPE.SNACKBAR,
                 val: '请求错误'
@@ -248,53 +375,58 @@ const WorkloadVendor = (props) => {
         })
     }
 
+    const specFoldFn = () => {
+        setSpecFold(!specFold)
+    }
+
 
     return (
         <section className="page-container online-container">
-            <div className="page-title">创建WorkloadVendor</div>
-            <section className="vendor-content">
-
-                <div className="vendor-left">
-                    <div className="online-title"><p>yaml</p></div>
-                    <div className="yaml-textarea">
-                        <textarea className="textarea-input" value={yamlData} onChange={changeYaml}></textarea>
-                    </div>
-                    <div className="online-btns">
-                        <Button className="online-btn" variant="contained" color="primary" onClick={changeYamlToCue}>转换yaml为cue</Button>
-                    </div>
-                </div>
-
-                <div className="vendor-right">
-                    <div className="online-title"><p>metadata:</p></div>
-                    <div className="vendor-textarea">
-                        <textarea className="textarea-input" value={metadata} onChange={changeMetadata}></textarea>
+            <header className="online-header">
+                <div className="header-logo">Crab</div>
+                {/* <div className="header-user">userinfo</div> */}
+            </header>
+            <div className="online-content">
+                <div className="oltitle">{name ? '修改' : '创建'}WorkloadType</div>
+                <section className="vendor-content">
+                    <div className="vendor-left">
+                        <div className="online-title"><p>yaml</p></div>
+                        <AutoTextarea ref={yamlRef} class="yaml-textarea" />
+                        <div className="online-btns">
+                            <Button className="online-btn" variant="contained" color="primary" onClick={changeYamlToCue}>转换yaml为cue</Button>
+                        </div>
                     </div>
 
-                    <div className="online-title"><p>system spec:</p></div>
-                    <div className="vendor-textarea">
-                        <textarea className="textarea-input" value={systemSpec} onChange={changeSystemSpec}></textarea>
+                    <div className="vendor-right">
+                        <div className="view-text" ref={metaRef}  ></div>
+                        <AutoTextarea ref={metaDataRef} class="textarea-edit indent4" />
+                        <div className="view-text" >spec: | 
+                            <button className="fold-btn" onClick={specFoldFn}><span className={`iconfont ${specFold ? 'icon_navigation_combobox_down' : 'icon_navigation_combobox_up'}`}></span></button>
+                        </div>
+                        <AutoTextarea ref={specRef} class={`textarea-edit indent4  ${specFold ? 'hide-textarea' : ''}`} />
+                       
+                        <div className="view-text" >cue Template:</div>
+                        <AutoTextarea ref={cueRef} class="textarea-edit indent4" />
+                      
+                        <div className="online-btns">
+                            <Button className="online-btn" variant="contained" color="primary" onClick={checkcue}>检查</Button>
+                        </div>
+                        <div className="online-btns">
+                            {
+                                name ? (
+                                    <Button disabled={btnDisable} className="online-btn" variant="contained" color="primary" onClick={editWorkloadVendor}>修改</Button>
+                                ) : (
+                                    <Button disabled={btnDisable} className="online-btn" variant="contained" color="primary" onClick={save}>保存</Button>
+                                )
+                            }
+                        </div>
                     </div>
-
-                    <div className="online-title"><p>translate spec:</p></div>
-                    <p>cue template</p>
-                    <div className="vendor-textarea vendor-preview">
-                        <textarea className="textarea-input" value={cueTpl} onChange={changeCueTpl}></textarea>
-                    </div>
-                    {/* <div className="vendor-preview">
-                        <pre className="preview-pre" ref={preRef}></pre>
-                    </div> */}
-                    <div className="online-btns">
-                        <Button className="online-btn" variant="contained" color="primary" onClick={checkcue}>检查</Button>
-                    </div>
-
-                </div>
-                
-            </section>
-
-            <section className="online-btns">
-                <Button className="online-btn" variant="contained" color="primary" onClick={save}>保存</Button>
-            </section>
+                </section>
+            </div>
             
+            <Loading />
+            <SnackbarCmp />
+
         </section>
     )
 }

@@ -109,6 +109,21 @@ const Manager = (props) => {
         getDomain()
     }, [])
 
+    const receiveMessage = (e) => {
+        if(e.origin === window.location.origin && (typeof e.data === 'createapp')) {
+            console.log('reciee---',e)
+            getAppList()
+        } 
+    }
+
+    useEffect(() => {
+        window.addEventListener('message', receiveMessage, false)
+
+        return () => {
+            window.removeEventListener('message', receiveMessage)
+        }
+    }, [])
+
     useEffect(() => {
         getAppList()
     }, [page])
@@ -179,6 +194,10 @@ const Manager = (props) => {
         if(uploadRef) {
             uploadRef.current.click()
         }
+    }
+
+    const addApp = () => {
+        window.open('/createapp', '_blank')
     }
 
     // 上传文件
@@ -510,11 +529,14 @@ const Manager = (props) => {
             {
                 hadDomain === 1 ? (
                     <React.Fragment>
-                    <div className="upload-content">
-                        <Button className="input-btn" variant="contained" color="primary" onClick={upload}>添加应用</Button>
-                        <input className="upload-file" type="file" ref={uploadRef} onChange={uploadFileChange}/>
+                    <div className="addapp-content">
+                        <div className="upload-content">
+                            <Button className="input-btn" variant="contained" color="primary" onClick={upload}>上传应用</Button>
+                            <input className="upload-file" type="file" ref={uploadRef} onChange={uploadFileChange}/>
+                        </div>
+                        <Button className="input-btn addapp-btn" variant="contained" color="primary" onClick={addApp}>添加应用</Button>
                     </div>
-                    <div className="instance-list">
+                   <div className="instance-list">
                         <table className="table">
                             <thead>
                                 <tr>

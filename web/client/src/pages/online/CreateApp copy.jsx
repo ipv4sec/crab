@@ -6,29 +6,25 @@ import axios from 'axios'
 import store from '../../store/store'
 import * as TYPE from '../../store/actions'
 import AddFile from '../../components/AddFile'
-import Loading from '../../components/Loading'
-import SnackbarCmp from '../../components/Snackbar'
-import AutoTextarea from '../../components/AutoTextarea'
 
-const defaultMetaHeader = `apiVersion: aam.globalsphare.com/v1alpha1
+const defaultMetadata = `apiVersion: aam.globalsphare.com/v1alpha1
 kind: Application
-metadata:`
-
-const defaultMetadata = `name: example
-version: 0.0.1
-description: 样例应用
-keywords:
-    - 样例应用
-author: example@example.com
-maintainers:
-    - email: example@example.com
-      name: example
-      web: https://example.com
-repositories: ["https://github.com/example/example.git"]
-bugs: https://github.com/example/example/issues
-licenses:
-    - type: LGPL
-      url: https://license.spec.com`
+metadata:
+    name: example
+    version: 0.0.1
+    description: 样例应用
+    keywords:
+        - 样例应用
+    author: example@example.com
+    maintainers:
+        - email: example@example.com
+          name: example
+          web: https://example.com
+    repositories: ["https://github.com/example/example.git"]
+    bugs: https://github.com/example/example/issues
+    licenses:
+        - type: LGPL
+          url: https://license.spec.com`
 
 const defaultUserconfigs = `"$schema": http://json-schema.org/draft-07/schema#
 "$id": http://example.com/product.schema.json
@@ -44,16 +40,15 @@ required:
     - username
     - password`
 
-const defaultWorkloads = `- name: example
-  type: webservice
-  vendor: webservice
-  properties:
-      image: nginx:1.21
-  traits:
-      - type: ingress
-        properties:
-            k1: "v1"`
-
+const defaultWorkloads = [`name: example
+type: webservice
+vendor: webservice
+properties:
+    image: nginx:1.21
+traits:
+    - type: ingress
+      properties:
+          k1: "v1"`]
 
 
 const defaultDependencies = `- name: gitlab
@@ -79,47 +74,77 @@ const defaultExports = `/user:
 
 
 const CreateApp = (props) => {
+    const preRef = useRef(null)
+    const [metadata, setMetadata] = useState(defaultMetadata)
+    const [userconfig, setUserconfig] = useState(defaultUserconfigs)
+    const [workloads, setWorkloads] = useState(defaultWorkloads)
+    const [dependencies, setDependencies] = useState(defaultDependencies)
+    const [exportsData, setExportsData] = useState(defaultExports)
+
     const [showConfigDialog, setShowConfigDialog] = useState(false)
     const [configData, setConfigData] = useState({})
 
+    const [previewData, setPreviewData] = useState('')
 
-    const metaHeaderRef = useRef(null)
-    const metaDataRef = useRef(null)
-    const userConfigsRef = useRef(null)
-    const workloadsRef = useRef(null)
-    const dependenciesRef = useRef(null)
-    const exportsRef = useRef(null)
+    const changeMetadata = (e) => {
+        setMetadata(e.target.value)
+    }
+    const changeUserconfig = (e) => {
+        setUserconfig(e.target.value)
+    }
 
-    useEffect(() => {
-        metaHeaderRef.current.innerText = defaultMetaHeader
-        metaDataRef.current.setData(defaultMetadata)
-        userConfigsRef.current.setData(defaultUserconfigs)
-        workloadsRef.current.setData(defaultWorkloads)
-        dependenciesRef.current.setData(defaultDependencies)
-        exportsRef.current.setData(defaultExports)
-        
-    }, [])
+    const changeWorkload = (e) => {
+        const idx = e.currentTarget.dataset.index
+        const newWorkloads = workloads.slice()
+        newWorkloads[idx] = e.target.value
+        setWorkloads(newWorkloads)
+    }
+    const addWorkload = () => {
+        const newWorkloads = workloads.slice()
+        newWorkloads.push(defaultWorkloads[0])
+        setWorkloads(newWorkloads)
+    }
+    const removeWorkload = (e) => {
+        const idx = e.currentTarget.dataset.index
+        const newWorkloads = workloads.slice()
+        newWorkloads.splice(idx, 1)
+        setWorkloads(newWorkloads)
+    }
 
+    const changeDependencies = (e) => {
+        setDependencies(e.target.value)
+    }
 
-    // 获取页面所有内容
-    function getAllData() {
+    const changeExports = (e) => {
+        setExportsData(e.target.value)
+    }
+
+    // 预览
+    function preview() {
         const reg = /\n/g
-        
-        const pData = (
-            defaultMetaHeader +
-            '\n    ' + metaDataRef.current.getData().replace(reg, '\n    ') + 
-            '\nspec:' +
-            '\n    userconfigs:\n        ' + userConfigsRef.current.getData().replace(reg, '\n        ') + 
-            '\n    workloads:\n        '+ workloadsRef.current.getData().replace(reg, '\n        ') + 
-            '\n    dependencies:\n        '+ dependenciesRef.current.getData().replace(reg, '\n        ') + 
-            '\n    exports:\n        '+ exportsRef.current.getData().replace(reg, '\n        ')
+        console.log()
+        let pData = (
+            metadata + '\nspec:' +
+            '\n    userconfigs:\n        ' + userconfig.replace(reg, '\n        ') + 
+            '\n    workloads:\n        '+workloads.map(item => '- ' + item.replace(reg, '\n          ')).join('\n        ') + 
+            '\n    dependencies:\n        '+dependencies.replace(reg, '\n        ') + 
+            '\n    exports:\n        '+ exportsData.replace(reg, '\n        ')
         ) 
 
-        return pData
+        setPreviewData(pData)
 
-        // setPreviewData(pData)
-
+        preRef.current.innerText = pData
     }
+
+    useEffect(() => {
+        preview()
+        resizePreHeight()
+    }, [metadata, userconfig, workloads, dependencies, exportsData])
+
+    useEffect(() => {
+        preview()
+        resizePreHeight()
+    }, [])
 
     function resizePreHeight() {
         let leftHeight = document.querySelector('.createapp-left').offsetHeight
@@ -127,7 +152,7 @@ const CreateApp = (props) => {
     }
 
     const checkRule = () => {
-        if(metaDataRef.current.getData().trim() === '') {
+        if(metadata.trim() === '') {
             store.dispatch({
                 type: TYPE.SNACKBAR,
                 val: 'metadata不能为空'
@@ -135,14 +160,28 @@ const CreateApp = (props) => {
             return false
         }
 
-        if(workloadsRef.current.getData().trim() === '') {
+        if(workloads.length === 1 && workloads[0].trim() === '') {
             store.dispatch({
                 type: TYPE.SNACKBAR,
                 val: 'workloads不能为空'
             })
             return false
+        }else if(workloads.length > 1) {
+            let allEmpty = true
+            for(let item of workloads) {
+                if(item.trim() !== '') {
+                    allEmpty = false
+                    break
+                }
+            }
+            if(allEmpty) {
+                store.dispatch({
+                    type: TYPE.SNACKBAR,
+                    val: 'workloads不能为空'
+                })
+            }
+            return !allEmpty
         }
-       
 
         return true
     }
@@ -158,7 +197,7 @@ const CreateApp = (props) => {
         axios({
             method: 'POST',
             url: '/api/online/download',
-            data: {yaml: getAllData()},
+            data: {yaml: previewData},
             headers: { 'Content-Type': 'application/json'}
         }).then(res => {
             if(res.data.code == 0) {
@@ -190,17 +229,16 @@ const CreateApp = (props) => {
             type: TYPE.LOADING,
             val: true
         })
-
         axios({
             method: 'POST',
             url: '/api/online/arrange',
-            data: {yaml: getAllData()},
+            data: {yaml: previewData},
             headers: { 'Content-Type': 'application/json'}
         }).then(res => {
             if(res.data.code == 0) {
                 
                 setShowConfigDialog(true)
-                setConfigData(res.data.result || '')
+                setConfigData(res.data.result)
 
                 store.dispatch({
                     type: TYPE.SNACKBAR,
@@ -309,12 +347,18 @@ const CreateApp = (props) => {
 
         selectData['status'] = 1
 
+        console.log('selectData===',selectData)
+
+        // return
+
         axios({
             method: "POST",
             url: `/api/app/run`,
             headers: {'Content-Type': 'application/json'},
             data: selectData
         }).then((res) => {
+
+            console.log('res==',res)
 
             if(res.data.code === 0) {
                 store.dispatch({
@@ -323,12 +367,6 @@ const CreateApp = (props) => {
                 })
 
                 closeDialog()
-
-                setTimeout(() => {
-                    window.opener.postMessage('createapp', window.location.origin)
-                    window.close()
-                }, 1000)    
-               
             }
 
             store.dispatch({
@@ -354,6 +392,7 @@ const CreateApp = (props) => {
 
     }
 
+
     return (
         <section className="page-container online-container">
              <header className="online-header">
@@ -366,32 +405,71 @@ const CreateApp = (props) => {
                     <div className="view-text" ref={metaHeaderRef}  ></div>
                     <AutoTextarea ref={metaDataRef} class="textarea-edit indent4" />
                         
-                    <div className="view-text">spec:</div>
-                    <div className="view-text indent4">userconfigs:</div>
-                    <AutoTextarea ref={userConfigsRef} class="textarea-edit indent8" />
 
-                    <div className="view-text indent4">workloads:</div>
-                    <AutoTextarea ref={workloadsRef} class="textarea-edit indent8" />
-                   
-                    <div className="view-text indent4">dependencies:</div>
-                    <AutoTextarea ref={dependenciesRef} class="textarea-edit indent8" />
 
-                    <div className="view-text indent4">exports:</div>
-                    <AutoTextarea ref={exportsRef} class="textarea-edit indent8" />
+                    <div className="createapp-left">
+                        <div className="online-title"><p>metadata<span>*</span></p></div>
+                        <div className="online-textarea">
+                            <textarea className="textarea-input" value={metadata} onChange={changeMetadata}></textarea>
+                        </div>
 
-                    <div className="online-btns">
-                        <Button className="online-btn" variant="contained" color="primary" onClick={download}>下载</Button>
-                        <Button className="online-btn" variant="contained" color="primary" onClick={arrange}>部署</Button>
+                        <div className="online-title"><p>userconfigs</p></div>
+                        <div className="online-textarea">
+                            <textarea className="textarea-input" value={userconfig} onChange={changeUserconfig}></textarea>
+                        </div>
+
+                        <div className="online-title"><p>workloads<span>*</span></p></div>
+                        {
+                            workloads && workloads.length ? (
+                                workloads.map((item, idx) => {
+                                    return (
+                                        <div className="online-textarea vartextarea" key={idx} >
+                                            <textarea className="textarea-input" value={item} data-index={idx} onChange={changeWorkload}></textarea>
+                                            {
+                                                workloads.length > 1 ? (
+                                                    <Button className="createapp-removebtn" variant="contained" color="secondary" data-index={idx}  onClick={removeWorkload}>移除</Button>
+                                                ) : null
+                                            }
+                                        </div>
+                                    )
+                                })
+                            ) : null
+                        }
+                        <div className="createapp-addbtn">
+                            <Button className="online-btn" variant="contained" color="primary" onClick={addWorkload}>添加</Button>
+                        </div>
+
+                        <div className="online-title"><p>dependencies</p></div>
+                        <div className="online-textarea">
+                            <textarea className="textarea-input" value={dependencies} onChange={changeDependencies}></textarea>
+                        </div>
+
+                        <div className="online-title"><p>exports</p></div>
+                        <div className="online-textarea">
+                            <textarea className="textarea-input" value={exportsData} onChange={changeExports}></textarea>
+                        </div>
+
                     </div>
                     
+                    <div className="createapp-right">
+                        <div className="online-title"><p>预览</p></div>
+                        <div className="createapp-preview">
+                            <pre className="preview-pre" ref={preRef}></pre>
+                        </div>
+                    </div>
                 </section>
             </div>
           
 
+            <section className="online-btns">
+                <Button className="online-btn" variant="contained" color="primary" onClick={download}>下载</Button>
+                <Button className="online-btn" variant="contained" color="primary" onClick={arrange}>部署</Button>
+            </section>
+            
+
+
             <AddFile open={showConfigDialog} title="配置实例" data={configData} close={closeDialog} submit={submitDialog}/>
 
-            <Loading />
-            <SnackbarCmp />
         </section>
     )
 }

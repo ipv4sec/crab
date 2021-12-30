@@ -1,22 +1,51 @@
 .online-container {
-    padding: 0 20px;
 
     .online-btns {
-        margin-bottom: 20px;
+        padding: 20px 0;
         text-align: right;
         .online-btn {
             margin-left: 20px;
         }
     }
 
+    .oltitle {
+        line-height: 60px;
+        font-size: 20px;
+        font-weight: bold;
+    }
+
     .online-title {
         font-size: 18px;
         font-weight: bold;
         line-height: 30px;
+        padding: 0 20px;
         span {
             margin-left: 4px;
             color: red;
         }
+    }
+
+    .online-header {
+        height: 60px;
+        background-color: #373737;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 20px;
+
+        .header-logo {
+            font-size: 32px;
+            font-family: 'WongSans-Regular';
+        }
+        .header-user {
+            
+        }
+    }
+
+    .online-content {
+        height: calc(100vh - 60px);
+        padding: 0 20px;
     }
 
     .online-textarea {
@@ -47,6 +76,9 @@
 
     .createapp-content {
         display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+
         .createapp-left, .createapp-right {
             flex-shrink: 0;
             width: 50%;
@@ -84,9 +116,48 @@
 
     .trait-content {
         .trait-textarea {
-            height: calc(100vh - 160px);
-            margin-bottom: 20px;
+            min-height: calc(100vh - 200px);
+            border: 1px solid #dcdcdc;
+            padding: 10px;
         }
+    }
+
+    .view-text {
+        width: 100%;
+        outline: none;
+        white-space: nowrap;
+        overflow: auto;
+        padding: 0 10px;
+        // background: rgba(0,0,0,0.03);
+        cursor: not-allowed;
+        position: relative;
+
+        .fold-btn {
+            position: absolute;
+            top: 4px;
+            right: 0;
+            border: none;
+            background-color: transparent;
+            outline: none;
+            cursor: pointer;
+        }
+    }
+
+    .textarea-edit {
+        padding: 0 10px;
+        border: 1px solid #dcdcdc;
+    }
+
+    .hide-textarea {
+        display: none;
+    }
+
+
+    .indent4 {
+        width: calc(100% - 20px);
+    }
+    .indent8 {
+        width: calc(100% - 40px);
     }
 
     .vendor-content {
@@ -96,13 +167,19 @@
             flex-shrink: 0;
             width: 50%;
         }
+        .vendor-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
         .vendor-left {
             padding-right: 20px;
         }
 
         .yaml-textarea {
-            height: calc(100vh - 180px);
-            margin-bottom: 20px;
+            // margin-bottom: 20px;
+            border: 1px solid #dcdcdc;
+            padding: 0 10px;
         }
 
         .vendor-textarea {

@@ -27,33 +27,33 @@ let list = [
                     "url": "/home/reset",
                     "sub": [],
                 },
-                {
-                    "name": "在线工具",
-                    "url": "",
-                    "showChild": false,
-                    "sub": [
-                        {
-                            "name": "创建应用",
-                            "url": "/home/online/create",
-                            "sub": []
-                        },
-                        {
-                            "name": "创建Trait",
-                            "url": "/home/online/trait",
-                            "sub": []
-                        },
-                        {
-                            "name": "创建WorkloadType",
-                            "url": "/home/online/workloadtype",
-                            "sub": []
-                        },
-                        {
-                            "name": "创建WorkloadVendor",
-                            "url": "/home/online/workloadvendor",
-                            "sub": []
-                        }
-                    ],
-                }
+                // {
+                //     "name": "在线工具",
+                //     "url": "",
+                //     "showChild": false,
+                //     "sub": [
+                //         {
+                //             "name": "创建应用",
+                //             "url": "/home/online/create",
+                //             "sub": []
+                //         },
+                //         {
+                //             "name": "创建Trait",
+                //             "url": "/home/online/trait",
+                //             "sub": []
+                //         },
+                //         {
+                //             "name": "创建WorkloadType",
+                //             "url": "/home/online/workloadtype",
+                //             "sub": []
+                //         },
+                //         {
+                //             "name": "创建WorkloadVendor",
+                //             "url": "/home/online/workloadvendor",
+                //             "sub": []
+                //         }
+                //     ],
+                // }
             ]
 
 const LeftNav = (props) => {
