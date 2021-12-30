@@ -387,7 +387,7 @@ const WorkloadVendor = (props) => {
                 {/* <div className="header-user">userinfo</div> */}
             </header>
             <div className="online-content">
-                <div className="oltitle">创建WorkloadType</div>
+                <div className="oltitle">{name ? '修改' : '创建'}WorkloadType</div>
                 <section className="vendor-content">
                     <div className="vendor-left">
                         <div className="online-title"><p>yaml</p></div>
