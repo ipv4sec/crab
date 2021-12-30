@@ -243,7 +243,7 @@ if parameter.ingress != _|_ {
 		}
 	}
 }
-"\(context.workloadName)-viewer": {
+"viewer": {
 	apiVersion: "security.istio.io/v1beta1"
 	kind:       "AuthorizationPolicy"
 	"metadata": {
