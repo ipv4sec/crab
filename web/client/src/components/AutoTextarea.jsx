@@ -47,6 +47,16 @@ export default class AutoTextarea extends React.Component {
     keyDown(e){
         if(e.keyCode === 13) {
             this.txaRef.current.style.height = this.txaRef.current.offsetHeight + this.lineHeight + 'px'
+        }else if(e.keyCode === 9) {
+            e.preventDefault()
+            const start = this.txaRef.current.selectionStart
+            const newValue = this.state.value.substring(0, start) + '    ' + this.state.value.substring(start, )
+            this.setState({
+                value: newValue  
+            }, () => {
+                this.txaRef.current.selectionStart = start + 4
+                this.txaRef.current.selectionEnd = start + 4
+            })
         }
     }
 
@@ -55,8 +65,15 @@ export default class AutoTextarea extends React.Component {
         if(e.keyCode === 8) {
             let curHeight = e.target.value.split('\n').length * this.lineHeight
             if(curHeight + this.padding <  this.txaRef.current.offsetHeight) {
-                this.txaRef.current.style.height = this.txaRef.current.offsetHeight - this.lineHeight + 'px'
+                this.txaRef.current.style.height = curHeight + 'px'
             }
+        }else if(e.keyCode === 13) {
+            let curHeight = e.target.value.split('\n').length * this.lineHeight
+            this.txaRef.current.style.height = curHeight + 'px'
+        }
+        else if(e.keyCode === 9) {
+            e.preventDefault()
+
         }
     }
 
@@ -64,9 +81,11 @@ export default class AutoTextarea extends React.Component {
         this.txaRef.current.focus()
     }
 
-    paste() {
-        console.log('---paste')
-        this.txaRef.current.style.height = this.txaRef.current.scrollHeight+ 'px'
+    paste(e) {
+        setTimeout(() => {
+            let curHeight = this.txaRef.current.value.split('\n').length * this.lineHeight
+            this.txaRef.current.style.height = curHeight + 'px'
+        })
     }
 
     render() {

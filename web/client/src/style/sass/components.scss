@@ -148,12 +148,13 @@
 /* textarea 高度自动撑开 */
 .auto-textarea {
     width: 100%;
-    min-height: 5rem;
+    // min-height: 5rem;
     // border: 1px solid #dcdcdc;
     border-radius: 4px;
     cursor: text;
 
     .auto-input {
+        display: block;
         font-size: 14px;
         width: 100%;
         overflow-x: auto;

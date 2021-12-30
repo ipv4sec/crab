@@ -314,9 +314,7 @@ const WorkLoad = (props) => {
 
     const clickMenu = (item, type) => {
         setCurClickDialogType(type)
-        console.log('click type ===', curClickDialogType)
         setCurInstance(item)
-        console.log('curInstance: ',curInstance)
         setAnchorEl(event.target)
     }
 
