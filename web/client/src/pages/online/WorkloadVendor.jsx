@@ -203,7 +203,7 @@ const WorkloadVendor = (props) => {
         return (
             metaHeader + 
             '\n    ' + metaDataRef.current.getData().replace(reg, '\n    ') + 
-            '\nspec: | \n    ' + specRef.current.getData().replace(reg, '\n    ') +
+            '\nspec: | \n    ' + (specFold ? specData.replace(reg, '\n    ') : specRef.current.getData().replace(reg, '\n    ')) +
             '\n    '+cueRef.current.getData().replace(reg, '\n        ') 
         ) 
     }
@@ -221,7 +221,14 @@ const WorkloadVendor = (props) => {
             return false
         }
 
-        if(specRef.current.getData().trim() === '') {
+        if(!specFold && specRef.current.getData().trim() === '') {
+            store.dispatch({
+                type: TYPE.SNACKBAR,
+                val: 'spec 不能为空'
+            })
+            return false
+        }
+        if(specFold && specData.trim() === '') {
             store.dispatch({
                 type: TYPE.SNACKBAR,
                 val: 'spec 不能为空'
@@ -379,10 +386,12 @@ const WorkloadVendor = (props) => {
 
     const specFoldFn = () => {
         if(specFold) {
-            console.log('sdfdsfs',specData)
             specRef.current.setData(specData)
+        }else {
+            setSpecData(specRef.current.getData())
         }
         setSpecFold(!specFold)
+
     }
 
 
