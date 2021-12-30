@@ -85,6 +85,27 @@ const WorkLoad = (props) => {
     const [dialogType, setDialogType] = useState('')
     const [curClickDialogType, setCurClickDialogType] = useState('')
 
+    const receiveMessage = (e) => {
+        if(e.origin === window.location.origin && (typeof e.data === 'string')) {
+            if(e.data === 'trait') {
+                getTraitList()
+            }else if(e.data === 'workloadtype') {
+                getWorkloadList()
+            }else if(e.data === 'workloadvendor') {
+                getVendorList()
+            }
+        } 
+    }
+
+    useEffect(() => {
+        window.addEventListener('message', receiveMessage, false)
+
+        return () => {
+            window.removeEventListener('message', receiveMessage)
+        }
+    }, [])
+
+
     const getTraitList = () => {
         store.dispatch({
             type: TYPE.LOADING,
@@ -310,6 +331,12 @@ const WorkLoad = (props) => {
     // 编辑弹窗
     const edit = () => {
         setAnchorEl(null)
+
+
+        window.open(`/${curClickDialogType}?name=${curInstance.name}`, '_blank')
+
+        return 
+
         setOpenDialog(true)
         setDialogType('edit')
         setDialogTitle('编辑内容')
@@ -327,9 +354,9 @@ const WorkLoad = (props) => {
         let url = ''
         if(curClickDialogType === 'trait') {
             url = '/api/cluster/deletetrait'
-        }else if(curClickDialogType === 'workload') {
+        }else if(curClickDialogType === 'workloadtype') {
             url = '/api/cluster/deleteworkload'
-        }else if(curClickDialogType === 'vendor') {
+        }else if(curClickDialogType === 'workloadvendor') {
             url = '/api/cluster/deletevendor'
         }else {
             console.error('--程序错误--无法确定当前点击的是哪个列表类型--')
@@ -347,9 +374,9 @@ const WorkLoad = (props) => {
             if(res.data.code === 0) {
                 if(curClickDialogType === 'trait') {
                     getTraitList()
-                }else if(curClickDialogType === 'workload') {
+                }else if(curClickDialogType === 'workloadtype') {
                     getWorkloadList()
-                }else if(curClickDialogType === 'vendor') {
+                }else if(curClickDialogType === 'workloadvendor') {
                     getVendorList()
                 }
             }
@@ -392,9 +419,9 @@ const WorkLoad = (props) => {
         let url = ''
         if(curClickDialogType === 'trait') {
             url = `/api/cluster/edittrait?id=${curInstance.id || ''}`
-        }else if(curClickDialogType === 'workload') {
+        }else if(curClickDialogType === 'workloadtype') {
             url = `/api/cluster/editworkload?id=${curInstance.id || ''}`
-        }else if(curClickDialogType === 'vendor') {
+        }else if(curClickDialogType === 'workloadvendor') {
             url = `/api/cluster/editvendor?id=${curInstance.id || ''}`
         }else {
             console.error('--程序错误--无法确定当前点击的是哪个列表类型--')
@@ -414,9 +441,9 @@ const WorkLoad = (props) => {
                 closeDialog()
                 if(curClickDialogType === 'trait') {
                     getTraitList()
-                }else if(curClickDialogType === 'workload') {
+                }else if(curClickDialogType === 'workloadtype') {
                     getWorkloadList()
-                }else if(curClickDialogType === 'vendor') {
+                }else if(curClickDialogType === 'workloadvendor') {
                     getVendorList()
                 }
             }
@@ -439,6 +466,16 @@ const WorkLoad = (props) => {
 
     }
 
+    const addTrait = () => {
+        window.open('/trait', '_blank')
+    }
+    const addWorkloadType = () => {
+        window.open('/workloadtype', '_blank')
+    }
+    const addVendor = () => {
+        window.open('/workloadvendor', '_blank')
+    }
+
     return (
         <div className="page-container workload-container">
             <div className="page-title">
@@ -455,7 +492,10 @@ const WorkLoad = (props) => {
             </div>
 
             <div className="table-list">
-                <p className="table-title">trait 管理</p>
+                <p className="table-title">
+                    trait 管理 
+                    <Button variant="contained" color="primary" className="btn-item right-btn" onClick={addTrait}>添加</Button>
+                </p>
                 <div className="instance-list">
                     <table className="table">
                         <thead>
@@ -504,7 +544,10 @@ const WorkLoad = (props) => {
             </div>
 
             <div className="table-list">
-                <p className="table-title">workloadType 管理</p>
+                <p className="table-title">
+                    workloadType 管理
+                    <Button variant="contained" color="primary" className="btn-item right-btn" onClick={addWorkloadType}>添加</Button>
+                </p>
                 <div className="instance-list">
                     <table className="table">
                         <thead>
@@ -533,7 +576,7 @@ const WorkLoad = (props) => {
                                         <td>{item.type ? '用户新增' : '内置'}</td>
                                         <td>{moment(item.created_at).format('YYYY-MM-DD hh:mm:ss')}</td>
                                         <td>{moment(item.updated_at).format('YYYY-MM-DD hh:mm:ss')}</td>
-                                        <td data-item={item} onClick={() => {clickMenu(item, 'workload')}}><i className="iconfont icon_navigation_more" style={{cursor: "pointer"}}></i></td>
+                                        <td data-item={item} onClick={() => {clickMenu(item, 'workloadtype')}}><i className="iconfont icon_navigation_more" style={{cursor: "pointer"}}></i></td>
                                     </tr>
                                 )
                             })
@@ -553,7 +596,10 @@ const WorkLoad = (props) => {
             </div>
 
             <div className="table-list">
-                <p className="table-title">workloadVendor 管理</p>
+                <p className="table-title">
+                    workloadVendor 管理
+                    <Button variant="contained" color="primary" className="btn-item right-btn" onClick={addVendor}>添加</Button>
+                </p>
                 <div className="instance-list">
                     <table className="table">
                         <thead>
@@ -582,7 +628,7 @@ const WorkLoad = (props) => {
                                         <td>{item.type ? '用户新增' : '内置'}</td>
                                         <td>{moment(item.created_at).format('YYYY-MM-DD hh:mm:ss')}</td>
                                         <td>{moment(item.updated_at).format('YYYY-MM-DD hh:mm:ss')}</td>
-                                        <td data-item={item} onClick={() => {clickMenu(item, 'vendor')}}><i className="iconfont icon_navigation_more" style={{cursor: "pointer"}}></i></td>
+                                        <td data-item={item} onClick={() => {clickMenu(item, 'workloadvendor')}}><i className="iconfont icon_navigation_more" style={{cursor: "pointer"}}></i></td>
                                     </tr>
                                 )
                             })

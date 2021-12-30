@@ -1,6 +1,14 @@
 .manager-container {
     padding: 0 20px;
 
+    .addapp-content {
+        display: flex;
+
+        .addapp-btn {
+            margin-left: 20px;
+        }
+    }
+
     .move-to-domain {
         width: 100%;
         margin-top: 50vh;

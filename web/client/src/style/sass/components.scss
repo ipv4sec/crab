@@ -142,3 +142,30 @@
 }
 
 
+
+
+
+/* textarea 高度自动撑开 */
+.auto-textarea {
+    width: 100%;
+    min-height: 5rem;
+    // border: 1px solid #dcdcdc;
+    border-radius: 4px;
+    cursor: text;
+
+    .auto-input {
+        font-size: 14px;
+        width: 100%;
+        overflow-x: auto;
+        overflow-y: hidden;
+        white-space: nowrap;
+        border: none;
+        background-color: transparent;
+        outline: none;
+        resize: none;
+        line-height: 1.5;
+        padding: 0;
+        box-sizing: border-box;
+
+    }
+}

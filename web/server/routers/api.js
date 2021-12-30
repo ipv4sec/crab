@@ -232,7 +232,7 @@ router.get('/cluster/vendorlist', (req, res) => {
 
 // 修改trait
 router.post('/cluster/edittrait', (req, res) => {
-    request.put('/trait/'+req.query.id, req.body,req.headers, function(response) {
+    request.put('/trait/'+req.query.id, req.body, req.headers, function(response) {
         // res.set(response.headers)
         res.send(response.data)
     })
@@ -431,6 +431,14 @@ router.post('/online/createtrait', (req, res) => {
         res.send(response.data)
     })
 })
+// 获取trait详情
+router.get('/online/gettrait', (req, res) => {
+    request.get('/trait/'+req.query.name, '',req.headers, function(response) {
+        // res.set(response.headers)
+        res.send(response.data)
+    })
+})
+
 
 // 创建workloadtype
 router.post('/online/createworkloadtype', (req, res) => {
@@ -440,6 +448,15 @@ router.post('/online/createworkloadtype', (req, res) => {
     })
 })
 
+// 获取workloadtype 详情
+router.get('/online/getworkloadtype', (req, res) => {
+    request.get('/workloadType/'+req.query.name, '',req.headers, function(response) {
+        // res.set(response.headers)
+        res.send(response.data)
+    })
+})
+
+
 // 获取workloadVendor的system spec默认数据
 router.get('/online/systemspec', (req, res) => {
     request.get('/tool/systemTemplate','',req.headers, function(response) {
@@ -447,6 +464,15 @@ router.get('/online/systemspec', (req, res) => {
         res.send(response.data)
     })
 })
+
+// 获取getworkloadvendor详情
+router.get('/online/getworkloadvendor', (req, res) => {
+    request.get('/workloadVendor/'+req.query.name, '',req.headers, function(response) {
+        // res.set(response.headers)
+        res.send(response.data)
+    })
+})
+
 
 
 // workloadvendor 转换yaml 为 cue 格式 
