@@ -188,7 +188,7 @@ if parameter.ingress != _|_ {
 			http: [
 				{
 					name: context.workloadName
-					if ingress.http != _|_ {
+					if parameter.ingress.http != _|_ {
 						match: []
 					}
 					route: [{
