@@ -4,7 +4,7 @@
 ### 安装
 
 在现有集群上执行
-`curl -fsSL http://island-resource.develenv.com/crab.sh | bash`
+`curl -fsSL http://island-resource.develenv.com/crab.sh | bash -s -- --domain {root-domain}`
 
 ### 流程
 
@@ -63,9 +63,6 @@
 
 在[创建应用]选项页, Metadata默认值
 ```yaml
-apiVersion: aam.globalsphare.com/v1alpha1
-kind: Application
-metadata:
   name: example
   version: 0.0.1
   description: 样例应用
@@ -81,6 +78,7 @@ metadata:
   licenses:
     - type: LGPL
       url: https://license.spec.com
+
 ```
 
 Workloads默认值
@@ -115,7 +113,7 @@ Userconfigs默认值
 
 dependencies默认值(数组)
 ```yaml
-- name: gitlab
+  name: gitlab
   version: ">=0.0.1"
   location: user-defined(https://gitlab.com)
   items:
@@ -165,10 +163,7 @@ spec:
 
 在[创建WorkloadVendor]选项页, Metadata默认值
 ```yaml
-apiVersion: aam.globalsphare.com/v1alpha1
-kind: WorkloadVendor
-metadata:
-  name: example
+name: example
 ```
 
 SystemSpec默认值, 请求 [Spec默认值] 接口
