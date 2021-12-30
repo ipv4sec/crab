@@ -783,9 +783,9 @@ PUT /workloadVendor/<id> HTTP/1.1
 
 |名称|说明|默认值|是否必填|
 |---|---|---|---|
-|value| 具体定义 |无|是|
-|yaml| 具体定义 |无|是|
-|cue| 具体定义 |无|是|
+|value| 最终的值 |无|是|
+|yaml| YAML的值, 页面上YAML框的值 |无|是|
+|cue| CUE的值, 即translate spec框的值 |无|是|
 
 ### 返回值
 ```json
