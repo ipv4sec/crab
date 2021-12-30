@@ -9,6 +9,7 @@ require (
 	github.com/gin-gonic/gin v1.7.4
 	github.com/go-git/go-git/v5 v5.4.2
 	github.com/go-redis/redis/v8 v8.11.4
+	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/gojek/heimdall/v7 v7.0.2
 	github.com/google/uuid v1.2.0
 	github.com/pkg/errors v0.9.1
