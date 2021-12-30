@@ -44,7 +44,8 @@ const WorkloadVendor = (props) => {
     const specRef = useRef(null)
     const cueRef = useRef(null)
     const yamlRef = useRef(null)
-    const [specFold, setSpecFold] = useState(false)
+    const [specData, setSpecData] = useState('')
+    const [specFold, setSpecFold] = useState(true)
 
     const [name, setName] = useState('')
     const [vendorInfo, setVendorInfo] = useState(null)
@@ -75,12 +76,12 @@ const WorkloadVendor = (props) => {
     useEffect(() => {
         const name = getName()
         metaRef.current.innerText = metaHeader
-        metaDataRef.current.setData(defaultMetadata)
         if(name) {
             setName(name)
             getWorkloadVendorInfo(name)
         }else {
             yamlRef.current.setData(defaultYaml)
+            metaDataRef.current.setData(defaultMetadata)
         }
     }, [])
 
@@ -97,6 +98,7 @@ const WorkloadVendor = (props) => {
            
             if(res.data.code == 0) {
                 setVendorInfo(res.data.result || {})
+                metaDataRef.current.setData(res.data.result.metadata || '')
                 yamlRef.current.setData(res.data.result.yaml || '')
                 cueRef.current.setData(res.data.result.cue || '')
 
@@ -178,7 +180,7 @@ const WorkloadVendor = (props) => {
             url: '/api/online/systemspec'
         }).then(res => {
             if(res.data.code == 0) {
-                specRef.current.setData(res.data.result || '')
+                setSpecData(res.data.result || '')
             }else {
                 store.dispatch({
                     type: TYPE.SNACKBAR,
@@ -376,6 +378,10 @@ const WorkloadVendor = (props) => {
     }
 
     const specFoldFn = () => {
+        if(specFold) {
+            console.log('sdfdsfs',specData)
+            specRef.current.setData(specData)
+        }
         setSpecFold(!specFold)
     }
 
@@ -404,8 +410,6 @@ const WorkloadVendor = (props) => {
                             <button className="fold-btn" onClick={specFoldFn}><span className={`iconfont ${specFold ? 'icon_navigation_combobox_down' : 'icon_navigation_combobox_up'}`}></span></button>
                         </div>
                         <AutoTextarea ref={specRef} class={`textarea-edit indent4  ${specFold ? 'hide-textarea' : ''}`} />
-                       
-                        <div className="view-text" >cue Template:</div>
                         <AutoTextarea ref={cueRef} class="textarea-edit indent4" />
                       
                         <div className="online-btns">

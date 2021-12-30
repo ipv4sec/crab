@@ -163,9 +163,13 @@
     .vendor-content {
         display: flex;
 
-        .vendor-left, .vendor-right {
+        .vendor-left{
             flex-shrink: 0;
-            width: 50%;
+            width: 30%;
+        }
+        .vendor-right  {
+            flex-shrink: 0;
+            width: 70%;
         }
         .vendor-right {
             display: flex;
