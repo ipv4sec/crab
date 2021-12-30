@@ -45,8 +45,8 @@ func PostSpellingHandlerFunc(c *gin.Context) {
 	cmd.Stderr = &erro
 	err = cmd.Run()
 	if err != nil {
-		klog.Errorln("执行命令错误", err.Error())
-		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "执行命令错误"))
+		klog.Errorln("执行命令错误", err.Error(), string(erro.Bytes()))
+		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, string(erro.Bytes())))
 		return
 	}
 	if string(erro.Bytes()) == "" {
