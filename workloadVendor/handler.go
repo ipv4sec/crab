@@ -69,6 +69,8 @@ func GetVendorHandlerFunc(c *gin.Context) {
 func PostVendorHandlerFunc(c *gin.Context) {
 	var param struct {
 		Value string `json:"value"`
+		Yaml string `json:"yaml"`
+		Cue string `json:"cue"`
 	}
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -86,6 +88,8 @@ func PostVendorHandlerFunc(c *gin.Context) {
 	err = db.Client.Model(WorkloadVendor{}).Create(&WorkloadVendor{
 		Name:      val.Metadata.Name,
 		Ver:       val.ApiVersion,
+		Yaml:  param.Yaml,
+		Cue: param.Cue,
 		Value:     param.Value,
 		Type:      1,
 	}).Error
@@ -105,6 +109,8 @@ func PutVendorHandlerFunc(c *gin.Context) {
 	}
 	var param struct {
 		Value string `json:"value"`
+		Yaml string `json:"yaml"`
+		Cue string `json:"cue"`
 	}
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -122,6 +128,8 @@ func PutVendorHandlerFunc(c *gin.Context) {
 	err = db.Client.Model(WorkloadVendor{Id: int64(id)}).Updates(WorkloadVendor{
 		Name:      val.Metadata.Name,
 		Ver:       val.ApiVersion,
+		Yaml:  param.Yaml,
+		Cue: param.Cue,
 		Value:     param.Value,
 		Type:      1,
 	}).Error

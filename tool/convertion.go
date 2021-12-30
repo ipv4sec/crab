@@ -36,7 +36,8 @@ func PostConvertionHandlerFunc(c *gin.Context) {
 		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "保存文件错误"))
 		return
 	}
-	cmd := fmt.Sprintf("cue import %s -l 'strings.ToCamel(kind)' -l metadata.name -o -", saved)
+
+	cmd := fmt.Sprintf(`cue import %s -l '"\(strings.ToCamel(kind))-\(strings.ToCamel(metadata.name))"' -o -`, saved)
 	output, _ := executor.ExecuteCommandWithCombinedOutput("bash", "-c", cmd)
 	c.JSON(200, utils.SuccessResponse(output))
 }
