@@ -9,6 +9,7 @@ type WorkloadVendor struct {
 
 	Yaml string `json:"yaml"`
 	Cue string `json:"cue"`
+	Metadata string `json:"metadata"`
 	Value string `json:"value"`
 
 	Type int `json:"type"`
