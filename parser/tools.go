@@ -47,9 +47,18 @@ func GenValeYaml(instanceId string, application v1alpha1.Application, userconfig
 	//依赖内部应用的host
 	dependHost := make(dependencyHost, 0)
 	for _, v := range dependencies.Internal {
+		//host
 		dependHost[v.Name] = dependencyHostItem{
 			fmt.Sprintf("%s.%s.svc.cluster.local", v.EntryService, v.Instanceid),
 		}
+		//授权
+		authorization = append(authorization,
+			Authorization{
+				Namespace: v.Instanceid,
+				Service:   v.EntryService,
+				Resources: make([]DependencyUseItem, 0),
+			},
+		)
 	}
 	for _, workload := range application.Spec.Workloads {
 		properties := GetProperties(workload.Properties)
@@ -161,27 +170,16 @@ func Export(ctxObj ContextObj, workloadParam WorkloadParam, workload interface{}
 		klog.Errorln("cue生成yaml失败: ", value.Err().Error())
 		return "", value.Err()
 	}
-	it, err := value.Fields()
-	if err != nil {
-		klog.Errorln("获取cue.value迭代器失败: ", err.Error())
-		return "", err
-	}
-	for it.Next() {
-		if it.Label() != "context" && it.Label() != "parameter" {
-			context := make(map[string]interface{}, 0)
-			err = it.Value().Decode(&context)
+	context := make(map[string]interface{}, 0)
+	err = value.Decode(&context)
+	for k,v := range context {
+		if k != "context" && k != "parameter" && k != "namespace" {
+			b, err := yaml.Marshal(v)
 			if err != nil {
-				klog.Errorln(err.Error())
-				return "", nil
+				klog.Errorln("解析context失败: ", err)
+				return "", err
 			}
-			for _, v := range context {
-				b, err := yaml.Marshal(v)
-				if err != nil {
-					klog.Errorln(err.Error())
-					return "", nil
-				}
-				k8s = fmt.Sprintf("%s\n---\n%s", k8s, string(b))
-			}
+			k8s = fmt.Sprintf("%s\n---\n%s", k8s, string(b))
 		}
 	}
 	return strings.TrimSpace(k8s), nil
