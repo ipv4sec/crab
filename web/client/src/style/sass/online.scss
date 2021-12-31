@@ -14,11 +14,15 @@
         font-weight: bold;
     }
 
+    .titlepadding {
+        padding: 0 10px;
+    }
     .online-title {
         font-size: 18px;
         font-weight: bold;
         line-height: 30px;
-        padding: 0 20px;
+        // padding: 0 20px;
+        align-self: flex-start;
         span {
             margin-left: 4px;
             color: red;
