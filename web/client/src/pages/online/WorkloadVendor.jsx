@@ -42,15 +42,15 @@ spec:
   ports:
     - port: 80
       name: http`
-
-const metaHeader = `apiVersion: aam.globalsphare.com/v1alpha1
-kind: WorkloadVendor
+const defaultHeaderData = 'apiVersion: aam.globalsphare.com/v1alpha1'
+const metaHeader = `kind: WorkloadVendor
 metadata:`
 
 const defaultMetadata = `name: example`
 
 const WorkloadVendor = (props) => {
     const preRef = useRef(null)
+    const headerRef = useRef(null)
     const metaDataRef = useRef(null)
     const metaRef = useRef(null)
     const specRef = useRef(null)
@@ -92,6 +92,7 @@ const WorkloadVendor = (props) => {
             setName(name)
             getWorkloadVendorInfo(name)
         }else {
+            headerRef.current.setData(defaultHeaderData)
             yamlRef.current.setData(defaultYaml)
             metaDataRef.current.setData(defaultMetadata)
         }
@@ -110,6 +111,7 @@ const WorkloadVendor = (props) => {
            
             if(res.data.code == 0) {
                 setVendorInfo(res.data.result || {})
+                headerRef.current.setData('apiVersion: ' + (res.data.result.apiVersion || ''))
                 metaDataRef.current.setData(res.data.result.metadata || '')
                 yamlRef.current.setData(res.data.result.yaml || '')
                 cueRef.current.setData(res.data.result.cue || '')
@@ -214,7 +216,8 @@ const WorkloadVendor = (props) => {
     function getWorkloadVendor() {
         const reg = /\n/g
         return (
-            metaHeader + 
+            headerRef.current.getData() + 
+            '\n' + metaHeader + 
             '\n    ' + metaDataRef.current.getData().replace(reg, '\n    ') + 
             '\nspec: | \n    ' + specData.replace(reg, '\n    ') +
             '\n    '+cueRef.current.getData().replace(reg, '\n        ') 
@@ -397,7 +400,7 @@ const WorkloadVendor = (props) => {
                 <div className="oltitle">{name ? '修改' : '创建'} WorkloadVendor</div>
                 <section className="vendor-content">
                     <div className="vendor-left">
-                        <div className="online-title"><p>yaml</p></div>
+                        <div className="online-title"><p>K8s YAML</p></div>
                         <AutoTextarea ref={yamlRef} class="yaml-textarea" />
                         <div className="online-btns">
                             <Button className="online-btn" variant="contained" color="primary" onClick={changeYamlToCue}>转换yaml为cue</Button>
@@ -405,6 +408,8 @@ const WorkloadVendor = (props) => {
                     </div>
 
                     <div className="vendor-right">
+                        <div className="online-title titlepadding"><p>WorkloadVendor</p></div>
+                        <AutoTextarea ref={headerRef} class="textarea-edit" />
                         <div className="view-text" ref={metaRef}  ></div>
                         <AutoTextarea ref={metaDataRef} class="textarea-edit indent4" />
                         <div className="view-text" >spec: | 

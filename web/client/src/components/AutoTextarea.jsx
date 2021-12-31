@@ -40,7 +40,6 @@ export default class AutoTextarea extends React.Component {
     }
 
     changeValue(e){
-        console.log('--change---')
         this.setState({
             value: e.target.value
         })
@@ -48,7 +47,6 @@ export default class AutoTextarea extends React.Component {
 
     // 回车换行
     keyDown(e){
-        console.log(e.keyCode)
         if(e.keyCode === 13) {
             this.txaRef.current.style.height = this.txaRef.current.offsetHeight + this.lineHeight + 'px'
         }else if(e.keyCode === 9) {
