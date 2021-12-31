@@ -207,13 +207,13 @@ const WorkloadType = (props) => {
                 {/* <div className="header-user">userinfo</div> */}
             </header>
             <div className="online-content">
-                <div className="oltitle">{name ? '修改' : '创建'}WorkloadType</div>
+                <div className="oltitle">{name ? '修改' : '创建'} WorkloadType</div>
                 <section className="trait-content">
                     <AutoTextarea ref={autoTxRef} class="trait-textarea" />
                     <div className="online-btns">
                         {
                             name ? (
-                                <Button disabled={btnDisable} className="online-btn" variant="contained" color="primary" onClick={editWorkloadType}>修改</Button>
+                                <Button disabled={btnDisable} className="online-btn" variant="contained" color="primary" onClick={editWorkloadType}>确认修改</Button>
                             ) : (
                                 <Button disabled={btnDisable} className="online-btn" variant="contained" color="primary" onClick={save}>保存</Button>
                             )

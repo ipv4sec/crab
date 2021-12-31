@@ -382,7 +382,7 @@ const WorkloadVendor = (props) => {
                 {/* <div className="header-user">userinfo</div> */}
             </header>
             <div className="online-content">
-                <div className="oltitle">{name ? '修改' : '创建'}WorkloadVendor</div>
+                <div className="oltitle">{name ? '修改' : '创建'} WorkloadVendor</div>
                 <section className="vendor-content">
                     <div className="vendor-left">
                         <div className="online-title"><p>yaml</p></div>
@@ -410,7 +410,7 @@ const WorkloadVendor = (props) => {
                         <div className="online-btns">
                             {
                                 name ? (
-                                    <Button disabled={btnDisable} className="online-btn" variant="contained" color="primary" onClick={editWorkloadVendor}>修改</Button>
+                                    <Button disabled={btnDisable} className="online-btn" variant="contained" color="primary" onClick={editWorkloadVendor}>确认修改</Button>
                                 ) : (
                                     <Button disabled={btnDisable} className="online-btn" variant="contained" color="primary" onClick={save}>保存</Button>
                                 )
