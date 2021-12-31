@@ -13,6 +13,8 @@ export default class AutoTextarea extends React.Component {
         this.getData = this.getData.bind(this)
         this.lineHeight = 0
         this.padding = 0
+        this.pasteData = false
+        this.ctrlKey = false
     }
 
     componentDidMount() {
@@ -38,6 +40,7 @@ export default class AutoTextarea extends React.Component {
     }
 
     changeValue(e){
+        console.log('--change---')
         this.setState({
             value: e.target.value
         })
@@ -45,8 +48,21 @@ export default class AutoTextarea extends React.Component {
 
     // 回车换行
     keyDown(e){
+        console.log(e.keyCode)
         if(e.keyCode === 13) {
             this.txaRef.current.style.height = this.txaRef.current.offsetHeight + this.lineHeight + 'px'
+        }else if(e.keyCode === 9) {
+            e.preventDefault()
+            const start = this.txaRef.current.selectionStart
+            const newValue = this.state.value.substring(0, start) + '    ' + this.state.value.substring(start, )
+            this.setState({
+                value: newValue  
+            }, () => {
+                this.txaRef.current.selectionStart = start + 4
+                this.txaRef.current.selectionEnd = start + 4
+            })
+        }else if(e.keyCode == 91 || e.keyCode === 17) {
+            this.ctrlKey = true
         }
     }
 
@@ -55,8 +71,18 @@ export default class AutoTextarea extends React.Component {
         if(e.keyCode === 8) {
             let curHeight = e.target.value.split('\n').length * this.lineHeight
             if(curHeight + this.padding <  this.txaRef.current.offsetHeight) {
-                this.txaRef.current.style.height = this.txaRef.current.offsetHeight - this.lineHeight + 'px'
+                this.txaRef.current.style.height = curHeight + 'px'
             }
+        }else if(e.keyCode === 13) {
+            let curHeight = e.target.value.split('\n').length * this.lineHeight
+            this.txaRef.current.style.height = curHeight + 'px'
+        }
+        else if(e.keyCode === 9) {
+            e.preventDefault()
+        }else if(e.keyCode === 88 && this.ctrlKey) {
+            let curHeight = e.target.value.split('\n').length * this.lineHeight
+            this.txaRef.current.style.height = curHeight + 'px'
+            this.ctrlKey = false
         }
     }
 
@@ -65,8 +91,15 @@ export default class AutoTextarea extends React.Component {
     }
 
     paste() {
-        console.log('---paste')
-        this.txaRef.current.style.height = this.txaRef.current.scrollHeight+ 'px'
+        this.pasteData = true
+    }
+
+    componentDidUpdate() {
+        if(this.pasteData ) {
+            let curHeight = this.txaRef.current.value.split('\n').length * this.lineHeight
+            this.txaRef.current.style.height = curHeight + 'px'
+            this.pasteData = false
+        }
     }
 
     render() {
