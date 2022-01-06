@@ -553,7 +553,7 @@ func GetWorkloadDef(kind, name string) (string, error) {
 	}
 	res, err := HTTPClient.Get(fmt.Sprintf("http://127.0.0.1:3000/%s/%s", kind, name), nil)
 	if err != nil {
-		return "", fmt.Errorf("请求api错误: %w", err)
+		return "", fmt.Errorf("%s: %s 不存在", kind, name)
 	}
 	bodyBytes, err := ioutil.ReadAll(res.Body)
 	if err != nil {

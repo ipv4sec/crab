@@ -73,9 +73,14 @@ func PutDeploymentHandlerFunc(c *gin.Context) {
 		parameters = ""
 	}
 
-	val, err := provider.Yaml(string(manifestBytes), ins.ID, ins.Entry, parameters, provider.ConvertToDependency(vals))
-	if err != nil {
-		klog.Errorln("连接到翻译器错误:", err.Error())
+	val, err1, err2 := provider.Yaml(string(manifestBytes), ins.ID, ins.Entry, parameters, provider.ConvertToDependency(vals))
+	if err1 != nil {
+		klog.Errorln("连接到翻译器错误:", err1.Error())
+		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, err1.Error()))
+		return
+	}
+	if err2 != nil {
+		klog.Errorln("连接到翻译器错误:", err2.Error())
 		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "连接到翻译器错误"))
 		return
 	}
