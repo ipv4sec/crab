@@ -37,14 +37,6 @@ namespace: {
 		}
 	}
 }
-serviceAccount: {
-	apiVersion: "v1"
-	kind:       "ServiceAccount"
-	metadata: {
-		name:      context.appName
-		namespace: context.namespace
-	}
-}
 "default-authorizationPolicy": {
 	apiVersion: "security.istio.io/v1beta1"
 	kind:       "AuthorizationPolicy"
@@ -104,7 +96,7 @@ if parameter.authorization != _|_ {
 				rules: [
 					{
 						from: [
-							{source: principals: ["cluster.local/ns/\(context.namespace)/sa/\(context.appName)"]},
+							{source: namespaces: [context.namespace]}
 						]
 						if v.resources != _|_ {
 							to: [
@@ -257,9 +249,9 @@ if parameter.ingress != _|_ {
 			}
 		}
 		rules: [{
-			from: [{
+			from: [
 				{source: namespaces: ["istio-system"]}
-			}]
+			]
 			to: [{
 				operation: {
 					methods: ["GET", "POST", "DELETE", "PUT", "HEAD", "OPTIONS", "PATCH"]
