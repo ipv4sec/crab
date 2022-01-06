@@ -30,13 +30,15 @@
 <a name="错误代码"></a>
 ## 错误代码
 
-|  code     |意义  | 
-|  ----   |----  |
-| 10201   | 参数错误 |
-| 10202   | 服务器内部错误 |
+|  code     |意义  | 备注 |
+|  ----   |----  | ---|
+| 20101   | 参数错误 | 可以返回给用户|
+| 20102   | 服务器内部错误 |
 
-错误代码的第一位, 目前1 标识此应用
+错误代码的第一位, 目前2 标识此应用
+
 错误代码的第二三位, 标识组件
+
 错误代码的第四五位, 标识错误代码
 
 <a name="解析manifest文件"></a>
@@ -159,7 +161,7 @@ parameter:{
     }
 }
 
-construct: namespace: {
+namespace: {
 	apiVersion: "v1"
 	kind:       "Namespace"
 	metadata: {
@@ -169,15 +171,7 @@ construct: namespace: {
 		}
 	}
 }
-construct: serviceAccount: {
-	apiVersion: "v1"
-	kind:       "ServiceAccount"
-	metadata: {
-		name:      context.appName
-		namespace: context.namespace
-	}
-}
-construct: "default-authorizationPolicy": {
+"default-authorizationPolicy": {
 	apiVersion: "security.istio.io/v1beta1"
 	kind:       "AuthorizationPolicy"
 	metadata: {
@@ -188,7 +182,7 @@ construct: "default-authorizationPolicy": {
 }
 if parameter.serviceEntry != _|_ {
 	for k, v in parameter.serviceEntry {
-		"construct": "serviceEntry-\(context.workloadName)-to-\(v.name)": {
+		"serviceEntry-\(context.workloadName)-to-\(v.name)": {
 			apiVersion: "networking.istio.io/v1alpha3"
 			kind:       "ServiceEntry"
 			metadata: {
@@ -219,7 +213,7 @@ if parameter.serviceEntry != _|_ {
 }
 if authorization != _|_ {
 	for k, v in authorization {
-		"construct": "island-allow-\(context.namespace)-to-\(v.namespace)-\(v.service)": {
+		"island-allow-\(context.namespace)-to-\(v.namespace)-\(v.service)": {
 			apiVersion: "security.istio.io/v1beta1"
 			kind:       "AuthorizationPolicy"
 			metadata: {
@@ -256,7 +250,7 @@ if authorization != _|_ {
 }
 
 if parameter.ingress != _|_ {
-	"ingress": "ingressgateway-http": {
+	"ingressgateway-http": {
 		apiVersion: "networking.istio.io/v1alpha3"
 		kind:       "Gateway"
 		metadata: {
@@ -279,7 +273,7 @@ if parameter.ingress != _|_ {
 			]
 		}
 	}
-	"ingress": "ingressgateway-https": {
+	"ingressgateway-https": {
 		apiVersion: "networking.istio.io/v1alpha3"
 		kind:       "Gateway"
 		metadata: {
@@ -307,7 +301,7 @@ if parameter.ingress != _|_ {
 			]
 		}
 	}
-	"ingress": "virtualservice-http": {
+	"virtualservice-http": {
 		apiVersion: "networking.istio.io/v1alpha3"
 		kind:       "VirtualService"
 		metadata: {
@@ -340,7 +334,7 @@ if parameter.ingress != _|_ {
 			]
 		}
 	}
-	"ingress": "virtualservice-https": {
+	"virtualservice-https": {
 		apiVersion: "networking.istio.io/v1alpha3"
 		kind:       "VirtualService"
 		metadata: {
