@@ -110,8 +110,8 @@ const Manager = (props) => {
     }, [])
 
     const receiveMessage = (e) => {
-        if(e.origin === window.location.origin && (typeof e.data === 'createapp')) {
-            console.log('reciee---',e)
+        if(e.origin === window.location.origin && (e.data === 'createapp')) {
+            // console.log('reciee---',e)
             getAppList()
         } 
     }
