@@ -105,8 +105,10 @@ type Trait struct {
 }
 
 const (
-	ErrBadRequest     = 10201
-	ErrInternalServer = 10202
+	//参数错误
+	ErrBadRequest     = 20101
+	//内部错误
+	ErrInternalServer = 20102
 )
 
 var cuePkg = map[string]bool{
