@@ -128,8 +128,7 @@ router.get('/app/logs_bak', (req, res) => {
 
 // 查看日志
 router.get('/app/logs', (req, res) => {
-    request.get('/app/'+req.query.id+'/logs','', req.headers, function(response) {
-        // res.set(response.headers)
+    request.get(`/app/${req.query.id}/${req.query.podName}/logs`, '', req.headers, function(response) {
         res.send(response.data)
     })
 })
@@ -150,6 +149,16 @@ router.get('/app/detail', (req, res) => {
         res.send(response.data)
     })
 })
+
+// 获取实例详情
+router.get('/app/detailDesc', (req, res) => {
+    request.get(`/resource/${req.query.instanceId}/${req.query.resourceType}/${req.query.resourceName}`, '', req.headers, function(response) {
+        // res.set(response.headers)
+        res.send(response.data)
+    })
+})
+
+
 
 
 // 获取实例详情

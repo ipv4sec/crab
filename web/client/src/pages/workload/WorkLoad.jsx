@@ -85,6 +85,10 @@ const WorkLoad = (props) => {
     const [dialogType, setDialogType] = useState('')
     const [curClickDialogType, setCurClickDialogType] = useState('')
 
+    const [traitTimer, setTraitTimer] = useState(null)
+    const [typeTimer, setTypeTimer] = useState(null)
+    const [vendorTimer, setVendorTimer] = useState(null)
+
     const receiveMessage = (e) => {
         if(e.origin === window.location.origin && (typeof e.data === 'string')) {
             if(e.data === 'trait') {
@@ -224,6 +228,32 @@ const WorkLoad = (props) => {
     }, [vendorPage])
 
 
+    const searchTrait = (val) => {
+        clearTimeout(traitTimer)
+        setTraitTimer(setTimeout(() => {
+            // searchList(val)
+            console.log('searchTrait: '+val)
+            setTraitTimer(null)
+        }, 500))
+    }
+    const searchType = (val) => {
+        clearTimeout(typeTimer)
+        setTypeTimer(setTimeout(() => {
+            // searchList(val)
+            console.log('searchType: '+val)
+            setTypeTimer(null)
+        }, 500))
+    }
+    const searchVendor = (val) => {
+        clearTimeout(vendorTimer)
+        setVendorTimer(setTimeout(() => {
+            // searchList(val)
+            console.log('searchVendor: '+val)
+            setVendorTimer(null)
+        }, 500))
+    }
+
+
     const getClusterMirror = () => {
         store.dispatch({
             type: TYPE.LOADING,
@@ -319,9 +349,9 @@ const WorkLoad = (props) => {
     }
 
     // 查看弹窗
-    const view = () => {
+    const view = (type, name) => {
         setAnchorEl(null)
-        window.open(`/workloadview/${curClickDialogType}/${curInstance.name}`, '_blank')
+        window.open(`/workloadview/${type}/${name}`, '_blank')
         
         return
         setOpenDialog(true)
@@ -413,7 +443,6 @@ const WorkLoad = (props) => {
             val: true
         })
 
-        console.log('confirm type ===', curClickDialogType)
 
         let url = ''
         if(curClickDialogType === 'trait') {
@@ -428,6 +457,7 @@ const WorkLoad = (props) => {
                 type: TYPE.LOADING,
                 val: false
             })
+            return
         }
 
         axios({
@@ -491,10 +521,15 @@ const WorkLoad = (props) => {
             </div>
 
             <div className="table-list">
-                <p className="table-title">
-                    trait 管理 
+                <div className="table-title">
+                    <div className='table-search'>
+                        trait 管理 
+                        <div className='workload-search' style={{width: '200px'}}>
+                            <Input placeholder="搜索" icon="icon_baseline_search" change={searchTrait}/>
+                        </div>
+                    </div>
                     <Button variant="contained" color="primary" className="btn-item right-btn" onClick={addTrait}>添加</Button>
-                </p>
+                </div>
                 <div className="instance-list">
                     <table className="table">
                         <thead>
@@ -518,9 +553,9 @@ const WorkLoad = (props) => {
                                                 {item.id}
                                             </div>
                                         </td>
-                                        <td>{item.name || ''}</td>
+                                        <td className='cursorPointer' onClick={() => {view('trait',item.name || '')}}>{item.name || ''}</td>
                                         <td>{item.apiVersion || ''}</td>
-                                        <td>{item.type ? '用户新增' : '内置'}</td>
+                                        <td>{item.type ? '自定义' : '系统'}</td>
                                         <td>{moment(item.created_at).format('YYYY-MM-DD hh:mm:ss')}</td>
                                         <td>{moment(item.updated_at).format('YYYY-MM-DD hh:mm:ss')}</td>
                                         <td data-item={item} onClick={() => {clickMenu(item, 'trait')}}><i className="iconfont icon_navigation_more" style={{cursor: "pointer"}}></i></td>
@@ -543,10 +578,16 @@ const WorkLoad = (props) => {
             </div>
 
             <div className="table-list">
-                <p className="table-title">
-                    workloadType 管理
+                <div className="table-title">
+                    <div className='table-search'>
+                        workloadType 管理
+                        <div className='workload-search' style={{width: '200px'}}>
+                            <Input placeholder="搜索" icon="icon_baseline_search" change={searchType}/>
+                        </div>
+                    </div>
+                   
                     <Button variant="contained" color="primary" className="btn-item right-btn" onClick={addWorkloadType}>添加</Button>
-                </p>
+                </div>
                 <div className="instance-list">
                     <table className="table">
                         <thead>
@@ -570,9 +611,9 @@ const WorkLoad = (props) => {
                                                 {item.id}
                                             </div>
                                         </td>
-                                        <td>{item.name || ''}</td>
+                                        <td className='cursorPointer' onClick={() => {view('workloadtype',item.name || '')}}>{item.name || ''}</td>
                                         <td>{item.apiVersion || ''}</td>
-                                        <td>{item.type ? '用户新增' : '内置'}</td>
+                                        <td>{item.type ? '自定义' : '系统'}</td>
                                         <td>{moment(item.created_at).format('YYYY-MM-DD hh:mm:ss')}</td>
                                         <td>{moment(item.updated_at).format('YYYY-MM-DD hh:mm:ss')}</td>
                                         <td data-item={item} onClick={() => {clickMenu(item, 'workloadtype')}}><i className="iconfont icon_navigation_more" style={{cursor: "pointer"}}></i></td>
@@ -595,10 +636,15 @@ const WorkLoad = (props) => {
             </div>
 
             <div className="table-list">
-                <p className="table-title">
-                    workloadVendor 管理
+                <div className="table-title">
+                    <div className='table-search'>
+                        workloadVendor 管理
+                        <div className='workload-search' style={{width: '200px'}}>
+                            <Input placeholder="搜索" icon="icon_baseline_search" change={searchVendor}/>
+                        </div>
+                    </div>
                     <Button variant="contained" color="primary" className="btn-item right-btn" onClick={addVendor}>添加</Button>
-                </p>
+                </div>
                 <div className="instance-list">
                     <table className="table">
                         <thead>
@@ -622,9 +668,9 @@ const WorkLoad = (props) => {
                                                 {item.id}
                                             </div>
                                         </td>
-                                        <td>{item.name || ''}</td>
+                                        <td className='cursorPointer' onClick={() => {view('workloadvendor',item.name||'')}}>{item.name || ''}</td>
                                         <td>{item.apiVersion || ''}</td>
-                                        <td>{item.type ? '用户新增' : '内置'}</td>
+                                        <td>{item.type ? '自定义' : '系统'}</td>
                                         <td>{moment(item.created_at).format('YYYY-MM-DD hh:mm:ss')}</td>
                                         <td>{moment(item.updated_at).format('YYYY-MM-DD hh:mm:ss')}</td>
                                         <td data-item={item} onClick={() => {clickMenu(item, 'workloadvendor')}}><i className="iconfont icon_navigation_more" style={{cursor: "pointer"}}></i></td>
@@ -655,9 +701,9 @@ const WorkLoad = (props) => {
                 onClose={closePopover}
             >
                 <MenuList>
-                    <MenuItem key='1' style={{minHeight: '40px', lineHeight: '40px'}} onClick={view}>
+                    {/* <MenuItem key='1' style={{minHeight: '40px', lineHeight: '40px'}} onClick={view}>
                         <div className="staticPopoverMenu"><i className="iconfont icon_view"></i>  查看</div>
-                    </MenuItem>
+                    </MenuItem> */}
                     <MenuItem key='2' style={{minHeight: '40px', lineHeight: '40px'}} onClick={edit}>
                         <div className="staticPopoverMenu"><i className="iconfont icon_daochu"></i>  编辑</div>
                     </MenuItem>

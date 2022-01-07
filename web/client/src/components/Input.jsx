@@ -17,7 +17,13 @@ const Input = (props) => {
                         <div className="input-cmp-label"><label className="input-label">{props.label}</label></div>
                     ) : null
                 }
+               
                 <div className="input-context">
+                    {
+                        props.icon ? (
+                            <div className="input-cmp-icon"><span className={`iconfont ${props.icon}`}></span></div>
+                        ) : null
+                    }
                     <input 
                         type={props.type || 'text'} 
                         className={`${props.inputErr ? 'input-border-hl' : ''} input-cmp-input`} 

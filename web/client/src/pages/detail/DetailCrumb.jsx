@@ -40,11 +40,11 @@ const Crumbs = (props) => {
                 }
             </ul>
 
-            {
+            {/* {
                 (props.data.length && props.data[props.data.length - 1].name === 'pod') ? (
                     <button className="common-btn log-btn" onClick={goLog}>查看日志</button>
                 ) : null
-            }
+            } */}
           
         </nav>
     )

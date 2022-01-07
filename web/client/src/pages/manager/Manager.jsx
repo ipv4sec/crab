@@ -15,6 +15,7 @@ import AddFile from '../../components/AddFile'
 import ReadLog from '../../components/ReadLog'
 import axios from 'axios'
 import copy from 'copy-to-clipboard'
+import Input from '../../components/Input'
 
 const testConfigData = {
     "id": "ins1635146904",
@@ -104,6 +105,7 @@ const Manager = (props) => {
     const limit = 8 // 每页多少条
     const [curInstance, setCurInstance ]= useState()
     const [hadDomain, setHadDomain] = useState(-1)
+    const [searchTimer, setSearchTimer] = useState(null)
 
     useEffect(() => {
         getDomain()
@@ -184,6 +186,54 @@ const Manager = (props) => {
                 val: false
             })
         })
+    }
+
+    const searchList = (val) => {
+        console.log('search list--', val)
+        return 
+        store.dispatch({
+            type: TYPE.LOADING,
+            val: true
+        })
+
+        axios({
+            url: '/api/app/list',
+            method: 'GET',
+            params: {name: val, offset: 0, limit: limit}
+        }).then((res) => {
+            if(res.data.code === 0) {
+                setAppList(res.data.result.rows || [])
+                setTotal(res.data.result.total || 0)
+            }else {
+                store.dispatch({
+                    type: TYPE.SNACKBAR,
+                    val: res.data.result || ''
+                })
+            }
+            store.dispatch({
+                type: TYPE.LOADING,
+                val: false
+            })
+        
+        }).catch((err) => {
+            console.error(err)
+            store.dispatch({
+                type: TYPE.SNACKBAR,
+                val: '请求错误'
+            })
+            store.dispatch({
+                type: TYPE.LOADING,
+                val: false
+            })
+        })
+    }
+
+    const search = (val) => {
+        clearTimeout(searchTimer)
+        setSearchTimer(setTimeout(() => {
+            searchList(val)
+            setSearchTimer(null)
+        }, 500))
     }
 
     const changePage = (event, page) => {
@@ -443,9 +493,9 @@ const Manager = (props) => {
 
     }
 
-    const goDetailPage = () => {
+    const goDetailPage = (id, name) => {
         closePopover()
-        window.open(`${window.location.origin}/detail/${curInstance.id}/${curInstance.name}`,'_blank')
+        window.open(`${window.location.origin}/detail/${id}/${name}`,'_blank')
     }  
     
     // 部署链接
@@ -535,6 +585,10 @@ const Manager = (props) => {
                             <input className="upload-file" type="file" ref={uploadRef} onChange={uploadFileChange}/>
                         </div>
                         <Button className="input-btn addapp-btn" variant="contained" color="primary" onClick={addApp}>添加应用</Button>
+                        <div className='mg-search'>
+                            <Input placeholder="搜索" icon="icon_baseline_search" change={search}/>
+                        </div>
+                        
                     </div>
                    <div className="instance-list">
                         <table className="table">
@@ -555,7 +609,7 @@ const Manager = (props) => {
                                 appList.map((item, index) => {
                                     return (    
                                         <tr key={item.id}>
-                                            <td >
+                                            <td className='cursorPointer' onClick={() => {goDetailPage(item.id, item.name)}}>
                                                 <div className="app-td">
                                                     {item.id}
                                                 </div>
@@ -618,9 +672,9 @@ const Manager = (props) => {
                         <div className="staticPopoverMenu"><i className="iconfont icon_baseline_delete"></i>  删除</div>
                     </MenuItem> */}
 
-                    <MenuItem key='1' style={{minHeight: '40px', lineHeight: '40px'}} onClick={goDetailPage}>
+                    {/* <MenuItem key='1' style={{minHeight: '40px', lineHeight: '40px'}} onClick={goDetailPage}>
                         <div className="staticPopoverMenu"><i className="iconfont icon_view"></i>  部署详情</div>
-                    </MenuItem>
+                    </MenuItem> */}
                     <MenuItem key='2' style={{minHeight: '40px', lineHeight: '40px'}} onClick={copyLink}>
                         <div className="staticPopoverMenu" ><i className="iconfont icon_baseline_copy"></i>  部署链接</div>
                     </MenuItem>

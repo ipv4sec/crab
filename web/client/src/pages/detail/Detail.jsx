@@ -7,12 +7,14 @@ import '../../style/sass/detail.scss'
 import store from '../../store/store'
 import * as TYPE from '../../store/actions'
 import moment from 'moment'
+import {js_beautify} from 'js-beautify'
 
 import DetailNav from './DetailNav'
 import List from './List'
 import Log from './Log'
 import Tail from './Tail'
 import Crumbs from './DetailCrumb'
+import Desc from './Desc'
 
 // const Tail = lazy(() => import('./Tail'))
 // const Log = lazy(() => import('./Log'))
@@ -69,12 +71,15 @@ const Detail = (props) => {
     const [type, setType] = useState('list')
     const [instanceInfo, setInstanceInfo] = useState({})
     const [detailData, setDetailData] = useState({})
+    const [detailDesc, setDetailDesc] = useState('')
     const [instanceList, setInstanceList] = useState([])
     const [crumbs, setCrumbs] = useState([])
     const [navList, setNavList] = useState([])
     const [curNav, setCurNav] = useState('')
     const [tailData, setTailData] = useState({})
     const [listData, setListData] = useState([])
+    const [descName, setDescName] = useState('')
+    const [logName, setLogName] = useState('')
 
     useEffect(() => {
         store.dispatch({
@@ -130,10 +135,10 @@ const Detail = (props) => {
                     break;
 
                 case 'pod':
-                    tmp.header = ['名称', '创建时间', '状态', '启动时间']
+                    tmp.header = ['名称', '创建时间', '状态', '启动时间', '操作']
                     data.details[key].forEach((el) => {
                         tmp.navList.push({id: el.metadata.uid || '', name: el.metadata.name || ''})
-                        tmp.body.push([el.metadata.name || '', moment(el.metadata.creationTimestamp || '').format('YYYY-MM-DD hh:mm:ss') || '',el.status.phase ||'',  moment(el.status.startTime || '').format('YYYY-MM-DD hh:mm:ss') || ''])
+                        tmp.body.push([el.metadata.name || '', moment(el.metadata.creationTimestamp || '').format('YYYY-MM-DD hh:mm:ss') || '',el.status.phase ||'',  moment(el.status.startTime || '').format('YYYY-MM-DD hh:mm:ss') || '', 'log'])
                     })
                     break;
                 case 'replicaSet':
@@ -233,7 +238,6 @@ const Detail = (props) => {
         axios({
             method: "GET",
             url: '/api/app/detail',
-            // url: '/api/app/testdata',
             params: {id: props.match.params.id || ''}
         }).then((res) => {
             if(res.data.code === 0) {
@@ -261,19 +265,21 @@ const Detail = (props) => {
     }
 
     const changeCrumb = (curNav, id) => {
+        // console.log('--changecrumb---', id, curNav)
+        // console.log(crumbs)
+        if(crumbs.length === 2 && id === crumbs[0].id) {
+            let newCrumbs = crumbs.slice()
+            newCrumbs.splice(1,1)
+            setCrumbs(newCrumbs)
 
-        // console.log('--changecrumb---', id, type)
-        if(type !== 'list') {
-           
-            setType('list')
             let data = instanceList.find((item) => item.id == id)
-            // console.log('====+++++=',data)
+            setType('list')
             setListData(data || [])
-        }
-      
 
+        }
 
         return 
+
         // console.log(e.currentTarget.dataset)
         // const curNav = e.currentTarget.dataset.name
         // const idx = parseInt(e.currentTarget.dataset.index)
@@ -315,7 +321,6 @@ const Detail = (props) => {
 
         setCrumbs(newCrumbs)
         setType('list')
-        // history.push('/detail')
     }
 
     const goTail = (data) => {
@@ -327,8 +332,68 @@ const Detail = (props) => {
         setCurNav(data.name)
     }
 
-    const goLog = () => {
+
+    const goLog = (name) => {
         setType('log')
+        let newCrumbs = crumbs.slice()
+        newCrumbs.push({id: name, name: name})
+        setCrumbs(newCrumbs)
+        setLogName(name)
+    }
+
+    const showDesc = (name) => {
+        setType('desc')
+        let newCrumbs = crumbs.slice()
+        newCrumbs.push({id: name, name: name})
+        setCrumbs(newCrumbs)
+        // setCurNav(name)
+
+        setDescName(name)
+
+
+        store.dispatch({
+            type: TYPE.LOADING,
+            val: true
+        })
+
+        axios({
+            method: "GET",
+            url: '/api/app/detailDesc',
+            params: {instanceId: props.match.params.id || '', resourceType: curNav, resourceName: name}
+        }).then((res) => {
+            if(res.data.code === 0) {
+                console.log(typeof res.data.result)
+                try {
+                    const resData = JSON.stringify(res.data.result)
+                    const d = js_beautify(resData)
+                    setDetailDesc(d)
+                    
+                }catch(err) {
+                    store.dispatch({
+                        type: TYPE.SNACKBAR,
+                        val: res.data.result || ''
+                    })
+                }
+               
+            }
+            store.dispatch({
+                type: TYPE.SNACKBAR,
+                val: res.data.result || ''
+            })
+            
+        }).catch((err) => {
+            console.log(err)
+            store.dispatch({
+                type: TYPE.SNACKBAR,
+                val: '请求错误'
+            })
+        }).finally(() => {
+
+            store.dispatch({
+                type: TYPE.LOADING,
+                val: false
+            })
+        })
     }
 
     return (
@@ -337,7 +402,7 @@ const Detail = (props) => {
                 <div className="header-logo">Crab</div>
                 {/* <div className="header-user">userinfo</div> */}
             </header>
-            <Crumbs name={instanceInfo.name || ''} data={crumbs} change={changeCrumb} goLog={goLog} />
+            <Crumbs name={instanceInfo.name + ' ( ' + instanceInfo.id + ' ) ' } data={crumbs} change={changeCrumb} />
             <section className="detail-content">
                 <section className="detail-left">
                     <DetailNav change={changeNav} data={instanceList} curNav={curNav}/>
@@ -345,9 +410,9 @@ const Detail = (props) => {
                 <section className="detail-right">
                     {
                         type === 'list' ? (
-                            <List data={listData} goTail={goTail} />
+                            <List data={listData} goTail={goTail} toDesc={showDesc} goLog={goLog} />
                         ) : null
-                    }
+                    } 
                      {
                         type === 'tail' ? (
                             <Tail data={tailData} />
@@ -355,7 +420,12 @@ const Detail = (props) => {
                     }
                      {
                         type === 'log' ? (
-                            <Log id={detailData.id || ''} />
+                            <Log id={detailData.id || ''} name={logName} />
+                        ) : null
+                    }
+                     {
+                        type === 'desc' ? (
+                            <Desc name={descName} data={detailDesc || ''} />
                         ) : null
                     }
 
