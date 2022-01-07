@@ -321,6 +321,9 @@ const WorkLoad = (props) => {
     // 查看弹窗
     const view = () => {
         setAnchorEl(null)
+        window.open(`/workloadview/${curClickDialogType}/${curInstance.name}`, '_blank')
+        
+        return
         setOpenDialog(true)
         setDialogType('view')
         setDialogTitle('查看内容')
@@ -329,8 +332,6 @@ const WorkLoad = (props) => {
     // 编辑弹窗
     const edit = () => {
         setAnchorEl(null)
-
-
         window.open(`/${curClickDialogType}?name=${curInstance.name}`, '_blank')
 
         return 

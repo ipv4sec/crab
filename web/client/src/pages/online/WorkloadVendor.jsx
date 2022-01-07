@@ -397,7 +397,7 @@ const WorkloadVendor = (props) => {
                 {/* <div className="header-user">userinfo</div> */}
             </header>
             <div className="online-content">
-                <div className="oltitle">{name ? '修改' : '创建'} WorkloadVendor</div>
+                <div className="oltitle">{name ? '修改' : '创建'} WorkloadVendor {name ? (' : '+name) : ''}</div>
                 <section className="vendor-content">
                     <div className="vendor-left">
                         <div className="online-title"><p>K8s YAML</p></div>

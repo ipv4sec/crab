@@ -207,7 +207,7 @@ const WorkloadType = (props) => {
                 {/* <div className="header-user">userinfo</div> */}
             </header>
             <div className="online-content">
-                <div className="oltitle">{name ? '修改' : '创建'} WorkloadType</div>
+                <div className="oltitle">{name ? '修改' : '创建'} WorkloadType {name ? (' : '+name) : ''}</div>
                 <section className="trait-content">
                     <AutoTextarea ref={autoTxRef} class="trait-textarea" />
                     <div className="online-btns">
