@@ -29,11 +29,11 @@ func PostManifestHandlerFunc(c *gin.Context) {
 	err = c.BindJSON(&p)
 	if err != nil {
 		klog.Infoln(err)
-		c.JSON(200, Result{ErrBadRequest, "参数格式错误"})
+		c.JSON(200, Result{ErrInternalServer, "参数错误"})
 		return
 	}
 	if p.Content == "" || p.Instanceid == "" {
-		c.JSON(200, Result{ErrBadRequest, "缺少参数"})
+		c.JSON(200, Result{ErrInternalServer, "缺少参数"})
 		return
 	}
 	userconfig, err := json.Marshal(p.Userconfig)
@@ -54,7 +54,7 @@ func PostManifestHandlerFunc(c *gin.Context) {
 		return
 	}
 	//验证参数，返回参数json,返回vendor内容
-	workloadResource, err := checkParams(application)
+	workloadResource, err := CheckParams(application)
 	if err != nil {
 		klog.Errorln("检查参数错误: " + err.Error())
 		c.JSON(200, Result{ErrBadRequest, "检查参数错误: " + err.Error()})
