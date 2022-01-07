@@ -118,7 +118,7 @@ func PutTraitHandlerFunc(c *gin.Context) {
 		return
 	}
 	if val.Type == 0 {
-		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "内置资源无法修改"))
+		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "系统资源无法修改"))
 		return
 	}
 	var param struct {
@@ -171,7 +171,7 @@ func DeleteTraitHandlerFunc(c *gin.Context) {
 		return
 	}
 	if val.Type == 0 {
-		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "内置资源无法删除"))
+		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "系统资源无法删除"))
 		return
 	}
 	err = db.Client.Delete(&Trait{}, id).Error
