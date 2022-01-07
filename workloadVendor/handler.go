@@ -5,6 +5,7 @@ import (
 	"crab/db"
 	"crab/utils"
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-sql-driver/mysql"
 	"gopkg.in/yaml.v3"
@@ -63,6 +64,18 @@ func GetVendorHandlerFunc(c *gin.Context) {
 	}
 	if val.Ver == "" {
 		c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseBadRequest, "该资源不存在"))
+		return
+	}
+	c.JSON(200, utils.SuccessResponse(val))
+}
+
+func SearchesVendorHandlerFunc(c *gin.Context) {
+	name := c.Query("name")
+	var val []WorkloadVendor
+	err := db.Client.Limit(10).Where("name LIKE ?", fmt.Sprintf("%s%s%s", "%", name, "%")).Find(&val).Error
+	if err != nil {
+		klog.Errorln("数据库查询错误:", err.Error())
+		c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseBadRequest, "服务器内部错误"))
 		return
 	}
 	c.JSON(200, utils.SuccessResponse(val))
