@@ -66,7 +66,8 @@ func main() {
 	routers.PUT("/app/:id", app.PutAppHandlerFunc)
 	routers.DELETE("/app/:id", app.DeleteAppHandlerFunc)
 
-	routers.GET("/app/:id/logs", app.GetPodLogsHandlerFunc)
+	routers.GET("/app/:id/logs", app.GetPodsLogsHandlerFunc)
+	routers.GET("/app/:id/:pod/logs", app.GetPodLogsHandlerFunc)
 
 	routers.GET("/cluster/domain", domain.GetDomainHandlerFunc)
 	routers.PUT("/cluster/domain", domain.PutDomainHandlerFunc)
