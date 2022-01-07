@@ -67,26 +67,18 @@ func GenValeYaml(instanceId string, application v1alpha1.Application, userconfig
 		properties["userconfigs"] = userconfigs
 		properties["dependencies"] = dependHost
 		//整合trait参数
-		traitList := make([]string, 0)
 		if len(workload.Traits) > 0 {
 			for _, trait := range workload.Traits {
-				arr := strings.Split(trait.Type, "/")
-				shortName := arr[len(arr)-1]
-				traitList = append(traitList, shortName)
-				if shortName == "ingress" {
+				if trait.Type == "ingress" {
 					ingressProperties := make(map[string]interface{}, 0)
-					if host == ""{
-						return vela, errors.New("访问域名不能为空")
-					}
 					ingressProperties["host"] = host
 					ingressProperties["path"] = []string{"/*"}
-					properties[shortName] = ingressProperties
+					properties[trait.Type] = ingressProperties
 				} else {
-					properties[shortName] = GetProperties(trait.Properties)
+					properties[trait.Type] = GetProperties(trait.Properties)
 				}
 			}
 		}
-		properties["traits"] = traitList
 		vela.Services[workload.Name] = properties
 	}
 	return vela, nil
@@ -94,17 +86,7 @@ func GenValeYaml(instanceId string, application v1alpha1.Application, userconfig
 
 //由vale.yaml生成k8s
 func GenK8sYaml(instanceId string, vela VelaYaml, workloadParam map[string]WorkloadParam) (string, error) {
-	//先创建命名空间
-	finalContext := `
-apiVersion: v1
-kind: Namespace
-metadata:
-  labels:
-    istio-injection: enabled
-  name: %s
----
-`
-	finalContext = fmt.Sprintf(finalContext, instanceId)
+	finalContext := ""
 	//自动追加的部分
 	//处理workload
 	for k, v := range vela.Services {
@@ -118,21 +100,7 @@ metadata:
 			klog.Errorln(err)
 			return "", err
 		}
-
-		//if strings.Index(k8sStr, "---") != -1 {
-		//	s := strings.Split(k8sStr, "---")
-		//	for _, v := range s {
-		//		v = strings.TrimSpace(v)
-		//		if v == "" {
-		//			continue
-		//		}
-		//		if strings.Index(finalContext, v) == -1 {
-		//			finalContext += v + "\n---\n"
-		//		}
-		//	}
-		//} else {
 		finalContext += k8sStr + "\n---\n"
-		//}
 	}
 	finalContext = strings.Trim(strings.TrimSpace(finalContext), "---")
 	finalContext = fmt.Sprintf("# appName: %s\n%s", vela.Name, finalContext)
@@ -173,13 +141,17 @@ func Export(ctxObj ContextObj, workloadParam WorkloadParam, workload interface{}
 	context := make(map[string]interface{}, 0)
 	err = value.Decode(&context)
 	for k,v := range context {
-		if k != "context" && k != "parameter" && k != "namespace" {
+		if k != "context" && k != "parameter" {
 			b, err := yaml.Marshal(v)
 			if err != nil {
-				klog.Errorln("解析context失败: ", err)
+				klog.Errorln("解析CUE失败: ", err)
 				return "", err
 			}
-			k8s = fmt.Sprintf("%s\n---\n%s", k8s, string(b))
+			if k == "namespace" {
+				k8s = fmt.Sprintf("%s\n---\n%s", string(b), k8s)
+			}else{
+				k8s = fmt.Sprintf("%s\n---\n%s", k8s, string(b))
+			}
 		}
 	}
 	return strings.TrimSpace(k8s), nil
@@ -195,7 +167,7 @@ func parseDependencies(application v1alpha1.Application, dependencies Dependency
 		var host, address string
 		arr, err := url.ParseRequestURI(item.Location)
 		if err != nil {
-			klog.Errorln(err.Error())
+			klog.Errorln("dependencies.location解析失败", err.Error())
 			return auth, svcEntry, err
 		}
 		var protocol string
@@ -204,8 +176,8 @@ func parseDependencies(application v1alpha1.Application, dependencies Dependency
 		} else if arr.Scheme == "http" {
 			protocol = "http"
 		} else {
-			klog.Errorln("protocol of the location is not http or https.")
-			return auth, svcEntry, errors.New("protocol of the location is not http or https.")
+			klog.Errorln("location必须是http/https协议")
+			return auth, svcEntry, errors.New("location必须是http/https协议")
 		}
 		hostArr := strings.Split(arr.Host, ":")
 		var port int
@@ -218,8 +190,8 @@ func parseDependencies(application v1alpha1.Application, dependencies Dependency
 		} else { //指定端口号
 			port, err = strconv.Atoi(hostArr[1])
 			if err != nil {
-				klog.Errorln("转int失败")
-				return auth, svcEntry, errors.New("转int失败")
+				klog.Errorln("端口号错误 Error:", hostArr[1])
+				return auth, svcEntry, errors.New("端口号错误")
 			}
 		}
 		ipAddress := net.ParseIP(hostArr[0])
@@ -239,10 +211,15 @@ func GetWorkloadType(typeName string) (v1alpha1.WorkloadType, error) {
 	var t v1alpha1.WorkloadType
 	value, err := GetWorkloadDef("workloadType", typeName)
 	if err != nil {
-		klog.Errorln("获取type失败: ", err.Error())
+		klog.Errorln("获取workloadType失败 Error:", err.Error())
+		err = errors.New(fmt.Sprintf("workloadType:%s不存在", typeName))
 		return t, err
 	}
 	err = yaml.Unmarshal([]byte(value), &t)
+	if err != nil {
+		klog.Errorln("workloadType反序列化失败 Error:", err.Error())
+		err = errors.New(fmt.Sprintf("解析workloadType:%s失败", typeName))
+	}
 	return t, err
 }
 
@@ -251,10 +228,16 @@ func GetTrait(name string) (v1alpha1.Trait, error) {
 	var t v1alpha1.Trait
 	value, err := GetWorkloadDef("trait", name)
 	if err != nil {
+		klog.Errorln("获取trait失败 Error:", err.Error())
+		err = errors.New(fmt.Sprintf("trait:%s不存在", name))
 		return t, err
 	}
 	//解析为结构体
 	err = yaml.Unmarshal([]byte(value), &t)
+	if err != nil {
+		klog.Errorln("trait反序列化失败 Error:", err.Error())
+		err = errors.New(fmt.Sprintf("解析trait:%s失败", name))
+	}
 	return t, err
 }
 
@@ -263,9 +246,15 @@ func GetWorkloadVendor(name string) (v1alpha1.WorkloadVendor, error) {
 	var v v1alpha1.WorkloadVendor
 	value, err := GetWorkloadDef("workloadVendor", name)
 	if err != nil {
+		klog.Errorln("获取workloadVendor失败 Error:", err.Error())
+		err = errors.New(fmt.Sprintf("workloadVendor:%s不存在", name))
 		return v, err
 	}
 	err = yaml.Unmarshal([]byte(value), &v)
+	if err != nil {
+		klog.Errorln("workloadVendor反序列化失败 Error:", err.Error())
+		err = errors.New(fmt.Sprintf("解析workloadVendor:%s失败", name))
+	}
 	return v, err
 	//path := fmt.Sprintf("%s%s.yaml", workloadPath, vendorName)
 	//content, err := ioutil.ReadFile(path)
@@ -435,14 +424,6 @@ func CheckTypeParam(workload v1alpha1.Workload) error {
 	var t v1alpha1.WorkloadType
 	var err error
 	properties := GetProperties(workload.Properties)
-	if workload.Type == "" {
-		err = errors.New("workload.Type 不能为空")
-		return err
-	}
-	if workload.Vendor == "" {
-		err = errors.New("workload.Vendor 不能为空")
-		return err
-	}
 	t, err = GetWorkloadType(workload.Type)
 	if err != nil {
 		klog.Infoln(err)
@@ -465,31 +446,57 @@ func CheckTypeParam(workload v1alpha1.Workload) error {
 	return nil
 }
 
-func checkParams(application v1alpha1.Application) (map[string]WorkloadParam, error) {
+func CheckParams(application v1alpha1.Application) (map[string]WorkloadParam, error) {
 	var err error
 	returnData := make(map[string]WorkloadParam, 0)
 	if len(application.Spec.Workloads) == 0 {
-		err = errors.New("application.Spec.Workloads 不能为空")
+		err = errors.New("spec.workloads 不能为空")
 		return returnData, err
 	}
 	ingressCount := 0
 	for _, workload := range application.Spec.Workloads {
+		if workload.Name == "" {
+			err = errors.New("workloads.name 不能为空")
+			return returnData, err
+		}
+		if workload.Type == "" {
+			err = errors.New("workloads.type 不能为空")
+			return returnData, err
+		}
+		if workload.Vendor == "" {
+			err = errors.New("workloads.vendor 不能为空")
+			return returnData, err
+		}
 		//检查type参数
 		err = CheckTypeParam(workload)
 		if err != nil {
-			klog.Errorln(err)
+			klog.Errorln("检查type参数 Error:", err)
+			return returnData, err
+		}
+		workloadType, err := GetWorkloadType(workload.Type)
+		if err != nil {
 			return returnData, err
 		}
 		//检查trait参数
 		if len(workload.Traits) > 0 {
 			for _, trait := range workload.Traits {
-				err = CheckTraitParam(trait)
-				if err != nil {
-					klog.Errorln(err)
+				//检查workloadType是否支持trait
+				exist := false
+				for _, typeTrait := range workloadType.Spec.Traits{
+					if trait.Type == typeTrait {
+						exist = true
+					}
+				}
+				if exist == false {
+					err = errors.New(fmt.Sprintf("workloadType:%s不支持trait:%s", workload.Type, trait.Type))
 					return returnData, err
 				}
-				arr := strings.Split(trait.Type, "/")
-				if arr[len(arr)-1] == "ingress" {
+				err = CheckTraitParam(trait)
+				if err != nil {
+					klog.Errorln("检查trait参数 Error:", err)
+					return returnData, err
+				}
+				if trait.Type == "ingress" {
 					ingressCount++
 				}
 			}
@@ -515,7 +522,7 @@ func checkParams(application v1alpha1.Application) (map[string]WorkloadParam, er
 	}
 	//trait:ingress最多一个
 	if ingressCount > 1 {
-		err = errors.New("检测到多个ingress")
+		err = errors.New("不能有多个ingress")
 		return returnData, err
 	}
 	return returnData, nil
@@ -545,11 +552,11 @@ func GetWorkloadDef(kind, name string) (string, error) {
 	var err error
 	kind = strings.TrimSpace(kind)
 	if kind == "" {
-		return "", errors.New("kind不能为空")
+		return "", errors.New("不能为空")
 	}
 	name = strings.TrimSpace(name)
 	if name == "" {
-		return "", errors.New("name不能为空")
+		return "", errors.New("名称不能为空")
 	}
 	res, err := HTTPClient.Get(fmt.Sprintf("http://127.0.0.1:3000/%s/%s", kind, name), nil)
 	if err != nil {
