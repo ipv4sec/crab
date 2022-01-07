@@ -70,7 +70,7 @@ func GenValeYaml(instanceId string, application v1alpha1.Application, userconfig
 		if len(workload.Traits) > 0 {
 			for _, trait := range workload.Traits {
 				if trait.Type == "ingress" {
-					ingressProperties := make(map[string]interface{}, 0)
+					ingressProperties := GetProperties(trait.Properties)
 					ingressProperties["host"] = host
 					ingressProperties["path"] = []string{"/*"}
 					properties[trait.Type] = ingressProperties
