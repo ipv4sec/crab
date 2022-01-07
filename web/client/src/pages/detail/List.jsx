@@ -39,7 +39,6 @@ const defaultList = [
 ]
 
 const List = (props) => {
-    console.log('list props==',props)
 
     const [list, setList] = useState(defaultList)
     const [curService, setCurService] = useState()
@@ -92,7 +91,6 @@ const List = (props) => {
 
     useEffect(() => {
         // getData()
-        console.log('---change service---')
         setList(props.data)
     }, [props.data])
 
@@ -102,7 +100,6 @@ const List = (props) => {
 
     const clickMenu = (item) => {
         setCurService(item)
-        console.log('curService: ',curService)
         setAnchorEl(event.target)
         store.dispatch({
             type: TYPE.SET_SERVICE_DETAIL,
@@ -189,9 +186,7 @@ const List = (props) => {
     }
 
     const confirmDialog = (value) => {
-        // edit value 
-        console.log(value)
-
+      
         closeDialog()
         return 
 
@@ -230,6 +225,14 @@ const List = (props) => {
         })
 
     }
+
+    const changeToDetail = (name) => {
+        props.toDesc(name)
+    }
+
+    const goLog = (name) => {
+        props.goLog(name)
+    }
     
     return (
         <div className="detail-list">
@@ -237,19 +240,12 @@ const List = (props) => {
             <div className="list-content">
                 <table className="table">
                     <thead>
-                        <tr>
+                        <tr> 
                             {
                                 (list.header || []).map((item) => {
                                     return  <th key={item}>{item}</th>
                                 })
                             }
-                            {/* <th width="7%">名称</th>
-                            <th width="10%">镜像</th>
-                            <th width="30%">标签</th>
-                            <th width="8%">节点</th>
-                            <th width="15%">重启</th>
-                            <th width="15%">CPU</th>
-                            <th width="5%">操作</th> */}
                         </tr>
                     </thead>
                     <tbody style={{position: 'relative'}}>
@@ -260,27 +256,19 @@ const List = (props) => {
                                 <tr key={index}>
                                     {
                                         (item || []).map((el, idx) => {
-                                            return <td key={idx}>{el}</td>
+                                            if(idx === 0) {
+                                                return <td className='cursorPointer' onClick={() => {changeToDetail(el)}} key={idx}>{el}</td>
+                                            }else if(el === 'log'){
+                                                return <td width={'100px'} className='cursorPointer highlight' key={idx} onClick={() => {goLog(item[0])}}>查看日志</td>
+                                            }else {
+                                                return <td key={idx}>{el}</td>
+                                            }
+                                            
                                         })
                                     }
                                 </tr>
                             )
                          
-                            // return (    
-                            //     <tr key={item.id}>
-                            //         <td >
-                            //             <div className="app-td">
-                            //                 {item.id}
-                            //             </div>
-                            //         </td>
-                            //         <td>{item.name || ''}</td>
-                            //         <td>{item.apiVersion || ''}</td>
-                            //         <td>{item.type ? '用户新增' : '内置'}</td>
-                            //         <td>{moment(item.created_at).format('YYYY-MM-DD hh:mm:ss')}</td>
-                            //         <td>{moment(item.updated_at).format('YYYY-MM-DD hh:mm:ss')}</td>
-                            //         <td data-item={item} onClick={() => {clickMenu(item)}}><i className="iconfont icon_navigation_more" style={{cursor: "pointer"}}></i></td>
-                            //     </tr>
-                            // )
                         })
                     }
                     </tbody>

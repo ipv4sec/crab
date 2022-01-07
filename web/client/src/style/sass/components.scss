@@ -40,15 +40,27 @@
             position: relative;
             flex: 1;
             height: 100%;
+            padding: 0 6px;
+            border: 1px solid #dcdcdc;
+            border-radius: 4px;
+            display: flex;
+
+            .input-cmp-icon {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                color: rgba(0,0,0,0.5);
+                margin-right: 6px;
+            }
+            
             .input-cmp-input {
-                width: 100%;
+                // width: 100%;
+                flex: 1;
                 height: 100%;
                 border: none;
                 background-color: transparent;
                 outline: none;
-                padding: 0 14px;
-                border: 1px solid #dcdcdc;
-                border-radius: 4px;
+                border: none;
                 font-size: 14px;
                 box-sizing: border-box;
             }
