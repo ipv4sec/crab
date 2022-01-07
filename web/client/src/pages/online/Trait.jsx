@@ -205,7 +205,7 @@ const Trait = (props) => {
                 {/* <div className="header-user">userinfo</div> */}
             </header>
             <div className="online-content">
-                <div className="oltitle">{name ? '修改' : '创建'} Trait</div>
+                <div className="oltitle">{name ? '修改' : '创建'} Trait {name ? (' : '+name) : ''}</div>
                 <section className="trait-content">
                     <AutoTextarea ref={autoTxRef} class="trait-textarea" />
                     <div className="online-btns">
