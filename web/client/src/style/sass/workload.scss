@@ -26,12 +26,27 @@
         float: right;
     }
 
+    
     .table-list {
         margin-bottom: 30px;
         
         .table-title {
             font-size: 18px;
             font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            .table-search {
+                display: flex;
+                align-items: center;
+
+                .workload-search {
+                    width: 200px;
+                    margin-left: 20px;
+                    height: 32px;
+                }
+            }
+           
+        
         }
     }
     

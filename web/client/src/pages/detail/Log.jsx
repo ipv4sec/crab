@@ -24,7 +24,7 @@ const Log = (props) => {
         axios({
             url: '/api/app/logs',
             method: 'GET',
-            params: {id: props.id}
+            params: {id: props.id, podName: props.name}
         }).then((res) => {
             if(res.data.code === 0) {
                 setLogList(res.data.result || [])
@@ -58,7 +58,7 @@ const Log = (props) => {
                         return (
                             <div key={index} className="log-item">
                                 <p>{item.name}：</p>
-                                <p className="item-desc">{item.value}</p>
+                                <pre className="item-desc">{item.value}</pre>
                             </div>
                         )
                     })

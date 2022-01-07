@@ -88,6 +88,16 @@
                 }
             }
 
+            .detail-desc {
+                padding: 10px 20px;
+        
+                .detail-desc-name {
+                    font-size: 18px;
+                    font-weight: bold;
+                    line-height: 40px;
+                }
+            }
+
             .detail-log {
                 background-color: black;
                 padding: 20px;
@@ -97,7 +107,7 @@
                     color: white;
                     display: flex;
                     line-height: 30px;
-            
+                    
                     .item-desc {
                         word-break: break-all;
                     }
@@ -187,4 +197,6 @@
             white-space: nowrap;
         }
     }
+
+   
 }
