@@ -5,6 +5,7 @@ import (
 	"crab/db"
 	"crab/utils"
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-sql-driver/mysql"
 	"gopkg.in/yaml.v3"
@@ -68,6 +69,18 @@ func GetVendorHandlerFunc(c *gin.Context) {
 	c.JSON(200, utils.SuccessResponse(val))
 }
 
+func SearchesVendorHandlerFunc(c *gin.Context) {
+	name := c.Query("name")
+	var val []WorkloadVendor
+	err := db.Client.Limit(10).Where("name LIKE ?", fmt.Sprintf("%s%s%s", "%", name, "%")).Find(&val).Error
+	if err != nil {
+		klog.Errorln("数据库查询错误:", err.Error())
+		c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseBadRequest, "服务器内部错误"))
+		return
+	}
+	c.JSON(200, utils.SuccessResponse(val))
+}
+
 func PostVendorHandlerFunc(c *gin.Context) {
 	var param struct {
 		Value string `json:"value"`
@@ -124,7 +137,7 @@ func PutVendorHandlerFunc(c *gin.Context) {
 		return
 	}
 	if val.Type == 0 {
-		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "内置资源无法修改"))
+		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "系统资源无法修改"))
 		return
 	}
 	var param struct {
@@ -183,7 +196,7 @@ func DeleteVendorHandlerFunc(c *gin.Context) {
 		return
 	}
 	if val.Type == 0 {
-		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "内置资源无法删除"))
+		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "系统资源无法删除"))
 		return
 	}
 	err = db.Client.Delete(&WorkloadVendor{}, id).Error

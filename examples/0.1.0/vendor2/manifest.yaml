@@ -1,0 +1,52 @@
+apiVersion: aam.globalsphare.com/v1alpha1
+kind: Application
+metadata:
+    name: b
+    version: 0.0.1
+    description: 样例应用
+    keywords:
+        - 样例应用
+    author: example@example.com
+    maintainers:
+        - email: example@example.com
+          name: example
+          web: https://example.com
+    repositories: ["https://github.com/example/example.git"]
+    bugs: https://github.com/example/example/issues
+    licenses:
+        - type: LGPL
+          url: https://license.spec.com
+spec:
+    userconfigs:
+        "$schema": http://json-schema.org/draft-07/schema#
+        "$id": http://example.com/product.schema.json
+        title: User
+        description: init user description
+        type: object
+        properties:
+            username:
+                type: string
+            password:
+                type: string
+        required:
+            - username
+            - password
+    workloads:
+        - name: example
+          type: example
+          vendor: vendor2
+          properties:
+          traits:
+              - type: ingress
+    dependencies:
+        - name: a
+          version: ">=0.0.1"
+          location: user-defined(https://gitlab.com)
+          items:
+              /*:
+                  - create
+                  - read
+                  - update
+                  - delete
+    exports:
+        

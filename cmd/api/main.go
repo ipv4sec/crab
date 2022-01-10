@@ -66,7 +66,6 @@ func main() {
 	routers.PUT("/app/:id", app.PutAppHandlerFunc)
 	routers.DELETE("/app/:id", app.DeleteAppHandlerFunc)
 
-	routers.GET("/app/:id/logs", app.GetPodsLogsHandlerFunc)
 	routers.GET("/app/:id/:pod/logs", app.GetPodLogsHandlerFunc)
 
 	routers.GET("/cluster/domain", domain.GetDomainHandlerFunc)
@@ -77,18 +76,21 @@ func main() {
 	routers.POST("/trait", trait.PostTraitHandlerFunc)
 	routers.GET("/trait", trait.GetTraitsHandlerFunc)
 	routers.GET("/trait/:id", trait.GetTraitHandlerFunc)
+	routers.GET("/trait/searches", trait.SearchesTraitHandlerFunc)
 	routers.PUT("/trait/:id", trait.PutTraitHandlerFunc)
 	routers.DELETE("/trait/:id", trait.DeleteTraitHandlerFunc)
 
 	routers.POST("/workloadType", workloadType.PostTypeHandlerFunc)
 	routers.GET("/workloadType", workloadType.GetTypesHandlerFunc)
 	routers.GET("/workloadType/:id", workloadType.GetTypeHandlerFunc)
+	routers.GET("/workloadType/searches", workloadType.SearchesTypeHandlerFunc)
 	routers.PUT("/workloadType/:id", workloadType.PutTypeHandlerFunc)
 	routers.DELETE("/workloadType/:id", workloadType.DeleteTypeHandlerFunc)
 
 	routers.POST("/workloadVendor", workloadVendor.PostVendorHandlerFunc)
 	routers.GET("/workloadVendor", workloadVendor.GetVendorsHandlerFunc)
 	routers.GET("/workloadVendor/:id", workloadVendor.GetVendorHandlerFunc)
+	routers.GET("/workloadVendor/searches", workloadVendor.SearchesVendorHandlerFunc)
 	routers.PUT("/workloadVendor/:id", workloadVendor.PutVendorHandlerFunc)
 	routers.DELETE("/workloadVendor/:id", workloadVendor.DeleteVendorHandlerFunc)
 
