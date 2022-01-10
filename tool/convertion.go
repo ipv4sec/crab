@@ -21,7 +21,8 @@ type generic struct {
 		Name      string `yaml:"name" json:"name"`
 		Namespace string `yaml:"namespace" json:"namespace"`
 	} `yaml:"metadata" json:"metadata"`
-	Spec interface{} `yaml:"spec" json:"spec"`
+	Spec interface{} `yaml:"spec,omitempty" json:"spec,omitempty"`
+	Data map[string]interface{} `yaml:"data,omitempty" json:"data,omitempty"`
 }
 
 func PostConvertionHandlerFunc(c *gin.Context) {
