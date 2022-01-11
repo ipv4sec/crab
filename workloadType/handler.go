@@ -21,15 +21,20 @@ type Pagination struct {
 func GetTypesHandlerFunc(c *gin.Context) {
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
 	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	name := c.Query("name")
 	var workloadTypes []WorkloadType
 	var total int64
-	err := db.Client.Limit(limit).Offset(offset).Find(&workloadTypes).Error
+	tx := db.Client.Model(&WorkloadType{})
+	if name != "" {
+		tx = tx.Where("name LIKE ?", fmt.Sprintf("%s%s%s", "%", name, "%"))
+	}
+	err := tx.Limit(limit).Offset(offset).Find(&workloadTypes).Error
 	if err != nil {
 		klog.Errorln("数据库查询错误:", err.Error())
 		c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseInternalServer, "内部错误"))
 		return
 	}
-	err = db.Client.Model(&WorkloadType{}).Count(&total).Error
+	err = tx.Count(&total).Error
 	if err != nil {
 		klog.Errorln("数据库查询错误:", err.Error())
 		c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseInternalServer, "内部错误"))
@@ -64,18 +69,6 @@ func GetTypeHandlerFunc(c *gin.Context) {
 	}
 	if val.Ver == "" {
 		c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseBadRequest, "该资源不存在"))
-		return
-	}
-	c.JSON(200, utils.SuccessResponse(val))
-}
-
-func SearchesTypeHandlerFunc(c *gin.Context) {
-	name := c.Query("name")
-	var val []WorkloadType
-	err := db.Client.Limit(10).Where("name LIKE ?", fmt.Sprintf("%s%s%s", "%", name, "%")).Find(&val).Error
-	if err != nil {
-		klog.Errorln("数据库查询错误:", err.Error())
-		c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseBadRequest, "服务器内部错误"))
 		return
 	}
 	c.JSON(200, utils.SuccessResponse(val))
