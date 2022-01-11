@@ -49,7 +49,7 @@ func GetAppsHandlerFunc(c *gin.Context) {
 	name := c.Query("name")
 	var apps []App
 	var total int64
-	tx := db.Client.Where(&App{Status: 1})
+	tx := db.Client.Model(&App{}).Where(&App{Status: 1})
 	if name != "" {
 		tx = tx.Where("name LIKE ?", fmt.Sprintf("%s%s%s", "%", name, "%"))
 	}
