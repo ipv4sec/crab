@@ -106,15 +106,21 @@ const Manager = (props) => {
     const [curInstance, setCurInstance ]= useState()
     const [hadDomain, setHadDomain] = useState(-1)
     const [searchTimer, setSearchTimer] = useState(null)
+    const [searchName, setSearchName] = useState('')
+    const inputRef = useRef(null)
 
     useEffect(() => {
         getDomain()
+        getAppList('', 1)
     }, [])
 
     const receiveMessage = (e) => {
         if(e.origin === window.location.origin && (e.data === 'createapp')) {
-            // console.log('reciee---',e)
-            getAppList()
+           
+            inputRef.current.setValue('')
+            setSearchName('')
+            setPage(1)
+            getAppList('', 1)
         } 
     }
 
@@ -125,10 +131,6 @@ const Manager = (props) => {
             window.removeEventListener('message', receiveMessage)
         }
     }, [])
-
-    useEffect(() => {
-        getAppList()
-    }, [page])
 
     const getDomain = () => {
         axios({
@@ -150,7 +152,7 @@ const Manager = (props) => {
         })
     }
 
-    const getAppList = () => {
+    const getAppList = (sname, curPage) => {
         store.dispatch({
             type: TYPE.LOADING,
             val: true
@@ -159,7 +161,7 @@ const Manager = (props) => {
         axios({
             url: '/api/app/list',
             method: 'GET',
-            params: {offset: (page-1)*limit, limit: limit}
+            params: {name: sname, offset: (curPage-1)*limit, limit: limit}
         }).then((res) => {
             if(res.data.code === 0) {
                 setAppList(res.data.result.rows || [])
@@ -188,56 +190,20 @@ const Manager = (props) => {
         })
     }
 
-    const searchList = (val) => {
-        console.log('search list--', val)
-        return 
-        store.dispatch({
-            type: TYPE.LOADING,
-            val: true
-        })
-
-        axios({
-            url: '/api/app/list',
-            method: 'GET',
-            params: {name: val, offset: 0, limit: limit}
-        }).then((res) => {
-            if(res.data.code === 0) {
-                setAppList(res.data.result.rows || [])
-                setTotal(res.data.result.total || 0)
-            }else {
-                store.dispatch({
-                    type: TYPE.SNACKBAR,
-                    val: res.data.result || ''
-                })
-            }
-            store.dispatch({
-                type: TYPE.LOADING,
-                val: false
-            })
-        
-        }).catch((err) => {
-            console.error(err)
-            store.dispatch({
-                type: TYPE.SNACKBAR,
-                val: '请求错误'
-            })
-            store.dispatch({
-                type: TYPE.LOADING,
-                val: false
-            })
-        })
-    }
 
     const search = (val) => {
         clearTimeout(searchTimer)
         setSearchTimer(setTimeout(() => {
-            searchList(val)
+            setPage(1)
+            setSearchName(val)
             setSearchTimer(null)
+            getAppList(val, 1)
         }, 500))
     }
 
     const changePage = (event, page) => {
         setPage(page)
+        getAppList(searchName, page)
     }
 
     const upload = () => {
@@ -330,21 +296,17 @@ const Manager = (props) => {
 
         selectData['status'] = 1
 
-        console.log('selectData===',selectData)
-
-        // return
-
         axios({
             method: "POST",
             url: `/api/app/run`,
             headers: {'Content-Type': 'application/json'},
             data: selectData
         }).then((res) => {
-
-            console.log('res==',res)
-
             if(res.data.code === 0) {
-                getAppList()
+                inputRef.current.setValue('')
+                setSearchName('')
+                setPage(1)
+                getAppList('', 1)
                 closeDialog()
             }
 
@@ -433,7 +395,6 @@ const Manager = (props) => {
 
     const clickMenu = (item) => {
         setCurInstance(item)
-        // console.log('sdlfjlksd===',curInstance)
         setAnchorEl(event.target)
     }
 
@@ -497,6 +458,11 @@ const Manager = (props) => {
         closePopover()
         window.open(`${window.location.origin}/detail/${id}/${name}`,'_blank')
     }  
+
+    const viewApp = () => {
+        closePopover()
+        window.open(`${window.location.origin}/managerview/${curInstance.id}/${curInstance.name}`,'_blank')
+    }
     
     // 部署链接
     const copyLink = () => {
@@ -586,7 +552,7 @@ const Manager = (props) => {
                         </div>
                         <Button className="input-btn addapp-btn" variant="contained" color="primary" onClick={addApp}>添加应用</Button>
                         <div className='mg-search'>
-                            <Input placeholder="搜索" icon="icon_baseline_search" change={search}/>
+                            <Input ref={inputRef} placeholder="搜索应用" icon="icon_baseline_search" change={search}/>
                         </div>
                         
                     </div>
@@ -675,6 +641,10 @@ const Manager = (props) => {
                     {/* <MenuItem key='1' style={{minHeight: '40px', lineHeight: '40px'}} onClick={goDetailPage}>
                         <div className="staticPopoverMenu"><i className="iconfont icon_view"></i>  部署详情</div>
                     </MenuItem> */}
+
+                    <MenuItem key='11' style={{minHeight: '40px', lineHeight: '40px'}} onClick={viewApp}>
+                        <div className="staticPopoverMenu"><i className="iconfont icon_view"></i>  查看应用描述文件</div>
+                    </MenuItem>
                     <MenuItem key='2' style={{minHeight: '40px', lineHeight: '40px'}} onClick={copyLink}>
                         <div className="staticPopoverMenu" ><i className="iconfont icon_baseline_copy"></i>  部署链接</div>
                     </MenuItem>

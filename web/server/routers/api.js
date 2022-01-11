@@ -96,7 +96,7 @@ router.post('/app/upload', (req, res) => {
 
 // 获取应用列表
 router.get('/app/list', (req, res) => {
-    request.get('/app', {limit: req.query.limit, offset: req.query.offset}, req.headers, function(response) {
+    request.get('/app', {limit: req.query.limit, offset: req.query.offset, name: req.query.name}, req.headers, function(response) {
        
         // // res.set(response.headers)
         res.send(response.data)
@@ -217,7 +217,7 @@ router.post('/cluster/mirror', (req, res) => {
 
 // 获取traitlist 
 router.get('/cluster/traitlist', (req, res) => {
-    request.get(`/trait?limit=${req.query.limit}&offset=${req.query.offset}`,'',req.headers, function(response) {
+    request.get('/trait',{limit: req.query.limit, offset: req.query.offset, name: req.query.name},req.headers, function(response) {
         // res.set(response.headers)
         res.send(response.data)
     })
@@ -225,14 +225,14 @@ router.get('/cluster/traitlist', (req, res) => {
 
 // 获取workloadTypelist 
 router.get('/cluster/workloadlist', (req, res) => {
-    request.get(`/workloadType?limit=${req.query.limit}&offset=${req.query.offset}`,'',req.headers, function(response) {
+    request.get('/workloadType',{limit: req.query.limit, offset: req.query.offset, name: req.query.name},req.headers, function(response) {
         // res.set(response.headers)
         res.send(response.data)
     })
 })
 // 获取workloadVendorlist 
 router.get('/cluster/vendorlist', (req, res) => {
-    request.get(`/workloadVendor?limit=${req.query.limit}&offset=${req.query.offset}`,'',req.headers, function(response) {
+    request.get('/workloadVendor',{limit: req.query.limit, offset: req.query.offset, name: req.query.name},req.headers, function(response) {
         // res.set(response.headers)
         res.send(response.data)
     })

@@ -1,7 +1,7 @@
 apiVersion: aam.globalsphare.com/v1alpha1
 kind: Application
 metadata:
-    name: examplesfdsdfdsf
+    name: examplesdfsfsdssdfsdfsfs
     version: 0.0.1
     description: 样例应用
     keywords:
