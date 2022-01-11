@@ -50,7 +50,7 @@ func PostManifestHandlerFunc(c *gin.Context) {
 	var application v1alpha1.Application
 	err = yaml.Unmarshal([]byte(p.Content), &application)
 	if err != nil {
-		c.JSON(200, Result{ErrBadRequest, "描述文件解析失败"})
+		c.JSON(200, Result{ErrBadRequest, "描述文件格式错误"})
 		return
 	}
 	//验证参数，返回参数json,返回vendor内容
