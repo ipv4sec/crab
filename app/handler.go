@@ -53,13 +53,13 @@ func GetAppsHandlerFunc(c *gin.Context) {
 	if name != "" {
 		tx = tx.Where("name LIKE ?", fmt.Sprintf("%s%s%s", "%", name, "%"))
 	}
-	err := tx.Limit(limit).Offset(offset).Find(&apps).Error
+	err := tx.Count(&total).Error
 	if err != nil {
 		klog.Errorln("数据库查询错误:", err.Error())
 		c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseInternalServer, "数据库查询错误"))
 		return
 	}
-	err = tx.Count(&total).Error
+	err = tx.Limit(limit).Offset(offset).Find(&apps).Error
 	if err != nil {
 		klog.Errorln("数据库查询错误:", err.Error())
 		c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseInternalServer, "数据库查询错误"))
