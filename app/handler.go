@@ -406,11 +406,12 @@ func DeleteAppHandlerFunc(c *gin.Context) {
 	c.JSON(200, utils.SuccessResponse("删除完成"))
 }
 
-func GetPodLogsHandlerFunc(c *gin.Context) {
+func GetPodsLogsHandlerFunc(c *gin.Context) {
 	id := c.Param("id")
 	pods, err := cluster.Client.Clientset.CoreV1().Pods(id).List(context.Background(), metav1.ListOptions{})
 	if err != nil {
-
+		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "未发现资源"))
+		return
 	}
 	type Logs struct {
 		Name string `json:"name"`
@@ -429,6 +430,22 @@ func GetPodLogsHandlerFunc(c *gin.Context) {
 		})
 	}
 	c.JSON(200, utils.SuccessResponse(result))
+}
+
+func GetPodLogsHandlerFunc(c *gin.Context) {
+	id := c.Param("id")
+	podName := c.Param("pod")
+	if id == "" || podName == "" {
+		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, ""))
+		return
+	}
+	logs, err := GetPodLogs(id, podName)
+	if err != nil {
+		klog.Errorln("获取POD日志错误:", err.Error())
+		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "获取日志错误"))
+		return
+	}
+	c.JSON(200, utils.SuccessResponse(logs))
 }
 
 func GetPodLogs(ns, name string) (string, error) {
