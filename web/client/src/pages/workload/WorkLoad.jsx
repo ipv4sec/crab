@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Input from '../../components/Input'
 import Button from '@material-ui/core/Button'
 import Popover from '@material-ui/core/Popover'
@@ -89,14 +89,32 @@ const WorkLoad = (props) => {
     const [typeTimer, setTypeTimer] = useState(null)
     const [vendorTimer, setVendorTimer] = useState(null)
 
+    const traitInputRef = useRef(null)
+    const typeInputRef = useRef(null)
+    const vendorInputRef = useRef(null)
+
+    const [searchTraitValue, setSearchTraitValue] = useState('')
+    const [searchTypeValue, setSearchTypeValue] = useState('')
+    const [searchVendorValue, setSearchVendorValue] = useState('')
+
     const receiveMessage = (e) => {
         if(e.origin === window.location.origin && (typeof e.data === 'string')) {
             if(e.data === 'trait') {
-                getTraitList()
+                traitInputRef.current.setValue('')
+                setTraitPage(1)
+                setSearchTraitValue('')
+                getTraitList('', 1)
+
             }else if(e.data === 'workloadtype') {
-                getWorkloadList()
+                typeInputRef.current.setValue('')
+                setWorkloadPage(1)
+                setSearchTypeValue('')
+                getWorkloadList('', 1)
             }else if(e.data === 'workloadvendor') {
-                getVendorList()
+                vendorInputRef.current.setValue('')
+                setVendorPage(1)
+                setSearchVendorValue('')
+                getVendorList('', 1)
             }
         } 
     }
@@ -110,7 +128,7 @@ const WorkLoad = (props) => {
     }, [])
 
 
-    const getTraitList = () => {
+    const getTraitList = (name, page) => {
         store.dispatch({
             type: TYPE.LOADING,
             val: true
@@ -119,8 +137,9 @@ const WorkLoad = (props) => {
             method: 'GET',
             url: '/api/cluster/traitlist',
             params: {
+                name: name, 
                 limit,
-                offset: (traitPage-1)*limit
+                offset: (page-1)*limit 
             }
         }).then((res) => {
             if(res.data.code === 0) {
@@ -142,7 +161,7 @@ const WorkLoad = (props) => {
             })
         })
     }
-    const getWorkloadList = () => {
+    const getWorkloadList = (name, page) => {
         store.dispatch({
             type: TYPE.LOADING,
             val: true
@@ -151,8 +170,9 @@ const WorkLoad = (props) => {
             method: 'GET',
             url: '/api/cluster/workloadlist',
             params: {
+                name: name,
                 limit,
-                offset: (workloadPage-1)*limit
+                offset: (page-1)*limit
             }
         }).then((res) => {
             if(res.data.code === 0) {
@@ -174,7 +194,7 @@ const WorkLoad = (props) => {
             })
         })
     }
-    const getVendorList = () => {
+    const getVendorList = (name, page) => {
         store.dispatch({
             type: TYPE.LOADING,
             val: true
@@ -183,8 +203,9 @@ const WorkLoad = (props) => {
             method: 'GET',
             url: '/api/cluster/vendorlist',
             params: {
+                name: name,
                 limit,
-                offset: (vendorPage-1)*limit
+                offset: (page-1)*limit
             }
         }).then((res) => {
             if(res.data.code === 0) {
@@ -209,47 +230,39 @@ const WorkLoad = (props) => {
 
     useEffect(() => {
         getClusterMirror()
-        
-        getTraitList()
-        getWorkloadList()
-        getVendorList()
+        getTraitList('', 1)
+        getWorkloadList('', 1)
+        getVendorList('', 1)
 
     }, [])
-    useEffect(() => {
-        getTraitList()
-    }, [traitPage])
-
-    useEffect(() => {
-        getWorkloadList()
-    }, [workloadPage])
-
-    useEffect(() => {
-        getVendorList()
-    }, [vendorPage])
-
 
     const searchTrait = (val) => {
         clearTimeout(traitTimer)
         setTraitTimer(setTimeout(() => {
-            // searchList(val)
-            console.log('searchTrait: '+val)
+            setTraitPage(1)
+            setSearchTraitValue(val)
             setTraitTimer(null)
+
+            getTraitList(val, 1)
+
         }, 500))
     }
     const searchType = (val) => {
         clearTimeout(typeTimer)
         setTypeTimer(setTimeout(() => {
-            // searchList(val)
-            console.log('searchType: '+val)
+            setWorkloadPage(1)
+            setSearchTypeValue(val)
             setTypeTimer(null)
+            getWorkloadList(val, 1)
         }, 500))
     }
     const searchVendor = (val) => {
         clearTimeout(vendorTimer)
         setVendorTimer(setTimeout(() => {
-            // searchList(val)
-            console.log('searchVendor: '+val)
+            setVendorPage(1)
+            setSearchVendorValue(val)
             setVendorTimer(null)
+            getVendorList(val, 1)
         }, 500))
     }
 
@@ -329,12 +342,16 @@ const WorkLoad = (props) => {
     const changeTraitPage = (event, page) => {
         setTraitPage(page)
 
+        getTraitList(searchTraitValue, page)
+
     }
     const changeWorkloadPage = (event, page) => {
         setWorkloadPage(page)
+        getWorkloadList(searchTypeValue, page)
     }
     const changeVendorPage = (event, page) => {
         setVendorPage(page)
+        getVendorList(searchVendorValue, page)
     }
     
 
@@ -402,11 +419,11 @@ const WorkLoad = (props) => {
         }).then((res) => {
             if(res.data.code === 0) {
                 if(curClickDialogType === 'trait') {
-                    getTraitList()
+                    getTraitList(searchTraitValue, traitPage)
                 }else if(curClickDialogType === 'workloadtype') {
-                    getWorkloadList()
+                    getWorkloadList(searchTypeValue, workloadPage)
                 }else if(curClickDialogType === 'workloadvendor') {
-                    getVendorList()
+                    getVendorList(searchVendorValue, vendorPage)
                 }
             }
             store.dispatch({
@@ -468,12 +485,13 @@ const WorkLoad = (props) => {
         }).then((res) => {
             if(res.data.code === 0) {
                 closeDialog()
+
                 if(curClickDialogType === 'trait') {
-                    getTraitList()
+                    getTraitList(searchTraitValue, traitPage)
                 }else if(curClickDialogType === 'workloadtype') {
-                    getWorkloadList()
+                    getWorkloadList(searchTypeValue, workloadPage)
                 }else if(curClickDialogType === 'workloadvendor') {
-                    getVendorList()
+                    getVendorList(searchVendorValue, vendorPage)
                 }
             }
             store.dispatch({
@@ -523,9 +541,9 @@ const WorkLoad = (props) => {
             <div className="table-list">
                 <div className="table-title">
                     <div className='table-search'>
-                        trait 管理 
+                        Trait 管理 
                         <div className='workload-search' style={{width: '200px'}}>
-                            <Input placeholder="搜索" icon="icon_baseline_search" change={searchTrait}/>
+                            <Input ref={traitInputRef} placeholder="搜索 Trait" icon="icon_baseline_search" change={searchTrait}/>
                         </div>
                     </div>
                     <Button variant="contained" color="primary" className="btn-item right-btn" onClick={addTrait}>添加</Button>
@@ -580,9 +598,9 @@ const WorkLoad = (props) => {
             <div className="table-list">
                 <div className="table-title">
                     <div className='table-search'>
-                        workloadType 管理
+                        WorkloadType 管理
                         <div className='workload-search' style={{width: '200px'}}>
-                            <Input placeholder="搜索" icon="icon_baseline_search" change={searchType}/>
+                            <Input ref={typeInputRef} placeholder="搜索 WorkloadType" icon="icon_baseline_search" change={searchType}/>
                         </div>
                     </div>
                    
@@ -638,9 +656,9 @@ const WorkLoad = (props) => {
             <div className="table-list">
                 <div className="table-title">
                     <div className='table-search'>
-                        workloadVendor 管理
+                        WorkloadVendor 管理
                         <div className='workload-search' style={{width: '200px'}}>
-                            <Input placeholder="搜索" icon="icon_baseline_search" change={searchVendor}/>
+                            <Input ref={vendorInputRef} placeholder="搜索 WorkloadVendor" icon="icon_baseline_search" change={searchVendor}/>
                         </div>
                     </div>
                     <Button variant="contained" color="primary" className="btn-item right-btn" onClick={addVendor}>添加</Button>

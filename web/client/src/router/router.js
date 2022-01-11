@@ -10,6 +10,7 @@ const Trait = lazy(() => import('../pages/online/Trait'))
 const WorkloadType = lazy(() => import('../pages/online/WorkloadType'))
 const WorkloadVendor = lazy(() => import('../pages/online/WorkloadVendor'))
 const WorkloadView = lazy(() => import('../pages/online/WorkloadView'))
+const ManagerView = lazy(() => import('../pages/manager/ManagerView'))
 const CreateApp = lazy(() => import('../pages/online/CreateApp'))
 
 
@@ -24,6 +25,7 @@ const RouterDOM = () => (
                 <Route path="/workloadtype" component={WorkloadType} />
                 <Route path="/workloadvendor" component={WorkloadVendor} />
                 <Route path="/workloadview/:type/:name" component={WorkloadView} />
+                <Route path="/managerview/:id/:name" component={ManagerView} />
                 <Route path="/createapp" component={CreateApp} />
                 <Route path="/" component={Portal} />
             </Switch>
