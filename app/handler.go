@@ -46,15 +46,20 @@ type Logs struct {
 func GetAppsHandlerFunc(c *gin.Context) {
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
 	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	name := c.Query("name")
 	var apps []App
 	var total int64
-	err := db.Client.Limit(limit).Offset(offset).Where("status = ?", 1).Find(&apps).Error
+	tx := db.Client.Where(&App{Status: 1})
+	if name != "" {
+		tx = tx.Where("name LIKE ?", fmt.Sprintf("%s%s%s", "%", name, "%"))
+	}
+	err := tx.Limit(limit).Offset(offset).Find(&apps).Error
 	if err != nil {
 		klog.Errorln("数据库查询错误:", err.Error())
 		c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseInternalServer, "数据库查询错误"))
 		return
 	}
-	err = db.Client.Model(&App{}).Where("status = ?", 1).Count(&total).Error
+	err = tx.Count(&total).Error
 	if err != nil {
 		klog.Errorln("数据库查询错误:", err.Error())
 		c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseInternalServer, "数据库查询错误"))
@@ -149,6 +154,7 @@ func GetAppHandlerFunc(c *gin.Context) {
 	c.JSON(200, utils.SuccessResponse(map[string]interface{}{
 		"id": id,
 		"deployment": app.Deployment,
+		"value": app.Manifest,
 		"details": v,
 	}))
 }

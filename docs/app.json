@@ -2,6 +2,7 @@
   "code": 0,
   "result": {
     "id": "ins1634971791",
+    "value": "manifest.yaml文件内容",
     "deployment": "[导出K8S描述文件], 前端将此字段信息保存为yaml文件后下载",
     "details": {
       "cronJob": [
