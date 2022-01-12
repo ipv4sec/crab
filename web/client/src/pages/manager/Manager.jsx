@@ -560,10 +560,10 @@ const Manager = (props) => {
                         <table className="table">
                             <thead>
                                 <tr>
-                                    <th width="12%">实例名称</th>
-                                    <th width="10%">所属应用</th>
-                                    <th width="8%">版本</th>
-                                    <th width="25%">访问链接</th>
+                                    <th width="11%">实例名称</th>
+                                    <th width="15%">所属应用</th>
+                                    <th width="5%">版本</th>
+                                    <th width="34%">访问链接</th>
                                     {/* <th width="10%">状态</th> */}
                                     <th width="15%">创建时间</th>
                                     <th width="15%">更新时间</th>
@@ -580,9 +580,9 @@ const Manager = (props) => {
                                                     {item.id}
                                                 </div>
                                             </td>
-                                            <td>{item.name}</td>
+                                            <td title={item.name}>{item.name}</td>
                                             <td>{item.version}</td>
-                                            <td className="list-entry"><a href={item.entry} target="_blank">{item.entry}</a></td>
+                                            <td title={item.entry} className="list-entry"><a href={item.entry} target="_blank">{item.entry}</a></td>
                                             {/* <td>{item.status}</td> */}
                                             <td>{moment(item.created_at).format('YYYY-MM-DD hh:mm:ss')}</td>
                                             <td>{moment(item.updated_at).format('YYYY-MM-DD hh:mm:ss')}</td>
