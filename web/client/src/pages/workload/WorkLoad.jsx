@@ -552,10 +552,10 @@ const WorkLoad = (props) => {
                     <table className="table">
                         <thead>
                             <tr>
-                                <th width="7%">主键</th>
-                                <th width="10%">名称</th>
+                                <th width="6%">主键</th>
+                                <th width="24%">名称</th>
                                 <th width="30%">版本</th>
-                                <th width="8%">类型</th>
+                                <th width="5%">类型</th>
                                 <th width="15%">创建时间</th>
                                 <th width="15%">更新时间</th>
                                 <th width="5%">操作</th>
@@ -571,8 +571,8 @@ const WorkLoad = (props) => {
                                                 {item.id}
                                             </div>
                                         </td>
-                                        <td className='cursorPointer' onClick={() => {view('trait',item.name || '')}}>{item.name || ''}</td>
-                                        <td>{item.apiVersion || ''}</td>
+                                        <td title={item.name} className='cursorPointer' onClick={() => {view('trait',item.name || '')}}>{item.name || ''}</td>
+                                        <td title={item.apiVersion || ''}>{item.apiVersion || ''}</td>
                                         <td>{item.type ? '自定义' : '系统'}</td>
                                         <td>{moment(item.created_at).format('YYYY-MM-DD hh:mm:ss')}</td>
                                         <td>{moment(item.updated_at).format('YYYY-MM-DD hh:mm:ss')}</td>
@@ -610,10 +610,10 @@ const WorkLoad = (props) => {
                     <table className="table">
                         <thead>
                             <tr>
-                                <th width="7%">主键</th>
-                                <th width="10%">名称</th>
+                                <th width="6%">主键</th>
+                                <th width="24%">名称</th>
                                 <th width="30%">版本</th>
-                                <th width="8%">类型</th>
+                                <th width="5%">类型</th>
                                 <th width="15%">创建时间</th>
                                 <th width="15%">更新时间</th>
                                 <th width="5%">操作</th>
@@ -629,8 +629,8 @@ const WorkLoad = (props) => {
                                                 {item.id}
                                             </div>
                                         </td>
-                                        <td className='cursorPointer' onClick={() => {view('workloadtype',item.name || '')}}>{item.name || ''}</td>
-                                        <td>{item.apiVersion || ''}</td>
+                                        <td title={item.name} className='cursorPointer' onClick={() => {view('workloadtype',item.name || '')}}>{item.name || ''}</td>
+                                        <td title={item.apiVersion || ''}>{item.apiVersion || ''}</td>
                                         <td>{item.type ? '自定义' : '系统'}</td>
                                         <td>{moment(item.created_at).format('YYYY-MM-DD hh:mm:ss')}</td>
                                         <td>{moment(item.updated_at).format('YYYY-MM-DD hh:mm:ss')}</td>
@@ -667,10 +667,10 @@ const WorkLoad = (props) => {
                     <table className="table">
                         <thead>
                             <tr>
-                                <th width="7%">主键</th>
-                                <th width="10%">名称</th>
+                            <th width="6%">主键</th>
+                                <th width="24%">名称</th>
                                 <th width="30%">版本</th>
-                                <th width="8%">类型</th>
+                                <th width="5%">类型</th>
                                 <th width="15%">创建时间</th>
                                 <th width="15%">更新时间</th>
                                 <th width="5%">操作</th>
@@ -686,8 +686,8 @@ const WorkLoad = (props) => {
                                                 {item.id}
                                             </div>
                                         </td>
-                                        <td className='cursorPointer' onClick={() => {view('workloadvendor',item.name||'')}}>{item.name || ''}</td>
-                                        <td>{item.apiVersion || ''}</td>
+                                        <td title={item.name} className='cursorPointer' onClick={() => {view('workloadvendor',item.name||'')}}>{item.name || ''}</td>
+                                        <td title={item.apiVersion || ''}>{item.apiVersion || ''}</td>
                                         <td>{item.type ? '自定义' : '系统'}</td>
                                         <td>{moment(item.created_at).format('YYYY-MM-DD hh:mm:ss')}</td>
                                         <td>{moment(item.updated_at).format('YYYY-MM-DD hh:mm:ss')}</td>
