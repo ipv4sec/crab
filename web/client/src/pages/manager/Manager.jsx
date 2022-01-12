@@ -494,7 +494,9 @@ const Manager = (props) => {
             url: `/api/delete/instance`,
             params: {id: curInstance.id}
         }).then((res) => {
-
+            if(res.data.code === 0) {
+                getAppList(searchName, page)
+            }
             store.dispatch({
                 type: TYPE.LOADING,
                 val: false
