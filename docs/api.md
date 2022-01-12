@@ -15,7 +15,6 @@
 
 - [实例列表](#实例列表)
 - [实例详情](#实例详情)
-- [实例日志](#实例日志)
 - [实例中POD的日志](#实例中POD的日志)
 
 - [流水线接口](#流水线接口)
@@ -44,8 +43,6 @@
 - [Trait详情](#Trait详情)
 - [WorkloadType详情](#WorkloadType详情)
 - [WorkloadVendor详情](#WorkloadVendor详情)
-
-
 
 <a name="说明"></a>
 ## 说明
@@ -296,31 +293,6 @@ serviceAccount展示的字段有:
 名称, 创建时间
 metadata.name, metadata.creationTimestamp
 
-<a name="实例日志"></a>
-## 实例日志
-### 请求语法
-```
-GET /app/<id>/logs HTTP/1.1
-```
-### 请求参数
-以下参数为URL PATH参数
-
-|名称|说明|默认值|是否必填|
-|---|---|---|---|
-|id| 实例主键 |无|是|
-
-### 返回值
-
-
-```json
-{
-  "code": 0,
-  "result": [{
-    "name": "POD名称",
-    "value": "春江潮水连海平，海上明月共潮生"
-  }]
-}
-```
 
 
 <a name="实例中POD的日志"></a>
@@ -339,11 +311,18 @@ GET /app/<id>/<podName>/logs HTTP/1.1
 
 ### 返回值
 
+result.name 为 Container 的名称,
+result.value 为 Container 的日志
 
 ```json
 {
   "code": 0,
-  "result": "春江潮水连海平，海上明月共潮生"
+  "result": [
+    {
+      "name": "main",
+      "value": "春江海水"
+    }
+  ]
 }
 ```
 

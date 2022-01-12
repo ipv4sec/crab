@@ -1,0 +1,26 @@
+apiVersion: aam.globalsphare.com/v1alpha1
+kind: Application
+metadata:
+  name: a
+  version: 0.0.1
+  description: 样例应用
+  keywords:
+      - 样例应用
+  author: example@example.com
+  maintainers:
+      - email: example@example.com
+        name: example
+        web: https://example.com
+  repositories: ["https://github.com/example/example.git"]
+  bugs: https://github.com/example/example/issues
+  licenses:
+      - type: LGPL
+        url: https://license.spec.com
+spec:
+  workloads:
+    - name: example
+      type: example
+      vendor: vendor1
+      properties:
+      traits:
+        - type: ingress

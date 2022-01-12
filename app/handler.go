@@ -38,18 +38,28 @@ type DTO struct {
 	Configurations map[string]interface{} `json:"userconfigs"`
 }
 
+type Logs struct {
+	Name string `json:"name"`
+	Value string `json:"value"`
+}
+
 func GetAppsHandlerFunc(c *gin.Context) {
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
 	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	name := c.Query("name")
 	var apps []App
 	var total int64
-	err := db.Client.Limit(limit).Offset(offset).Where("status = ?", 1).Find(&apps).Error
+	tx := db.Client.Model(&App{}).Where(&App{Status: 1})
+	if name != "" {
+		tx = tx.Where("name LIKE ?", fmt.Sprintf("%s%s%s", "%", name, "%"))
+	}
+	err := tx.Count(&total).Error
 	if err != nil {
 		klog.Errorln("数据库查询错误:", err.Error())
 		c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseInternalServer, "数据库查询错误"))
 		return
 	}
-	err = db.Client.Model(&App{}).Where("status = ?", 1).Count(&total).Error
+	err = tx.Limit(limit).Offset(offset).Find(&apps).Error
 	if err != nil {
 		klog.Errorln("数据库查询错误:", err.Error())
 		c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseInternalServer, "数据库查询错误"))
@@ -144,6 +154,7 @@ func GetAppHandlerFunc(c *gin.Context) {
 	c.JSON(200, utils.SuccessResponse(map[string]interface{}{
 		"id": id,
 		"deployment": app.Deployment,
+		"value": app.Manifest,
 		"details": v,
 	}))
 }
@@ -406,32 +417,6 @@ func DeleteAppHandlerFunc(c *gin.Context) {
 	c.JSON(200, utils.SuccessResponse("删除完成"))
 }
 
-func GetPodsLogsHandlerFunc(c *gin.Context) {
-	id := c.Param("id")
-	pods, err := cluster.Client.Clientset.CoreV1().Pods(id).List(context.Background(), metav1.ListOptions{})
-	if err != nil {
-		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "未发现资源"))
-		return
-	}
-	type Logs struct {
-		Name string `json:"name"`
-		Value string `json:"value"`
-	}
-	result := []Logs{}
-	for i := 0; i < len(pods.Items); i++ {
-		logs, err := GetPodLogs(id, pods.Items[i].Name)
-		if err != nil {
-			klog.Errorln("")
-			continue
-		}
-		result = append(result, Logs{
-			Name:  pods.Items[i].Name,
-			Value: logs,
-		})
-	}
-	c.JSON(200, utils.SuccessResponse(result))
-}
-
 func GetPodLogsHandlerFunc(c *gin.Context) {
 	id := c.Param("id")
 	podName := c.Param("pod")
@@ -448,8 +433,33 @@ func GetPodLogsHandlerFunc(c *gin.Context) {
 	c.JSON(200, utils.SuccessResponse(logs))
 }
 
-func GetPodLogs(ns, name string) (string, error) {
-	req := cluster.Client.Clientset.CoreV1().Pods(ns).GetLogs(name, &v1.PodLogOptions{})
+func GetPodLogs(ns, name string) ([]Logs, error) {
+	v, err := cluster.Client.Clientset.CoreV1().Pods(ns).Get(context.Background(), name, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	val := []Logs{}
+	for i := 0; i < len(v.Spec.Containers); i++ {
+		containerLogs, err := GetContainerLogs(ns, name, v.Spec.Containers[i].Name)
+		if err != nil {
+			val = append(val, Logs{
+				Name:  v.Spec.Containers[i].Name,
+				Value: err.Error(),
+			})
+			continue
+		}
+		val = append(val, Logs{
+			Name:  v.Spec.Containers[i].Name,
+			Value: containerLogs,
+		})
+	}
+	return val, nil
+}
+
+func GetContainerLogs(ns, pod, container string) (string, error) {
+	req := cluster.Client.Clientset.CoreV1().Pods(ns).GetLogs(pod, &v1.PodLogOptions{
+		Container: container,
+	})
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second * 5)
 	defer cancel()
 	podLogs, err := req.Stream(ctx)
@@ -465,4 +475,3 @@ func GetPodLogs(ns, name string) (string, error) {
 	}
 	return buf.String(), nil
 }
-

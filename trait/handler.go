@@ -5,6 +5,7 @@ import (
 	"crab/db"
 	"crab/utils"
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/go-sql-driver/mysql"
 	"gopkg.in/yaml.v3"
@@ -20,15 +21,20 @@ type Pagination struct {
 func GetTraitsHandlerFunc(c *gin.Context) {
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
 	offset, _ := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	name := c.Query("name")
 	var traits []Trait
 	var total int64
-	err := db.Client.Limit(limit).Offset(offset).Find(&traits).Error
+	tx := db.Client.Model(&Trait{})
+	if name != "" {
+		tx = tx.Where("name LIKE ?", fmt.Sprintf("%s%s%s", "%", name, "%"))
+	}
+	err := tx.Count(&total).Error
 	if err != nil {
 		klog.Errorln("数据库查询错误:", err.Error())
 		c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseInternalServer, "数据库查询错误"))
 		return
 	}
-	err = db.Client.Model(&Trait{}).Count(&total).Error
+	err = tx.Limit(limit).Offset(offset).Find(&traits).Error
 	if err != nil {
 		klog.Errorln("数据库查询错误:", err.Error())
 		c.JSON(200, utils.ErrorResponse(utils.ErrDatabaseInternalServer, "数据库查询错误"))
@@ -118,7 +124,7 @@ func PutTraitHandlerFunc(c *gin.Context) {
 		return
 	}
 	if val.Type == 0 {
-		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "内置资源无法修改"))
+		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "系统资源无法修改"))
 		return
 	}
 	var param struct {
@@ -171,7 +177,7 @@ func DeleteTraitHandlerFunc(c *gin.Context) {
 		return
 	}
 	if val.Type == 0 {
-		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "内置资源无法删除"))
+		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "系统资源无法删除"))
 		return
 	}
 	err = db.Client.Delete(&Trait{}, id).Error
