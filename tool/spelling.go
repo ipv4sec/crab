@@ -34,7 +34,7 @@ func PostSpellingHandlerFunc(c *gin.Context) {
 	}
 	timeNow := time.Now().Unix()
 	saved := fmt.Sprintf("/tmp/%v.cue", timeNow)
-	err = ioutil.WriteFile(saved, []byte(fmt.Sprintf("%s\n%s", result, param.Value)),0777)
+	err = ioutil.WriteFile(saved, []byte(fmt.Sprintf("%s\n%s", param.Value, result)),0777)
 	if err != nil {
 		klog.Errorln("保存文件错误", saved, err.Error())
 		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "保存文件错误"))
