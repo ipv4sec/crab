@@ -20,9 +20,10 @@ func main() {
 	}
 	configs, err := ioutil.ReadFile("/etc/configs/userconfigs")
 	if err != nil {
-		klog.Errorln("读取依赖地址错误:", err.Error())
+		klog.Errorln("读取运行时配置错误:", err.Error())
 	}
 	klog.Infoln("读取到的地址为:", string(ssoUrl))
+	klog.Infoln("读取到的运行时配置为:", string(ssoUrl))
 	route := gin.Default()
 	route.GET("/", func(c *gin.Context) {
 		res, err := HTTPClient.Get(fmt.Sprintf("http://%s/user.json", string(ssoUrl)), nil)
