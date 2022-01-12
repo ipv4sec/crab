@@ -19,49 +19,23 @@ spec:
       traits:
         - type: ingress
   dependencies:
-    - name: sso-alpha
+    - name: sso
       version: ">=0.0.1"
       location: user-defined
       items:
-        /*:
-          - create
+        /user.json:
           - read
-          - update
-          - delete
-    - name: nginx
-      version: ">=0.0.1"
-      location: user-defined
-      items:
-        /*:
-          - create
-          - read
-          - update
-          - delete
   userconfigs:
     "$schema": http://json-schema.org/draft-07/schema#
-    "$id": http://example.com/product.schema.json
-    title: Product
-    description: A product from Acme's catalog
+    "$id": http://sso.com/echo.schema.json
+    title: Echo
+    description: Echo Application Description
     type: object
     properties:
-      param1:
-        type: integer
-      param2:
+      username:
         type: string
-      param3:
-        type: object
-        properties:
-          param3_1:
-            type: number
-          param3_2:
-            type: number
-        required:
-          - param3_1
-      param4:
-        type: array
-        items:
-          type: string
-        minItems: 1
-        uniqueItems: true
+      password:
+        type: string
     required:
-      - param2
+      - username
+      - password

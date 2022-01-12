@@ -12,41 +12,29 @@ import (
 var (
 	HTTPClient = httpclient.NewClient(httpclient.WithHTTPTimeout(time.Second * 30))
 )
-type item struct {
-	Id int `json:"id"`
-	Url string `json:"url"`
-	Desc string `json:"desc"`
-}
+
 func main() {
-	bytes, err := ioutil.ReadFile("/etc/configs/sso-alpha")
+	ssoUrl, err := ioutil.ReadFile("/etc/configs/sso")
 	if err != nil {
 		klog.Errorln("读取依赖地址错误:", err.Error())
 	}
-	klog.Infoln("读取到的地址为:", string(bytes))
+	configs, err := ioutil.ReadFile("/etc/configs/userconfigs")
+	if err != nil {
+		klog.Errorln("读取依赖地址错误:", err.Error())
+	}
+	klog.Infoln("读取到的地址为:", string(ssoUrl))
 	route := gin.Default()
 	route.GET("/", func(c *gin.Context) {
-		l := make([]item, 0)
-		l = append(l, item{
-			Id:   1,
-			Url:  "/user",
-			Desc: "从应用sso-alpha获取数据",
-		})
-		c.JSON(200, l)
+		res, err := HTTPClient.Get(fmt.Sprintf("http://%s/user.json", string(ssoUrl)), nil)
+		if err != nil {
+			klog.Errorln("发送请求错误:", err.Error())
+		}
+		bodyBytes, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			klog.Errorln("读取返回数据错误:", err.Error())
+		}
+		c.String(200, fmt.Sprintf("运行时配置: %s, 从SSO读取到的数据: %s", string(configs), string(bodyBytes)))
 	})
-	user := route.Group("/user")
-	{
-		user.GET("/", func(c *gin.Context) {
-			res, err := HTTPClient.Get(fmt.Sprintf("http://%s/user.json", string(bytes)), nil)
-			if err != nil {
-				klog.Errorln("发送请求错误:", err.Error())
-			}
-			bodyBytes, err := ioutil.ReadAll(res.Body)
-			if err != nil {
-				klog.Errorln("读取返回数据错误:", err.Error())
-			}
-			c.String(200, fmt.Sprintf("sso: %s", string(bodyBytes)))
-		})
-	}
 	err = route.Run(":80")
 	if err != nil {
 		panic(err)
