@@ -14,6 +14,5 @@ spec:
       traits:
         - type: ingress
   exports:
-    /timestamp.json:
-      - create
+    /:
       - read

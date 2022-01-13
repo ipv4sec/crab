@@ -18,7 +18,7 @@ spec:
       version: ">=0.0.1"
       location: user-defined
       items:
-        /timestamp.json:
+        /:
           - read
   userconfigs:
     "$schema": http://json-schema.org/draft-07/schema#

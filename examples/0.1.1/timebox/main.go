@@ -6,21 +6,10 @@ import (
 )
 
 func main() {
-	var Memory = []int64{time.Now().Unix()}
-
 	route := gin.Default()
 	route.GET("/", func(c *gin.Context) {
-		c.File("index.html")
-	})
-	route.GET("/timestamp.json", func(c *gin.Context) {
 		c.JSON(200, gin.H{
-			"timestamp": Memory,
-		})
-	})
-	route.POST("/timestamp.json", func(c *gin.Context) {
-		Memory = append(Memory, time.Now().Unix())
-		c.JSON(200, gin.H{
-			"timestamp": Memory,
+			"timestamp": time.Now().Unix(),
 		})
 	})
 	err := route.Run(":3000")
