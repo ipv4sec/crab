@@ -11,11 +11,9 @@ spec:
       properties:
         image: harbor1.zlibs.com/tars/timebox
         port: 3000
-        configs:
-          - path: /app
-            subPath: id.txt
-            data:
-              - name: id.txt
-                value: "timebox"
       traits:
         - type: ingress
+  exports:
+    /timestamp.json:
+      - create
+      - read
