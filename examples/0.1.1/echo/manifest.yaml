@@ -1,0 +1,42 @@
+apiVersion: ami.globalsphare.com/v1alpha1
+kind: Application
+metadata:
+  name: echo
+  version: 3.0.0
+spec:
+  workloads:
+    - name: main
+      type: webservice
+      vendor: webservice
+      properties:
+        image: harbor1.zlibs.com/tars/echo
+        port: 3000
+        configs:
+          - path: /app
+            subPath: id.txt
+            data:
+              - name: id.txt
+                value: "echo"
+      traits:
+        - type: ingress
+  dependencies:
+    - name: timebox
+      version: ">=0.0.1"
+      location: user-defined
+      items:
+        /timestamp.json:
+          - read
+  userconfigs:
+    "$schema": http://json-schema.org/draft-07/schema#
+    "$id": http://sso.com/echo.schema.json
+    title: Echo
+    description: Echo Application Description
+    type: object
+    properties:
+      username:
+        type: string
+      password:
+        type: string
+    required:
+      - username
+      - password

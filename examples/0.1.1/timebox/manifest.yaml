@@ -1,0 +1,21 @@
+apiVersion: ami.globalsphare.com/v1alpha1
+kind: Application
+metadata:
+  name: timebox
+  version: 3.0.0
+spec:
+  workloads:
+    - name: main
+      type: webservice
+      vendor: webservice
+      properties:
+        image: harbor1.zlibs.com/tars/timebox
+        port: 3000
+        configs:
+          - path: /app
+            subPath: id.txt
+            data:
+              - name: id.txt
+                value: "timebox"
+      traits:
+        - type: ingress
