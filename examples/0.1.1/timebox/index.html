@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<button type="button" onclick="createTimestamp()">createTimestamp</button>
+<span id="result"></span>
+
+<script>
+    window.onload = function () {
+        var ajax = new XMLHttpRequest();
+        ajax.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                document.getElementById("result").innerHTML =
+                    this.responseText;
+            }
+        };
+        ajax.open("GET", "/timestamp.json", true);
+        ajax.send();
+    };
+    function createTimestamp() {
+        var ajax = new XMLHttpRequest();
+        ajax.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                document.getElementById("result").innerHTML =
+                    this.responseText;
+            }
+        };
+        ajax.open("POST", "/timestamp.json", true);
+        ajax.send();
+    }
+</script>
+
+</body>
+</html>
