@@ -21,7 +21,7 @@ func secret(passwd string) func(user, realm string) string {
 func handle(url string) func(w http.ResponseWriter, r *auth.AuthenticatedRequest) {
 	return func(w http.ResponseWriter, r *auth.AuthenticatedRequest) {
 		Client := httpclient.NewClient(httpclient.WithHTTPTimeout(time.Second * 30))
-		res, _ := Client.Get(fmt.Sprintf("http://%s/timestamp.json", url), nil)
+		res, _ := Client.Get(fmt.Sprintf("http://%s/", url), nil)
 		bodyBytes, _ := ioutil.ReadAll(res.Body)
 		_, _ = fmt.Fprintf(w, "Username:%s, Timebox: %s", r.Username, string(bodyBytes))
 	}
