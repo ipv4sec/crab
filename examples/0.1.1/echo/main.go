@@ -23,12 +23,12 @@ func handle(url string) func(w http.ResponseWriter, r *auth.AuthenticatedRequest
 		Client := httpclient.NewClient(httpclient.WithHTTPTimeout(time.Second * 30))
 		res, _ := Client.Get(fmt.Sprintf("http://%s/", url), nil)
 		bodyBytes, _ := ioutil.ReadAll(res.Body)
-		_, _ = fmt.Fprintf(w, "Username:%s, Timebox: %s", r.Username, string(bodyBytes))
+		_, _ = fmt.Fprintf(w, "Username:%s, Order: %s", r.Username, string(bodyBytes))
 	}
 }
 
 func main() {
-	url, _ := ioutil.ReadFile("/etc/configs/timebox")
+	url, _ := ioutil.ReadFile("/etc/configs/orders")
 	configBytes, _ := ioutil.ReadFile("/etc/configs/userconfigs")
 	var conf struct {
 		Username string

@@ -14,7 +14,7 @@ spec:
       traits:
         - type: ingress
   dependencies:
-    - name: timebox
+    - name: orders
       version: ">=0.0.1"
       location: user-defined
       items:
