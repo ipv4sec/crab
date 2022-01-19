@@ -126,6 +126,7 @@ const Detail = (props) => {
                         tmp.navList.push({id: el.metadata.uid || '', name: el.metadata.name || ''})
                         tmp.body.push([el.metadata.name || '',moment(el.metadata.creationTimestamp || '').format('YYYY-MM-DD hh:mm:ss') || '', el.status.numberAvailable || 0])
                     })
+                    break
                 case 'job':
                     tmp.header = ['名称', '创建时间', '完成时间']
                     data.details[key].forEach((el) => {
