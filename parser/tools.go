@@ -51,12 +51,26 @@ func GenValeYaml(instanceId string, application v1alpha1.Application, userconfig
 		dependHost[v.Name] = dependencyHostItem{
 			fmt.Sprintf("%s.%s.svc.cluster.local", v.EntryService, v.Instanceid),
 		}
+		//解析依赖items
+		resources := make([]DependencyUseItem, 0)
+		for _, depend := range application.Spec.Dependencies {
+			ItemsResult, err := ApiParse(depend.Items)
+			if depend.Name == v.Name {
+				if err != nil {
+					klog.Error(err.Error())
+					return vela, err
+				}
+				for _, item := range ItemsResult{
+					resources = append(resources, DependencyUseItem{item.Uri, item.Actions})
+				}
+			}
+		}
 		//授权
 		authorization = append(authorization,
 			Authorization{
 				Namespace: v.Instanceid,
 				Service:   v.EntryService,
-				Resources: make([]DependencyUseItem, 0),
+				Resources: resources,
 			},
 		)
 	}
@@ -366,10 +380,10 @@ func MoveCuePkgToTop(str string) string {
 	return strings.Join(pkg, "\n") + "\n" + str
 }
 
-func ApiParse(uses map[string][]string) ([]DependencyUseItem, error) {
+func ApiParse(items map[string][]string) ([]DependencyUseItem, error) {
 	var err error
 	rtn := make([]DependencyUseItem, 0)
-	for k, v := range uses {
+	for k, v := range items {
 		count := 0
 		actions := make([]string, 0)
 		for _, option := range v {

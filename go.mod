@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	cuelang.org/go v0.4.0
+	github.com/abbot/go-http-auth v0.4.0 // indirect
 	github.com/blang/semver/v4 v4.0.0
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/gin-gonic/gin v1.7.4

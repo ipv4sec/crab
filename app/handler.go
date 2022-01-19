@@ -252,7 +252,7 @@ func PostAppHandlerFunc(c *gin.Context) {
 		d.Type, d.Link = Link(manifest.Spec.Dependencies[i].Location)
 		if d.Type == Mutable {
 			var apps []App
-			err = db.Client.Where("name = ?", manifest.Spec.Dependencies[i].Name).Find(&apps).Error
+			err = db.Client.Where("name = ? and status = 1", manifest.Spec.Dependencies[i].Name).Find(&apps).Error
 			if err != nil {
 				klog.Errorln("数据库查询错误:", err.Error())
 				continue

@@ -1,7 +1,7 @@
 apiVersion: ami.globalsphare.com/v1alpha1
 kind: Application
 metadata:
-  name: sso-alpha
+  name: sso
   version: 3.0.0
 spec:
   workloads:
@@ -16,6 +16,9 @@ spec:
             data:
               - name: user.json
                 value: |
-                  {"users":["zhangsan", "lisi"]}
+                  {"users":["zhangsan", "lisi", "wangwu", "naliu"]}
       traits:
         - type: ingress
+  exports:
+    /user.json:
+      - read
