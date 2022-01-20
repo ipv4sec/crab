@@ -1,29 +1,24 @@
 apiVersion: ami.globalsphare.com/v1alpha1
 kind: Application
 metadata:
-  name: sso-echo
+  name: echo
   version: 3.0.0
 spec:
   workloads:
-    - name: ez
+    - name: main
       type: webservice
       vendor: webservice
       properties:
-        image: harbor1.zlibs.com/island/ez:alpha
-        configs:
-          - path: /app
-            subPath: id.txt
-            data:
-              - name: id.txt
-                value: "ez"
+        image: harbor1.zlibs.com/tars/echo
+        port: 3000
       traits:
         - type: ingress
   dependencies:
-    - name: sso
+    - name: orders
       version: ">=0.0.1"
       location: user-defined
       items:
-        /user.json:
+        /:
           - read
   userconfigs:
     "$schema": http://json-schema.org/draft-07/schema#
