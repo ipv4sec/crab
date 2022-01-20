@@ -124,7 +124,7 @@ const Detail = (props) => {
                     tmp.header = ['名称', '创建时间', '当前可用数']
                     data.details[key].forEach((el) => {
                         tmp.navList.push({id: el.metadata.uid || '', name: el.metadata.name || ''})
-                        tmp.body.push([el.metadata.name || '',moment(el.metadata.creationTimestamp || '').format('YYYY-MM-DD hh:mm:ss') || '', el.status.numberAvailable || 0])
+                        tmp.body.push([el.metadata.name || '',moment(el.metadata.creationTimestamp || '').format('YYYY-MM-DD hh:mm:ss') || '', el.status.availableReplicas || 0])
                     })
                     break
                 case 'job':
@@ -146,7 +146,7 @@ const Detail = (props) => {
                     tmp.header = ['名称', '创建时间', '当前可用数']
                     data.details[key].forEach((el) => {
                         tmp.navList.push({id: el.metadata.uid || '', name: el.metadata.name || ''})
-                        tmp.body.push([el.metadata.name || '',moment(el.metadata.creationTimestamp || '').format('YYYY-MM-DD hh:mm:ss') || '', el.status.numberAvailable || 0])
+                        tmp.body.push([el.metadata.name || '',moment(el.metadata.creationTimestamp || '').format('YYYY-MM-DD hh:mm:ss') || '', el.status.availableReplicas || 0])
                     })
                     break;
                 case 'replicationController':
@@ -160,7 +160,7 @@ const Detail = (props) => {
                     tmp.header = ['名称', '创建时间', '当前副本数']
                     data.details[key].forEach((el) => {
                         tmp.navList.push({id: el.metadata.uid || '', name: el.metadata.name || ''})
-                        tmp.body.push([el.metadata.name || '',moment(el.metadata.creationTimestamp || '').format('YYYY-MM-DD hh:mm:ss') || '', el.status.replicas || 0])
+                        tmp.body.push([el.metadata.name || '',moment(el.metadata.creationTimestamp || '').format('YYYY-MM-DD hh:mm:ss') || '', el.status.currentReplicas || 0])
                     })
                     break;
                 case 'service':
