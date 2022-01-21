@@ -189,6 +189,8 @@ func parseDependencies(application v1alpha1.Application, dependencies Dependency
 			protocol = "TLS"
 		} else if arr.Scheme == "http" {
 			protocol = "http"
+		}else if strings.ToLower(arr.Scheme) == "tcp" {
+			protocol = "TCP"
 		} else {
 			klog.Errorln("location必须是http/https协议")
 			return auth, svcEntry, errors.New("location必须是http/https协议")
@@ -207,9 +209,12 @@ func parseDependencies(application v1alpha1.Application, dependencies Dependency
 				klog.Errorln("端口号错误 Error:", hostArr[1])
 				return auth, svcEntry, errors.New("端口号错误")
 			}
+			if protocol == "TCP" {
+				port = port
+			}
 		}
 		ipAddress := net.ParseIP(hostArr[0])
-		if ipAddress != nil { //ip
+		if ipAddress != nil && protocol != { //ip
 			host = fmt.Sprintf("serviceEntry-%s-%s", application.Metadata.Name, item.Name)
 			address = ipAddress.String()
 		} else {
