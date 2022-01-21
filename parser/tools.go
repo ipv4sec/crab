@@ -47,13 +47,24 @@ func GenValeYaml(instanceId string, application v1alpha1.Application, userconfig
 	//依赖内部应用的host
 	dependHost := make(dependencyHost, 0)
 	for _, v := range dependencies.Internal {
-		//host
-		dependHost[v.Name] = dependencyHostItem{
-			fmt.Sprintf("%s.%s.svc.cluster.local", v.EntryService, v.Instanceid),
-		}
+
+
 		//解析依赖items
 		resources := make([]DependencyUseItem, 0)
 		for _, depend := range application.Spec.Dependencies {
+			if strings.HasPrefix(depend.Location, "user-defined(") && strings.HasSuffix(depend.Location, ")"){
+				location := depend.Location[len("user-defined("): len(depend.Location)-1]
+				arr, err := url.ParseRequestURI(location)
+				if err != nil {
+					klog.Errorln("dependencies.location解析失败", err.Error())
+					return vela, err
+				}
+				if strings.ToLower(arr.Scheme) == "tcp" {
+					fmt.Println("内部 tcp service:", v.EntryService)
+					v.EntryService = location[len("tcp://"):]
+					depend.Items = make(map[string][]string, 0)
+				}
+			}
 			ItemsResult, err := ApiParse(depend.Items)
 			if depend.Name == v.Name {
 				if err != nil {
@@ -63,6 +74,10 @@ func GenValeYaml(instanceId string, application v1alpha1.Application, userconfig
 				for _, item := range ItemsResult{
 					resources = append(resources, DependencyUseItem{item.Uri, item.Actions})
 				}
+			}
+			//host
+			dependHost[v.Name] = dependencyHostItem{
+				fmt.Sprintf("%s.%s.svc.cluster.local", v.EntryService, v.Instanceid),
 			}
 		}
 		//授权
@@ -192,8 +207,8 @@ func parseDependencies(application v1alpha1.Application, dependencies Dependency
 		}else if strings.ToLower(arr.Scheme) == "tcp" {
 			protocol = "TCP"
 		} else {
-			klog.Errorln("location必须是http/https协议")
-			return auth, svcEntry, errors.New("location必须是http/https协议")
+			klog.Errorln(fmt.Sprintf("location不支持协议: %s", arr.Scheme))
+			return auth, svcEntry, errors.New(fmt.Sprintf("location不支持协议: %s", arr.Scheme))
 		}
 		hostArr := strings.Split(arr.Host, ":")
 		var port int
@@ -209,12 +224,9 @@ func parseDependencies(application v1alpha1.Application, dependencies Dependency
 				klog.Errorln("端口号错误 Error:", hostArr[1])
 				return auth, svcEntry, errors.New("端口号错误")
 			}
-			if protocol == "TCP" {
-				port = port
-			}
 		}
 		ipAddress := net.ParseIP(hostArr[0])
-		if ipAddress != nil && protocol != { //ip
+		if ipAddress != nil { //ip
 			host = fmt.Sprintf("serviceEntry-%s-%s", application.Metadata.Name, item.Name)
 			address = ipAddress.String()
 		} else {
