@@ -200,18 +200,19 @@ func parseDependencies(application v1alpha1.Application, dependencies Dependency
 		}
 	}
 	if isAllowAll { //开放所有外部访问
-		svcEntry = append(svcEntry, ServiceEntry{"com-http", "", "*.com", 80, "http"})
-		svcEntry = append(svcEntry, ServiceEntry{"com-https", "", "*.com", 443, "https"})
-		svcEntry = append(svcEntry, ServiceEntry{"cn-http", "", "*.cn", 80, "http"})
-		svcEntry = append(svcEntry, ServiceEntry{"cn-https", "", "*.cn", 443, "https"})
-		svcEntry = append(svcEntry, ServiceEntry{"org-http", "", "*.org", 80, "http"})
-		svcEntry = append(svcEntry, ServiceEntry{"org-https", "", "*.org", 443, "https"})
-		svcEntry = append(svcEntry, ServiceEntry{"net-http", "", "*.net", 80, "http"})
-		svcEntry = append(svcEntry, ServiceEntry{"net-https", "", "*.net", 443, "https"})
-		svcEntry = append(svcEntry, ServiceEntry{"edu-http", "", "*.edu", 80, "http"})
-		svcEntry = append(svcEntry, ServiceEntry{"edu-https", "", "*.edu", 443, "https"})
-		svcEntry = append(svcEntry, ServiceEntry{"gov-http", "", "*.gov", 80, "http"})
-		svcEntry = append(svcEntry, ServiceEntry{"gov-https", "", "*.gov", 443, "https"})
+		svcEntry = append(svcEntry, ServiceEntry{"com-http", "", "*.com", 80, "HTTP"})
+		svcEntry = append(svcEntry, ServiceEntry{"com-https", "", "*.com", 443, "TLS"})
+		svcEntry = append(svcEntry, ServiceEntry{"cn-http", "", "*.cn", 80, "HTTP"})
+		svcEntry = append(svcEntry, ServiceEntry{"cn-https", "", "*.cn", 443, "TLS"})
+		svcEntry = append(svcEntry, ServiceEntry{"org-http", "", "*.org", 80, "HTTP"})
+		svcEntry = append(svcEntry, ServiceEntry{"org-https", "", "*.org", 443, "TLS"})
+		svcEntry = append(svcEntry, ServiceEntry{"net-http", "", "*.net", 80, "HTTP"})
+		svcEntry = append(svcEntry, ServiceEntry{"net-https", "", "*.net", 443, "TLS"})
+		svcEntry = append(svcEntry, ServiceEntry{"edu-http", "", "*.edu", 80, "HTTP"})
+		svcEntry = append(svcEntry, ServiceEntry{"edu-https", "", "*.edu", 443, "TLS"})
+		svcEntry = append(svcEntry, ServiceEntry{"gov-http", "", "*.gov", 80, "HTTP"})
+		svcEntry = append(svcEntry, ServiceEntry{"gov-https", "", "*.gov", 443, "TLS"})
+		svcEntry = append(svcEntry, ServiceEntry{"ssh", "", "ssh", 22, "tcp"})
 	} else {
 		for _, item := range dependencies.External {
 			var host, address string
@@ -224,7 +225,7 @@ func parseDependencies(application v1alpha1.Application, dependencies Dependency
 			if arr.Scheme == "https" {
 				protocol = "TLS"
 			} else if arr.Scheme == "http" {
-				protocol = "http"
+				protocol = "HTTP"
 			} else if strings.ToLower(arr.Scheme) == "tcp" {
 				protocol = "TCP"
 			} else {
