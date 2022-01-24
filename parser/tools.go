@@ -193,13 +193,14 @@ func parseDependencies(application v1alpha1.Application, dependencies Dependency
 	//外部服务调用
 	svcEntry := make([]ServiceEntry, 0)
 	//检查是否有全部的访问权限all
-	isAllowAll := false
-	for _, item := range dependencies.External {
-		if strings.ToLower(strings.TrimSpace(item.Location)) == "*" {
-			isAllowAll = true
-		}
-	}
-	if isAllowAll { //开放所有外部访问
+	//isAllowAll := false
+	//for _, item := range dependencies.External {
+	//	if strings.ToLower(strings.TrimSpace(item.Location)) == "*" {
+	//		isAllowAll = true
+	//	}
+	//}
+	fmt.Println(strings.Contains(application.Metadata.Version, "+dev"))
+	if strings.Contains(application.Metadata.Version, "+dev") { //开放所有外部访问
 		svcEntry = append(svcEntry, ServiceEntry{"com-http", "", "*.com", 80, "HTTP"})
 		svcEntry = append(svcEntry, ServiceEntry{"com-https", "", "*.com", 443, "TLS"})
 		svcEntry = append(svcEntry, ServiceEntry{"cn-http", "", "*.cn", 80, "HTTP"})
