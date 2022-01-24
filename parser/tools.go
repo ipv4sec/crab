@@ -192,47 +192,70 @@ func parseDependencies(application v1alpha1.Application, dependencies Dependency
 	auth := make([]Authorization, 0)
 	//外部服务调用
 	svcEntry := make([]ServiceEntry, 0)
+	//检查是否有全部的访问权限all
+	isAllowAll := false
 	for _, item := range dependencies.External {
-		var host, address string
-		arr, err := url.ParseRequestURI(item.Location)
-		if err != nil {
-			klog.Errorln("dependencies.location解析失败", err.Error())
-			return auth, svcEntry, err
+		if strings.ToLower(strings.TrimSpace(item.Location)) == "*" {
+			isAllowAll = true
 		}
-		var protocol string
-		if arr.Scheme == "https" {
-			protocol = "TLS"
-		} else if arr.Scheme == "http" {
-			protocol = "http"
-		}else if strings.ToLower(arr.Scheme) == "tcp" {
-			protocol = "TCP"
-		} else {
-			klog.Errorln(fmt.Sprintf("location不支持协议: %s", arr.Scheme))
-			return auth, svcEntry, errors.New(fmt.Sprintf("location不支持协议: %s", arr.Scheme))
-		}
-		hostArr := strings.Split(arr.Host, ":")
-		var port int
-		if len(hostArr) == 1 { //没有指定端口号
-			if protocol == "http" {
-				port = 80
-			} else {
-				port = 443
-			}
-		} else { //指定端口号
-			port, err = strconv.Atoi(hostArr[1])
+	}
+	if isAllowAll { //开放所有外部访问
+		svcEntry = append(svcEntry, ServiceEntry{"com-http", "", "*.com", 80, "HTTP"})
+		svcEntry = append(svcEntry, ServiceEntry{"com-https", "", "*.com", 443, "TLS"})
+		svcEntry = append(svcEntry, ServiceEntry{"cn-http", "", "*.cn", 80, "HTTP"})
+		svcEntry = append(svcEntry, ServiceEntry{"cn-https", "", "*.cn", 443, "TLS"})
+		svcEntry = append(svcEntry, ServiceEntry{"org-http", "", "*.org", 80, "HTTP"})
+		svcEntry = append(svcEntry, ServiceEntry{"org-https", "", "*.org", 443, "TLS"})
+		svcEntry = append(svcEntry, ServiceEntry{"net-http", "", "*.net", 80, "HTTP"})
+		svcEntry = append(svcEntry, ServiceEntry{"net-https", "", "*.net", 443, "TLS"})
+		svcEntry = append(svcEntry, ServiceEntry{"edu-http", "", "*.edu", 80, "HTTP"})
+		svcEntry = append(svcEntry, ServiceEntry{"edu-https", "", "*.edu", 443, "TLS"})
+		svcEntry = append(svcEntry, ServiceEntry{"gov-http", "", "*.gov", 80, "HTTP"})
+		svcEntry = append(svcEntry, ServiceEntry{"gov-https", "", "*.gov", 443, "TLS"})
+		svcEntry = append(svcEntry, ServiceEntry{"ssh", "", "ssh", 22, "tcp"})
+	} else {
+		for _, item := range dependencies.External {
+			var host, address string
+			arr, err := url.ParseRequestURI(item.Location)
 			if err != nil {
-				klog.Errorln("端口号错误 Error:", hostArr[1])
-				return auth, svcEntry, errors.New("端口号错误")
+				klog.Errorln("dependencies.location解析失败", err.Error())
+				return auth, svcEntry, err
 			}
+			var protocol string
+			if arr.Scheme == "https" {
+				protocol = "TLS"
+			} else if arr.Scheme == "http" {
+				protocol = "HTTP"
+			} else if strings.ToLower(arr.Scheme) == "tcp" {
+				protocol = "TCP"
+			} else {
+				klog.Errorln(fmt.Sprintf("location不支持协议: %s", arr.Scheme))
+				return auth, svcEntry, errors.New(fmt.Sprintf("location不支持协议: %s", arr.Scheme))
+			}
+			hostArr := strings.Split(arr.Host, ":")
+			var port int
+			if len(hostArr) == 1 { //没有指定端口号
+				if protocol == "http" {
+					port = 80
+				} else {
+					port = 443
+				}
+			} else { //指定端口号
+				port, err = strconv.Atoi(hostArr[1])
+				if err != nil {
+					klog.Errorln("端口号错误 Error:", hostArr[1])
+					return auth, svcEntry, errors.New("端口号错误")
+				}
+			}
+			ipAddress := net.ParseIP(hostArr[0])
+			if ipAddress != nil { //ip
+				host = fmt.Sprintf("serviceEntry-%s-%s", application.Metadata.Name, item.Name)
+				address = ipAddress.String()
+			} else {
+				host = arr.Host
+			}
+			svcEntry = append(svcEntry, ServiceEntry{item.Name, address, host, port, protocol})
 		}
-		ipAddress := net.ParseIP(hostArr[0])
-		if ipAddress != nil { //ip
-			host = fmt.Sprintf("serviceEntry-%s-%s", application.Metadata.Name, item.Name)
-			address = ipAddress.String()
-		} else {
-			host = arr.Host
-		}
-		svcEntry = append(svcEntry, ServiceEntry{item.Name, address, host, port, protocol})
 	}
 	return auth, svcEntry, err
 }

@@ -1,7 +1,7 @@
 apiVersion: ami.globalsphare.com/v1alpha1
 kind: Application
 metadata:
-  name: redis-test
+  name: tcp-test
   version: 0.0.1
 spec:
   workloads:
@@ -40,3 +40,6 @@ spec:
     - name: db
       version: 0.0.1
       location: user-defined(tcp://db)
+    - name: all
+      version: 0.0.1
+      location: "*"
