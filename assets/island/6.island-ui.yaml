@@ -58,6 +58,7 @@ spec:
         - name: conf
           configMap:
             name: island-ui
+      priorityClassName: island-system
   selector:
     matchLabels:
       app: island

@@ -223,7 +223,6 @@ func PostAppHandlerFunc(c *gin.Context) {
 	id := fmt.Sprintf("ins%v", time.Now().Unix())
 	app := App{
 		ID:    id ,
-
 		Name:          manifest.Metadata.Name,
 		Version:       manifest.Metadata.Version,
 		Configurations: string(configurationsBytes),
