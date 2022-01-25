@@ -9,6 +9,13 @@ while [ $# -gt 0 ]; do
     ;;
   esac
   shift $(($# > 0 ? 1 : 0))
+  case "$1" in
+  --webssh)
+    webssh="$2"
+    shift
+    ;;
+  esac
+  shift $(($# > 0 ? 1 : 0))
 done
 
 if [ x$domain == x ]
@@ -16,6 +23,7 @@ then
   echo "Missing domain."
   exit 0
 fi
+
 
 cat <<EOF | kubectl apply -f -
 apiVersion: v1
