@@ -20,6 +20,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog/v2"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -258,6 +259,10 @@ func PostAppHandlerFunc(c *gin.Context) {
 				continue
 			}
 			for j := 0; j < len(apps); j++ {
+				pos := strings.Index(apps[j].Version, "+dev")
+				if pos > 0 {
+					apps[j].Version = apps[j].Version[:pos]
+				}
 				v, err := semver.Parse(apps[j].Version)
 				if err != nil {
 					klog.Errorln("解析实例版本错误:", err.Error())
