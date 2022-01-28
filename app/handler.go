@@ -183,8 +183,8 @@ func PostAppHandlerFunc(c *gin.Context) {
 
 	bytes, err := ioutil.ReadFile(fmt.Sprintf("/tmp/%v/manifest.yaml", currentTimestamp))
 	if err != nil {
-		klog.Errorln("读取描述文件错误:", err.Error())
-		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "读取描述文件错误"))
+		klog.Errorln("读取manifest.yaml文件错误:", err.Error())
+		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "读取manifest.yaml文件错误"))
 		return
 	}
 
@@ -192,7 +192,7 @@ func PostAppHandlerFunc(c *gin.Context) {
 	err = yaml.Unmarshal(bytes, &manifest)
 	if err != nil {
 		klog.Errorln("描述文件格式错误:", err.Error())
-		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "格式错误"))
+		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "解析manifest.yaml格式错误"))
 		return
 	}
 	klog.Info("此实例的配置:", manifest.Spec.Userconfigs)
@@ -224,7 +224,6 @@ func PostAppHandlerFunc(c *gin.Context) {
 	id := fmt.Sprintf("ins%v", time.Now().Unix())
 	app := App{
 		ID:    id ,
-
 		Name:          manifest.Metadata.Name,
 		Version:       manifest.Metadata.Version,
 		Configurations: string(configurationsBytes),
