@@ -36,6 +36,7 @@ spec:
           imagePullPolicy: Always
       restartPolicy: Always
       serviceAccountName: crab
+      priorityClassName: island-system
   selector:
     matchLabels:
       app: island

@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: island-plugin
+  namespace: island-system
+data:
+  description: plugin
+  webssh: '{"hostname":"crab.island-root-domain-2.develenv.com", "port":22, "username":"root", "password":"passwd"}'

@@ -3,6 +3,7 @@ package cluster
 import (
 	"context"
 	"crab/utils"
+	"encoding/json"
 	"github.com/gin-gonic/gin"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog/v2"
@@ -54,3 +55,21 @@ func GetResourceHandlerFunc(c *gin.Context) {
 	c.JSON(200, utils.SuccessResponse(v))
 }
 
+func GetConfigMapResourceHandlerFunc(c *gin.Context) {
+	resourceName := c.Param("resourceName")
+	v, err := Client.Clientset.CoreV1().ConfigMaps("island-system").Get(context.Background(),
+		"island-plugin", metav1.GetOptions{})
+	if err != nil {
+		klog.Errorln("获取Resource错误", err.Error())
+		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "获取数据错误"))
+		return
+	}
+	var vv interface{}
+	err = json.Unmarshal([]byte(v.Data[resourceName]), &vv)
+	if err != nil {
+		klog.Errorln("获取Resource格式错误", err.Error())
+		c.JSON(200, utils.ErrorResponse(utils.ErrBadRequest, "获取数据错误"))
+		return
+	}
+	c.JSON(200, utils.SuccessResponse(vv))
+}

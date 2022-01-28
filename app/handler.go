@@ -20,6 +20,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog/v2"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -182,8 +183,8 @@ func PostAppHandlerFunc(c *gin.Context) {
 
 	bytes, err := ioutil.ReadFile(fmt.Sprintf("/tmp/%v/manifest.yaml", currentTimestamp))
 	if err != nil {
-		klog.Errorln("读取描述文件错误:", err.Error())
-		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "读取描述文件错误"))
+		klog.Errorln("读取manifest.yaml文件错误:", err.Error())
+		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "读取manifest.yaml文件错误"))
 		return
 	}
 
@@ -191,7 +192,7 @@ func PostAppHandlerFunc(c *gin.Context) {
 	err = yaml.Unmarshal(bytes, &manifest)
 	if err != nil {
 		klog.Errorln("描述文件格式错误:", err.Error())
-		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "格式错误"))
+		c.JSON(200, utils.ErrorResponse(utils.ErrInternalServer, "解析manifest.yaml格式错误"))
 		return
 	}
 	klog.Info("此实例的配置:", manifest.Spec.Userconfigs)
@@ -223,7 +224,6 @@ func PostAppHandlerFunc(c *gin.Context) {
 	id := fmt.Sprintf("ins%v", time.Now().Unix())
 	app := App{
 		ID:    id ,
-
 		Name:          manifest.Metadata.Name,
 		Version:       manifest.Metadata.Version,
 		Configurations: string(configurationsBytes),
@@ -258,6 +258,10 @@ func PostAppHandlerFunc(c *gin.Context) {
 				continue
 			}
 			for j := 0; j < len(apps); j++ {
+				pos := strings.Index(apps[j].Version, "+dev")
+				if pos > 0 {
+					apps[j].Version = apps[j].Version[:pos]
+				}
 				v, err := semver.Parse(apps[j].Version)
 				if err != nil {
 					klog.Errorln("解析实例版本错误:", err.Error())
