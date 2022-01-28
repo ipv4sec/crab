@@ -8,7 +8,7 @@ import * as TYPE from '../../store/actions'
 import AddFile from '../../components/AddFile'
 import Loading from '../../components/Loading'
 import SnackbarCmp from '../../components/Snackbar'
-import AutoTextarea from '../../components/AutoTextarea'
+import Editor from '../../components/Editor'
 
 const defaultMetaHeader = `apiVersion: aam.globalsphare.com/v1alpha1
 kind: Application
@@ -18,17 +18,17 @@ const defaultMetadata = `name: example
 version: 0.0.1
 description: 样例应用
 keywords:
-    - 样例应用
+  - 样例应用
 author: example@example.com
 maintainers:
-    - email: example@example.com
-      name: example
-      web: https://example.com
+  - email: example@example.com
+    name: example
+    web: https://example.com
 repositories: ["https://github.com/example/example.git"]
 bugs: https://github.com/example/example/issues
 licenses:
-    - type: LGPL
-      url: https://license.spec.com`
+  - type: LGPL
+    url: https://license.spec.com`
 
 const defaultUserconfigs = `"$schema": http://json-schema.org/draft-07/schema#
 "$id": http://example.com/product.schema.json
@@ -36,23 +36,23 @@ title: User
 description: init user description
 type: object
 properties:
-    username:
-        type: string
-    password:
-        type: string
+  username:
+    type: string
+  password:
+    type: string
 required:
-    - username
-    - password`
+  - username
+  - password`
 
 const defaultWorkloads = `- name: example
   type: webservice
   vendor: webservice
   properties:
-      image: nginx:1.21
+    image: nginx:1.21
   traits:
-      - type: ingress
-        properties:
-            k1: "v1"`
+    - type: ingress
+      properties:
+        k1: "v1"`
 
 
 
@@ -60,22 +60,22 @@ const defaultDependencies = `- name: gitlab
   version: ">=0.0.1"
   location: user-defined(https://gitlab.com)
   items:
-      /*:
-          - create
-          - read
-          - update
-          - delete`
+    /*:
+      - create
+      - read
+      - update
+      - delete`
 
 const defaultExports = `/user:
-    - create
-    - read
-    - update
-    - delete
+  - create
+  - read
+  - update
+  - delete
 /admin:
-    - create
-    - read
-    - update
-    - delete`
+  - create
+  - read
+  - update
+  - delete`
 
 
 const CreateApp = (props) => {
@@ -107,23 +107,15 @@ const CreateApp = (props) => {
         
         const pData = (
             defaultMetaHeader +
-            '\n    ' + metaDataRef.current.getData().replace(reg, '\n    ') + 
+            '\n  ' + metaDataRef.current.getData().replace(reg, '\n  ') + 
             '\nspec:' +
-            '\n    userconfigs:\n        ' + userConfigsRef.current.getData().replace(reg, '\n        ') + 
-            '\n    workloads:\n        '+ workloadsRef.current.getData().replace(reg, '\n        ') + 
-            '\n    dependencies:\n        '+ dependenciesRef.current.getData().replace(reg, '\n        ') + 
-            '\n    exports:\n        '+ exportsRef.current.getData().replace(reg, '\n        ')
+            '\n  userconfigs:\n    ' + userConfigsRef.current.getData().replace(reg, '\n    ') + 
+            '\n  workloads:\n    '+ workloadsRef.current.getData().replace(reg, '\n    ') + 
+            '\n  dependencies:\n    '+ dependenciesRef.current.getData().replace(reg, '\n    ') + 
+            '\n  exports:\n    '+ exportsRef.current.getData().replace(reg, '\n    ')
         ) 
 
         return pData
-
-        // setPreviewData(pData)
-
-    }
-
-    function resizePreHeight() {
-        let leftHeight = document.querySelector('.createapp-left').offsetHeight
-        document.querySelector('.preview-pre').style.height = leftHeight - 50 + 'px'
     }
 
     const checkRule = () => {
@@ -364,20 +356,20 @@ const CreateApp = (props) => {
                 <div className="oltitle">创建应用</div>
                 <section className="createapp-content">
                     <div className="view-text" ref={metaHeaderRef}  ></div>
-                    <AutoTextarea ref={metaDataRef} class="textarea-edit indent4" />
-                        
+                    <div className="textarea-edit indent4"><Editor ref={metaDataRef} uniqueName="metaDataRef" /></div>
+                  
                     <div className="view-text">spec:</div>
-                    <div className="view-text indent4">userconfigs:</div>
-                    <AutoTextarea ref={userConfigsRef} class="textarea-edit indent8" />
+                    <div className="view-text indent6">userconfigs:</div>
+                    <div className="textarea-edit indent8"><Editor ref={userConfigsRef} uniqueName="userConfigsRef"/></div>
 
-                    <div className="view-text indent4">workloads:</div>
-                    <AutoTextarea ref={workloadsRef} class="textarea-edit indent8" />
+                    <div className="view-text indent6">workloads:</div>
+                    <div className="textarea-edit indent8"><Editor ref={workloadsRef}  uniqueName="workloadsRef"/></div>
                    
-                    <div className="view-text indent4">dependencies:</div>
-                    <AutoTextarea ref={dependenciesRef} class="textarea-edit indent8" />
+                    <div className="view-text indent6">dependencies:</div>
+                    <div className="textarea-edit indent8"><Editor ref={dependenciesRef}  uniqueName="dependenciesRef"/></div>
 
-                    <div className="view-text indent4">exports:</div>
-                    <AutoTextarea ref={exportsRef} class="textarea-edit indent8" />
+                    <div className="view-text indent6">exports:</div>
+                    <div className="textarea-edit indent8"><Editor ref={exportsRef}  uniqueName="exportsRef"/></div>
 
                     <div className="online-btns">
                         <Button className="online-btn" variant="contained" color="primary" onClick={download}>下载</Button>

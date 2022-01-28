@@ -173,3 +173,22 @@ input, textarea, pre, code {
     color: #4a90e2!important;
     cursor: pointer;
 }
+
+.ace_editor {
+    font: 14px/normal 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace
+}
+// .ace_cursor {
+//     display: none!important;
+// }
+.ace_layer .ace_text-layer {
+    padding-left: 0!important;
+}
+.ace_line {
+    padding-left: 0!important;
+}
+.ace_hidpi .ace_text-layer {
+    padding-left: 0!important;
+}
+.ace_placeholder {
+    color: #000000!important;
+}

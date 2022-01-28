@@ -8,6 +8,7 @@ import * as TYPE from '../../store/actions'
 import Loading from '../../components/Loading'
 import SnackbarCmp from '../../components/Snackbar'
 import AutoTextarea from '../../components/AutoTextarea'
+import Editor from '../../components/Editor'
 
 
 const defaultYaml = `apiVersion: apps/v1
@@ -218,9 +219,9 @@ const WorkloadVendor = (props) => {
         return (
             headerRef.current.getData() + 
             '\n' + metaHeader + 
-            '\n    ' + metaDataRef.current.getData().replace(reg, '\n    ') + 
-            '\nspec: | \n    ' + specData.replace(reg, '\n    ') +
-            '\n    '+cueRef.current.getData().replace(reg, '\n        ') 
+            '\n  ' + metaDataRef.current.getData().replace(reg, '\n  ') + 
+            '\nspec: | \n  ' + specData.replace(reg, '\n  ') +
+            '\n  '+cueRef.current.getData().replace(reg, '\n    ') 
         ) 
     }
 
@@ -338,7 +339,6 @@ const WorkloadVendor = (props) => {
     }
 
     const save = () => {
-
         if(!(checkRule())) { return }
 
         store.dispatch({
@@ -401,7 +401,9 @@ const WorkloadVendor = (props) => {
                 <section className="vendor-content">
                     <div className="vendor-left">
                         <div className="online-title"><p>K8s YAML</p></div>
-                        <AutoTextarea ref={yamlRef} class="yaml-textarea" />
+                        <div className="yaml-textarea" >
+                            <Editor ref={yamlRef} uniqueName='yamlRef'/>
+                        </div>
                         <div className="online-btns">
                             <Button className="online-btn" variant="contained" color="primary" onClick={changeYamlToCue}>转换yaml为cue</Button>
                         </div>
@@ -409,17 +411,26 @@ const WorkloadVendor = (props) => {
 
                     <div className="vendor-right">
                         <div className="online-title titlepadding"><p>WorkloadVendor</p></div>
-                        <AutoTextarea ref={headerRef} class="textarea-edit" />
-                        <div className="view-text" ref={metaRef}  ></div>
-                        <AutoTextarea ref={metaDataRef} class="textarea-edit indent4" />
+                        <div className="textarea-edit" >
+                            <Editor ref={headerRef} uniqueName='headerRef'/>
+                        </div>
+                        {/* <AutoTextarea ref={headerRef} class="textarea-edit" /> */}
+                        <div className="view-text" ref={metaRef} ></div>
+                        <div className="textarea-edit indent4" >
+                            <Editor ref={metaDataRef} uniqueName='metaDataRef'/>
+                        </div>
+                        {/* <AutoTextarea ref={metaDataRef} class="textarea-edit indent4" /> */}
                         <div className="view-text" >spec: | 
                             <button className="fold-btn" onClick={specFoldFn}><span className={`iconfont ${specFold ? 'icon_navigation_combobox_down' : 'icon_navigation_combobox_up'}`}></span></button>
                         </div>
-                        <div className={`vendor-preview indent4 ${specFold ? 'hide-textarea' : ''}`}>
+                        <div className={`vendor-preview indent6 ${specFold ? 'hide-textarea' : ''}`}>
                             <pre className="preview-pre" ref={preRef}></pre>
                         </div>
                         {/* <AutoTextarea ref={specRef} class={`textarea-edit indent4  ${specFold ? 'hide-textarea' : ''}`} /> */}
-                        <AutoTextarea ref={cueRef} class="textarea-edit indent4" />
+                        <div className="textarea-edit indent4" >
+                            <Editor ref={cueRef} uniqueName='metaDataRef'/>
+                        </div>
+                        {/* <AutoTextarea ref={cueRef} class="textarea-edit indent4" /> */}
                       
                         <div className="online-btns">
                             <Button className="online-btn" variant="contained" color="primary" onClick={checkcue}>检查</Button>

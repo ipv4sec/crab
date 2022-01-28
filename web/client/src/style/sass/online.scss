@@ -54,6 +54,11 @@
     }
     .online-preview-content {
         padding: 0 20px;
+
+        .olPreview {
+            font: 12px/normal 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+            font-size: 14px;
+        }
     }
 
     .online-textarea {
@@ -135,9 +140,9 @@
         outline: none;
         white-space: nowrap;
         overflow: auto;
-        // padding: 0 10px;
-        // background: rgba(0,0,0,0.03);
         position: relative;
+        font: 12px/normal 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+        font-size: 14px;
 
         .fold-btn {
             position: absolute;
@@ -152,6 +157,7 @@
 
     .textarea-edit {
         // padding: 0 10px;
+        width: 100%;
         border: 1px solid #edecec;
     }
 
@@ -159,12 +165,14 @@
         display: none;
     }
 
-
     .indent4 {
         width: calc(100% - 16px);
     }
+    .indent6 {
+        width: calc(100% - 17px);
+    }
     .indent8 {
-        width: calc(100% - 32px);
+        width: calc(100% - 33px);
     }
 
     .vendor-content {
@@ -206,6 +214,8 @@
                 // border:1px solid #dcdcdc;
                 border-radius: 4px;
                 // padding: 0 10px;
+                font: 12px/normal 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+                font-size: 14px;
             }
 
         }

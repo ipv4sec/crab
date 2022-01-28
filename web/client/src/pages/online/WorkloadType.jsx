@@ -7,19 +7,20 @@ import store from '../../store/store'
 import * as TYPE from '../../store/actions'
 import Loading from '../../components/Loading'
 import SnackbarCmp from '../../components/Snackbar'
-import AutoTextarea from '../../components/AutoTextarea'
+import Editor from '../../components/Editor'
 
 const defaultMetadata = `apiVersion: aam.globalsphare.com/v1alpha1
 kind: WorkloadType
 metadata:
-    name: example
+  name: example
 spec:
-    parameter: |
-        image: *"example" | string`
+  parameter: |
+    image: *"example" | string`
 
 
 const WorkloadType = (props) => {
     const autoTxRef = useRef(null)
+    const traitRef = useRef(null)
     const [name, setName] = useState('')
     const [workloadInfo, setWorkloatTypeInfo] = useState(null)
 
@@ -48,6 +49,8 @@ const WorkloadType = (props) => {
 
     useEffect(() => {
         const name = getName()
+        autoTxRef.current.setHeight(parseInt(getComputedStyle(traitRef.current).height.replace('px', '')))
+    
         if(name) {
             setName(name)
             getWorkloadTypeInfo(name)
@@ -209,7 +212,9 @@ const WorkloadType = (props) => {
             <div className="online-content">
                 <div className="oltitle">{name ? '修改' : '创建'} WorkloadType {name ? (' : '+name) : ''}</div>
                 <section className="trait-content">
-                    <AutoTextarea ref={autoTxRef} class="trait-textarea" />
+                    <div className="trait-textarea" ref={traitRef}>
+                        <Editor ref={autoTxRef} uniqueName='autoTxRef' />
+                    </div>
                     <div className="online-btns">
                         {
                             name ? (

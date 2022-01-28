@@ -8,20 +8,20 @@ import * as TYPE from '../../store/actions'
 import Loading from '../../components/Loading'
 import SnackbarCmp from '../../components/Snackbar'
 import AutoTextarea from '../../components/AutoTextarea'
+import Editor from '../../components/Editor'
 
 const defaultMetadata = `apiVersion: aam.globalsphare.com/v1alpha1
 kind: Trait
 metadata:
-    name: expose
+  name: expose
 spec:
-    parameter: |
-        k1: *"v1" | string`
+  parameter: |
+    k1: *"v1" | string`
 
 
 const Trait = (props) => {
-
-    
     const autoTxRef = useRef(null)
+    const traitRef = useRef(null)
     const [btnDisable, setBtnDisable] = useState(false)
     const [name, setName] = useState('')
     const [traitInfo, setTraitInfo] = useState(null)
@@ -49,13 +49,15 @@ const Trait = (props) => {
 
     useEffect(() => {
         const name = getName()
+        autoTxRef.current.setHeight(parseInt(getComputedStyle(traitRef.current).height.replace('px', '')))
+    
         if(name) {
-            
             setName(name)
             getTraitInfo(name)
         }else {
             autoTxRef.current.setData(defaultMetadata)
         }
+
     }, [])
 
     const getTraitInfo = (name) => {
@@ -94,6 +96,9 @@ const Trait = (props) => {
         })
     }
 
+    const traitTextarea = () => {
+        autoTxRef.current.focus()
+    }
 
     const editTrait = () => {
         store.dispatch({
@@ -207,7 +212,10 @@ const Trait = (props) => {
             <div className="online-content">
                 <div className="oltitle">{name ? '修改' : '创建'} Trait {name ? (' : '+name) : ''}</div>
                 <section className="trait-content">
-                    <AutoTextarea ref={autoTxRef} class="trait-textarea" />
+                    
+                    <div className="trait-textarea" ref={traitRef}>
+                        <Editor ref={autoTxRef} uniqueName='autoTxRef' />
+                    </div>
                     <div className="online-btns">
                         {
                             name ? (
