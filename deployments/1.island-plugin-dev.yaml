@@ -5,4 +5,4 @@ metadata:
   namespace: island-system
 data:
   description: plugin
-  webssh: '{"hostname":"crab.island-root-domain-2.develenv.com", port:22, "username":"root", "password":"passwd"}'
+  webssh: '{"hostname":"crab.island-root-domain-2.develenv.com", "port":22, "username":"root", "password":"passwd"}'
