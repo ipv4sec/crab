@@ -84,7 +84,7 @@ const WorkloadView = (props) => {
             </header>
             <div className="online-preview-content">
                 <div className="oltitle">查看 {type} : {name}</div>
-                <pre ref={previewRef}></pre>
+                <pre className='olPreview' ref={previewRef}></pre>
             </div>
            
             <Loading />

@@ -20,7 +20,7 @@ const Crumbs = (props) => {
     return (
         <nav className="detail-crumbs">
             <ul>
-                <li><button className="common-btn">{props.name || ''}</button><span>&gt;</span></li>
+                <li><button className="common-btn cursor-none">{props.name || ''}</button><span>&gt;</span></li>
                 {
                     props.data.map((item, idx) => {
                         return (
@@ -30,7 +30,7 @@ const Crumbs = (props) => {
                                 data-id={item.id} 
                                 onClick={changeCrumb}
                             >
-                                <button className={`common-btn ${idx === (props.data.length - 1) ? 'highlight-crumb' : ''}`}>
+                                <button className={`common-btn ${idx !== 0 ? 'cursor-none' : ''} ${idx === (props.data.length - 1) ? 'highlight-crumb' : ''}`}>
                                     {item.name}
                                 </button>
                                 {idx === (props.data.length - 1) ? '' : (<span>&gt;</span>) }

@@ -47,7 +47,6 @@ const List = (props) => {
     const [openDialog, setOpenDialog] = useState(false)
     const [page, setPage] = useState(1)
     const limit = 10
-    const [podName, setPodName] = useState('')
 
 
     const getData = () => {
@@ -231,94 +230,73 @@ const List = (props) => {
         props.toDesc(name)
     }
 
-    const goLog = (name, ctnName) => {
-        props.goLog(name, ctnName)
-    }
-
-    const showContainers = (pName) => {
-        if(podName === pName) {
-            setPodName('')
-        }else {
-            setPodName(pName)
-        }
-       
+    const goLog = (name) => {
+        props.goLog(name)
     }
     
     return (
         <div className="detail-list">
             <p className="list-title">{props.data.name || ''}</p>
             <div className="list-content">
-                <div className='list-table'>
-                    <div className='table-head'>
-                        <div className='table-tr'>
+                <table className="table">
+                    <thead>
+                        <tr> 
                             {
                                 (list.header || []).map((item) => {
-                                    return  <div key={item} className={`table-td ${item === '操作' ? 'small-td' : ''} `}>{item == '操作' ? ' ' : item}</div>
+                                    return  <th key={item}>{item}</th>
                                 })
                             }
-                        </div>
-                       
-                    </div>
-                    <div className="table-body">
-                        {
-                            (list.body || []).map((item, index) => {
-                                if(props.curNav === 'pod') {
-                                    return (
-                                        <div className={`${podName === item[0] ? 'tr-border' : ''}`} key={index}>
-                                            <div className="table-tr tr-pod" key={index} onClick={() => {showContainers(item[0])}} >
-                                                {
-                                                    (item || []).map((el, idx) => {
-                                                        if(typeof el !== 'object') {
-                                                            if(idx === 0) {
-                                                                return <div className='table-td cursorPointer' onClick={() => {changeToDetail(el)}} key={idx}>{el}</div>
-                                                            }else if(el === 'log'){
-                                                                return <div className='table-td small-td' key={idx}> </div>
-                                                            }else {
-                                                                return <div className='table-td' key={idx}>{el}</div>
-                                                            }
-                                                        }
-                                                    })
-                                                }
-                                                
-                                            </div>
-                                            {
-                                                (podName === item[0] &&  Array.isArray(item[item.length-1])) ? (item[item.length-1].map((el, idx) => {
-                                                    return <div key={el.name} className='table-tr'>
-                                                        <div className='table-td'> </div>
-                                                        <div className='table-td'>{el.name}</div>
-                                                        <div className='table-td big-td'>{el.image}</div>
-                                                        <div className='table-td cursorPointer highlight small-td' key={idx} onClick={() => {goLog(item[0], el.name)}}>查看日志</div>
-                                                    </div>
-                                                })) : null
-                                            }
-                                        </div>
-                                    )
-                                }else {
-                                    return (
-                                        <div className='table-tr' key={index}>
+                        </tr>
+                    </thead>
+                    <tbody style={{position: 'relative'}}>
+                      
+                    {
+                        (list.body || []).map((item, index) => {
+                            if(props.curNav === 'pod') {
+                                console.log(item)
+                                return (
+                                    <React.Fragment key={index}>
+                                        <tr>
                                             {
                                                 (item || []).map((el, idx) => {
-                                                    if(typeof el !== 'object') {
+                                                    if(typeof el === 'string') {
                                                         if(idx === 0) {
-                                                            return <div className='table-td cursorPointer' onClick={() => {changeToDetail(el)}} key={idx}>{el}</div>
+                                                            return <td className='cursorPointer' onClick={() => {changeToDetail(el)}} key={idx}>{el}</td>
                                                         }else if(el === 'log'){
-                                                            return <div className='table-td cursorPointer highlight small-td' key={idx} onClick={() => {goLog(item[0])}}>查看日志</div>
+                                                            return <td width={'100px'} className='cursorPointer highlight' key={idx} onClick={() => {goLog(item[0])}}>查看日志</td>
                                                         }else {
-                                                            return <div className='table-td' key={idx}>{el}</div>
+                                                            return <td key={idx}>{el}</td>
                                                         }
                                                     }
-                                                    
                                                 })
                                             }
-                                        </div>
-                                    )
-                                }
-                                
+                                        </tr>
+                                    </React.Fragment>
+                                )
+                            }else {
+                                return (
+                                    <tr key={index}>
+                                        {
+                                            (item || []).map((el, idx) => {
+                                                if(idx === 0) {
+                                                    return <td className='cursorPointer' onClick={() => {changeToDetail(el)}} key={idx}>{el}</td>
+                                                }else if(el === 'log'){
+                                                    return <td width={'100px'} className='cursorPointer highlight' key={idx} onClick={() => {goLog(item[0])}}>查看日志</td>
+                                                }else {
+                                                    return <td key={idx}>{el}</td>
+                                                }
+                                                
+                                            })
+                                        }
+                                    </tr>
+                                )
+                            }
                             
-                            })
-                        }
-                    </div> 
-                </div>
+                         
+                        })
+                    }
+                    </tbody>
+                </table>
 
                 {/* <div className="pagination-content">
                     <Pagination 

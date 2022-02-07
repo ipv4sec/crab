@@ -8,7 +8,7 @@ import '../../style/sass/detail.scss'
 const Log = (props) => {
 
     // 查看日志
-    const [logList, setLogList] = useState([])
+    const [logList, setLogList] = useState('')
 
     useEffect(() => {
         readLogs()
@@ -27,7 +27,17 @@ const Log = (props) => {
             params: {id: props.id, podName: props.name}
         }).then((res) => {
             if(res.data.code === 0) {
-                setLogList(res.data.result || [])
+                const logs = res.data.result
+                if(logs.length) {
+                    for(let item of logs) {
+                        console.log('--item log--', item)
+                        if(item.name === props.ctnName) {
+                            setLogList(item.value)
+                            break;
+                        }
+                    }
+                }
+               
             }else {
                 store.dispatch({
                     type: TYPE.SNACKBAR,
@@ -52,18 +62,7 @@ const Log = (props) => {
 
     return (
         <section className="detail-log">
-             <div className="log-list">
-                {
-                    logList.map((item, index) => {
-                        return (
-                            <div key={index} className="log-item">
-                                <p>{item.name}：</p>
-                                <pre className="item-desc">{item.value}</pre>
-                            </div>
-                        )
-                    })
-                }
-            </div>
+            <pre className="item-desc">{logList || '暂无日志'}</pre>
         </section>
     )
 }

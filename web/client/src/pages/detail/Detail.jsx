@@ -80,6 +80,7 @@ const Detail = (props) => {
     const [listData, setListData] = useState([])
     const [descName, setDescName] = useState('')
     const [logName, setLogName] = useState('')
+    const [ctnName, setCtnName] = useState('')
 
     useEffect(() => {
         store.dispatch({
@@ -101,7 +102,7 @@ const Detail = (props) => {
                 name: key,
                 header: [],
                 body: [],
-                navList: [],
+                navList: []
             }
 
             switch(key){
@@ -139,7 +140,17 @@ const Detail = (props) => {
                     tmp.header = ['名称', '创建时间', '状态', '启动时间', '操作']
                     data.details[key].forEach((el) => {
                         tmp.navList.push({id: el.metadata.uid || '', name: el.metadata.name || ''})
-                        tmp.body.push([el.metadata.name || '', moment(el.metadata.creationTimestamp || '').format('YYYY-MM-DD hh:mm:ss') || '',el.status.phase ||'',  moment(el.status.startTime || '').format('YYYY-MM-DD hh:mm:ss') || '', 'log'])
+                        let containers = []
+                        if(el.spec && el.spec.containers && el.spec.containers.length) {
+                            el.spec.containers.forEach((ct) => {
+                                containers.push({
+                                    name: ct.name || '',
+                                    image: ct.image || ''
+                                })
+                            })
+                        }
+                       
+                        tmp.body.push([el.metadata.name || '', moment(el.metadata.creationTimestamp || '').format('YYYY-MM-DD hh:mm:ss') || '',el.status.phase ||'',  moment(el.status.startTime || '').format('YYYY-MM-DD hh:mm:ss') || '', 'log', containers ])
                     })
                     break;
                 case 'replicaSet':
@@ -268,10 +279,10 @@ const Detail = (props) => {
     const changeCrumb = (curNav, id) => {
         // console.log('--changecrumb---', id, curNav)
         // console.log(crumbs)
-        if(crumbs.length === 2 && id === crumbs[0].id) {
+        // if(crumbs.length === 2 && id === crumbs[0].id) {
+        if(id === crumbs[0].id) {
             let newCrumbs = crumbs.slice()
-            newCrumbs.splice(1,1)
-            setCrumbs(newCrumbs)
+            setCrumbs([newCrumbs[0]])
 
             let data = instanceList.find((item) => item.id == id)
             setType('list')
@@ -334,12 +345,14 @@ const Detail = (props) => {
     }
 
 
-    const goLog = (name) => {
+    const goLog = (name, ctnName) => {
         setType('log')
         let newCrumbs = crumbs.slice()
         newCrumbs.push({id: name, name: name})
+        newCrumbs.push({id: ctnName, name: ctnName})
         setCrumbs(newCrumbs)
         setLogName(name)
+        setCtnName(ctnName)
     }
 
     const showDesc = (name) => {
@@ -411,7 +424,7 @@ const Detail = (props) => {
                 <section className="detail-right">
                     {
                         type === 'list' ? (
-                            <List data={listData} goTail={goTail} toDesc={showDesc} goLog={goLog} />
+                            <List data={listData} goTail={goTail} toDesc={showDesc} goLog={goLog} curNav={curNav} />
                         ) : null
                     } 
                      {
@@ -421,7 +434,7 @@ const Detail = (props) => {
                     }
                      {
                         type === 'log' ? (
-                            <Log id={detailData.id || ''} name={logName} />
+                            <Log id={detailData.id || ''} name={logName} ctnName={ctnName}/>
                         ) : null
                     }
                      {

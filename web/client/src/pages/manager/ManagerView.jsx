@@ -60,7 +60,7 @@ const ManagerView = (props) => {
             </header>
             <div className="online-preview-content">
                 <div className="oltitle">查看 {name} 描述文件</div>
-                <pre ref={previewRef}></pre>
+                <pre className='olPreview' ref={previewRef}></pre>
             </div>
            
             <Loading />
