@@ -22,10 +22,6 @@ then
   echo "Missing domain."
   exit 0
 fi
-if [ x$webssh == x ]
-then
-  webssh='{"hostname":"127.0.0.1", "port":22, "username":"root","password":"passwd"}'
-fi
 
 cat <<EOF | kubectl apply -f -
 apiVersion: v1
@@ -63,7 +59,7 @@ metadata:
   namespace: island-system
 data:
   description: plugin
-  webssh: $webssh
+  webssh: '$webssh'
 ---
 
 apiVersion: batch/v1
@@ -83,6 +79,8 @@ spec:
           env:
             - name: ISLAND_DOMAIN
               value: $domain
+            - name: ISLAND_WEBSSH
+              value: $webssh
       restartPolicy: OnFailure
       serviceAccountName: crab
 EOF

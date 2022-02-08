@@ -6,6 +6,7 @@ import (
 	"crab/cluster"
 	"crab/exec"
 	"crab/utils"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -15,6 +16,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/remotecommand"
 	"k8s.io/klog/v2"
+	"net"
 	"os"
 	"strings"
 	"time"
@@ -202,5 +204,45 @@ func main() {
 	if err != nil {
 		klog.Errorln("设置访问路由失败: ", err.Error())
 	}
+
+	klog.Infoln("开始设置插件")
+	plugins, err := cluster.Client.Clientset.CoreV1().ConfigMaps("island-system").Get(context.Background(), "island-plugin", metav1.GetOptions{})
+	if err != nil {
+		klog.Errorln("读取插件信息错误: ", err.Error())
+	}
+	if v, ok := plugins.Data["webssh"]; ok {
+		if v != "false" {
+			var vv struct {
+				Host string `json:"host"`
+				Port int `json:"port"`
+				Username string `json:"username"`
+				Password string `json:"password"`
+			}
+			err = json.Unmarshal([]byte(v), &vv)
+			if err == nil {
+				klog.Infoln("开始设置WEBSSH")
+				yamlBytes, err = ioutil.ReadFile("assets/plugin/island-webssh.yaml")
+				if err != nil {
+					panic(fmt.Errorf("读取yaml错误: %w", err))
+				}
+
+				addr := net.ParseIP(vv.Host)
+				if addr == nil {
+					err = cluster.Client.Apply(context.Background(),
+						[]byte(fmt.Sprintf(string(yamlBytes), vv.Host, "127.0.0.1", os.Getenv("ISLAND_DOMAIN"))))
+					if err != nil {
+						klog.Errorln("设置访问路由失败: ", err.Error())
+					}
+				}else {
+					err = cluster.Client.Apply(context.Background(),
+						[]byte(fmt.Sprintf(string(yamlBytes), "island-webssh", vv.Host, os.Getenv("ISLAND_DOMAIN"))))
+					if err != nil {
+						klog.Errorln("设置访问路由失败: ", err.Error())
+					}
+				}
+			}
+		}
+	}
+
 	klog.Info("结束退出程序")
 }
