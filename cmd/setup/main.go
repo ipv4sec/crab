@@ -231,13 +231,13 @@ func main() {
 					err = cluster.Client.Apply(context.Background(),
 						[]byte(fmt.Sprintf(string(yamlBytes), vv.Hostname, "127.0.0.1", os.Getenv("ISLAND_DOMAIN"))))
 					if err != nil {
-						klog.Errorln("设置访问路由失败: ", err.Error())
+						klog.Errorln("设置WEBSSH失败: ", err.Error())
 					}
 				}else {
 					err = cluster.Client.Apply(context.Background(),
 						[]byte(fmt.Sprintf(string(yamlBytes), "island-webssh", vv.Hostname, os.Getenv("ISLAND_DOMAIN"))))
 					if err != nil {
-						klog.Errorln("设置访问路由失败: ", err.Error())
+						klog.Errorln("设置WEBSSH失败: ", err.Error())
 					}
 				}
 			}

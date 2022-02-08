@@ -51,9 +51,9 @@ metadata:
 spec:
   exportTo: ["."]
   hosts:
-    - %s
+    - '%s'
   addresses:
-    - %s
+    - '%s'
   ports:
     - name: http
       number: 80

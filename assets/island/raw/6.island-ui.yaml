@@ -25,7 +25,7 @@ data:
     {
         "domain": "http://island-api",
         "port": 3000,
-        "webssh": "%s"
+        "webssh": '%s'
     }
 ---
 
