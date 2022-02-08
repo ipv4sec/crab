@@ -80,7 +80,7 @@ spec:
             - name: ISLAND_DOMAIN
               value: $domain
             - name: ISLAND_WEBSSH
-              value: $webssh
+              value: '$webssh'
       restartPolicy: OnFailure
       serviceAccountName: crab
 EOF
