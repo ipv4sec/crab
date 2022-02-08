@@ -213,7 +213,7 @@ func main() {
 	if v, ok := plugins.Data["webssh"]; ok {
 		if v != "false" {
 			var vv struct {
-				Host string `json:"host"`
+				Hostname string `json:"hostname"`
 				Port int `json:"port"`
 				Username string `json:"username"`
 				Password string `json:"password"`
@@ -226,16 +226,16 @@ func main() {
 					panic(fmt.Errorf("读取yaml错误: %w", err))
 				}
 
-				addr := net.ParseIP(vv.Host)
+				addr := net.ParseIP(vv.Hostname)
 				if addr == nil {
 					err = cluster.Client.Apply(context.Background(),
-						[]byte(fmt.Sprintf(string(yamlBytes), vv.Host, "127.0.0.1", os.Getenv("ISLAND_DOMAIN"))))
+						[]byte(fmt.Sprintf(string(yamlBytes), vv.Hostname, "127.0.0.1", os.Getenv("ISLAND_DOMAIN"))))
 					if err != nil {
 						klog.Errorln("设置访问路由失败: ", err.Error())
 					}
 				}else {
 					err = cluster.Client.Apply(context.Background(),
-						[]byte(fmt.Sprintf(string(yamlBytes), "island-webssh", vv.Host, os.Getenv("ISLAND_DOMAIN"))))
+						[]byte(fmt.Sprintf(string(yamlBytes), "island-webssh", vv.Hostname, os.Getenv("ISLAND_DOMAIN"))))
 					if err != nil {
 						klog.Errorln("设置访问路由失败: ", err.Error())
 					}
