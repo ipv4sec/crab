@@ -64,5 +64,3 @@ spec:
     matchLabels:
       app: island
       component: ui
----
-

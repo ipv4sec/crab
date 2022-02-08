@@ -22,7 +22,7 @@ metadata:
   namespace: island-system
   labels:
     app: island
-    component:webssh
+    component: webssh
 spec:
   replicas: 1
   template:

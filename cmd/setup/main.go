@@ -167,7 +167,8 @@ func main() {
 	if err != nil {
 		panic(fmt.Errorf("读取yaml错误: %w", err))
 	}
-	err = cluster.Client.Apply(context.Background(), []byte(fmt.Sprintf(string(yamlBytes), os.Getenv("ISLAND_DOMAIN"))))
+	err = cluster.Client.Apply(context.Background(),
+		[]byte(fmt.Sprintf(string(yamlBytes), os.Getenv("ISLAND_DOMAIN"))))
 	if err != nil {
 		klog.Errorln("设置根域失败: ", err.Error())
 	}
@@ -200,7 +201,8 @@ func main() {
 	if err != nil {
 		panic(fmt.Errorf("读取yaml错误: %w", err))
 	}
-	err = cluster.Client.Apply(context.Background(), []byte(fmt.Sprintf(string(yamlBytes), os.Getenv("ISLAND_DOMAIN"))))
+	err = cluster.Client.Apply(context.Background(), []byte(
+		fmt.Sprintf(string(yamlBytes), os.Getenv("ISLAND_DOMAIN"))))
 	if err != nil {
 		klog.Errorln("设置访问路由失败: ", err.Error())
 	}
