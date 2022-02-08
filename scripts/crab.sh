@@ -8,7 +8,6 @@ while [ $# -gt 0 ]; do
     shift
     ;;
   esac
-  shift $(($# > 0 ? 1 : 0))
   case "$1" in
   --webssh)
     webssh="$2"
@@ -23,7 +22,10 @@ then
   echo "Missing domain."
   exit 0
 fi
-
+if [ x$webssh == x ]
+then
+  webssh='{"hostname":"127.0.0.1", "port":22, "username":"root","password":"passwd"}'
+fi
 
 cat <<EOF | kubectl apply -f -
 apiVersion: v1
@@ -52,6 +54,16 @@ roleRef:
   kind: ClusterRole
   name: cluster-admin
   apiGroup: rbac.authorization.k8s.io
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: island-plugin
+  namespace: island-system
+data:
+  description: plugin
+  webssh: $webssh
 ---
 
 apiVersion: batch/v1

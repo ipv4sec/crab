@@ -161,36 +161,28 @@ func main() {
 	}
 
 	klog.Infoln("开始设置根域")
-	yaml := `
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: island-info
-  namespace: island-system
-data:
-  root-domain: %s
-  mirror: https://github.com/GlobalSphare/workloads
-`
-	err = cluster.Client.Apply(context.Background(), []byte(fmt.Sprintf(yaml, os.Getenv("ISLAND_DOMAIN"))))
+	yamlBytes, err = ioutil.ReadFile("assets/island/raw/1.island-info.yaml")
+	if err != nil {
+		panic(fmt.Errorf("读取yaml错误: %w", err))
+	}
+	err = cluster.Client.Apply(context.Background(), []byte(fmt.Sprintf(string(yamlBytes), os.Getenv("ISLAND_DOMAIN"))))
 	if err != nil {
 		klog.Errorln("设置根域失败: ", err.Error())
 	}
 
-	klog.Infoln("开始设置密码")
-	_, err = cluster.Client.Clientset.CoreV1().ConfigMaps("island-system").
-		Create(context.Background(), &v1.ConfigMap{
-			TypeMeta: metav1.TypeMeta{},
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "island-administrator",
-			},
-			Data: map[string]string{"root": "toor"},
-		}, metav1.CreateOptions{})
+	klog.Infoln("开始部署前端应用")
+	yamlBytes, err = ioutil.ReadFile("assets/island/raw/6.island-ui.yaml")
 	if err != nil {
-		klog.Errorln("设置密码失败: ", err.Error())
+		panic(fmt.Errorf("读取yaml错误: %w", err))
+	}
+	err = cluster.Client.Apply(context.Background(),
+		[]byte(fmt.Sprintf(string(yamlBytes), fmt.Sprintf("http://webssh.%s", os.Getenv("ISLAND_DOMAIN")))))
+	if err != nil {
+		klog.Errorln("部署前端应用失败: ", err.Error())
 	}
 
 	klog.Infoln("开始部署应用")
-	files, err := ioutil.ReadDir("assets/island/")
+	files, err := ioutil.ReadDir("assets/island/cooked/")
 	if err != nil {
 		panic(fmt.Errorf("读取应用列表错误 :%w", err))
 	}
@@ -202,42 +194,11 @@ data:
 	}
 
 	klog.Infoln("开始设置访问路由")
-	yaml = `
-apiVersion: networking.istio.io/v1alpha3
-kind: VirtualService
-metadata:
-  name: island-ui
-  namespace: island-system
-spec:
-  hosts:
-    - "*"
-  gateways:
-    - crab
-  http:
-    - route:
-        - destination:
-            host: island-ui
-            port:
-              number: 80
----
-
-apiVersion: networking.istio.io/v1alpha3
-kind: Gateway
-metadata:
-  name: crab
-  namespace: island-system
-spec:
-  selector:
-    istio: ingressgateway
-  servers:
-    - port:
-        number: 80
-        name: http
-        protocol: HTTP
-      hosts:
-        - "crab.%s"
-`
-	err = cluster.Client.Apply(context.Background(), []byte(fmt.Sprintf(yaml, os.Getenv("ISLAND_DOMAIN"))))
+	yamlBytes, err = ioutil.ReadFile("assets/istio/crab.yaml")
+	if err != nil {
+		panic(fmt.Errorf("读取yaml错误: %w", err))
+	}
+	err = cluster.Client.Apply(context.Background(), []byte(fmt.Sprintf(string(yamlBytes), os.Getenv("ISLAND_DOMAIN"))))
 	if err != nil {
 		klog.Errorln("设置访问路由失败: ", err.Error())
 	}
