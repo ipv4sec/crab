@@ -66,7 +66,7 @@ apiVersion: scheduling.k8s.io/v1
 kind: PriorityClass
 metadata:
   name: island-system
-value: 2000000000
+value: 1000000000
 globalDefault: false
 description: "island-system"
 ---
