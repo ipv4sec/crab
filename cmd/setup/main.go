@@ -190,7 +190,7 @@ func main() {
 	}
 	for i := 0; i < len(files); i++ {
 		klog.Infoln("要安装的应用为: ", files[i].Name())
-		command := fmt.Sprintf("/usr/local/bin/kubectl apply -f assets/island/%s", files[i].Name())
+		command := fmt.Sprintf("/usr/local/bin/kubectl apply -f assets/island/cooked/%s", files[i].Name())
 		output, _ := executor.ExecuteCommandWithCombinedOutput("bash", "-c", command)
 		klog.Infoln("执行命令结果:", output)
 	}
