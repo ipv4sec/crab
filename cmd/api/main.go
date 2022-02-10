@@ -96,6 +96,7 @@ func main() {
 	routers.GET("/tool/systemTemplate", tool.GetTemplateHandlerFunc)
 
 	routers.GET("/resource/:namespace/:resourceType/:resourceName", cluster.GetResourceHandlerFunc)
+	routers.GET("/metrics/:namespace/:resourceName", cluster.GetMetricsHandlerFunc)
 	routers.GET("/plugin/:resourceName", cluster.GetConfigMapResourceHandlerFunc)
 
 	err = routers.Run("0.0.0.0:3000")
