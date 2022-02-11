@@ -75,6 +75,9 @@ func GetDataPointsFromMetricsService(namespace, resourceType, name string) (Data
 	if err != nil {
 		return nil, errors.Wrap(err, "反序列化MetricsService返回值失败")
 	}
+	if len(val.Items) == 0 {
+		return nil, errors.Wrap(err, "MetricsService返回值为空")
+	}
 	var dataPoints DataPoints
 	for _, raw := range val.Items[0].MetricPoints {
 		converted := DataPoint{
