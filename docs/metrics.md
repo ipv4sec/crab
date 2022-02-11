@@ -21,7 +21,7 @@ GET /metrics/:namespace/:resourceName HTTP/1.1
 resourceName需要具体的POD名称， 当查询多个POD的使用数据时， resourceName的值以逗号分隔即可
 
 比如当要查询cronjob、daemonsets、deployment、jobs、pods、replicasets、replicationcontrollers、statefulsets的资源
-使用情况时，请求路径为 `GET /metrics/ins233/island-api-78577f88c8-wpkbg,island-webssh-67d9b969fb-9t6fg`
+使用情况时，resourceName的值为该资源下的所有POD，请求路径为 `GET /metrics/ins233/island-api-78577f88c8-wpkbg,island-webssh-67d9b969fb-9t6fg`
 比如当要查询名为island-api-78577f88c8-wpkbg的具体POD的资源使用情况时，请求路径为
 `GET /metrics/ins233/island-api-78577f88c8-wpkbg`
 
@@ -62,4 +62,9 @@ resourceName需要具体的POD名称， 当查询多个POD的使用数据时， 
     }]
   }
 }
+```
+
+错误返回时， 前端不显示表格
+```json
+{"code":10102,"result":"错误提示信息"}
 ```
