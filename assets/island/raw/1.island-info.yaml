@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: island-info
+  namespace: island-system
+data:
+  root-domain: %s
+  mirror: https://github.com/GlobalSphare/workloads

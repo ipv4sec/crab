@@ -1,0 +1,70 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: island-metrics
+  namespace: island-system
+spec:
+  selector:
+    app: island
+    component: metrics
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8000
+---
+
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  labels:
+    app: island
+    component: metrics
+  name: island-metrics
+  namespace: island-system
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: island
+      component: metrics
+  template:
+    metadata:
+      labels:
+        app: island
+        component: metrics
+      annotations:
+        seccomp.security.alpha.kubernetes.io/pod: 'runtime/default'
+    spec:
+      containers:
+        - name: main
+          image: harbor1.zlibs.com/kubernetesui/metrics-scraper:v1.0.6
+          ports:
+            - containerPort: 8000
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              scheme: HTTP
+              path: /
+              port: 8000
+            initialDelaySeconds: 30
+            timeoutSeconds: 30
+          volumeMounts:
+            - mountPath: /tmp
+              name: tmp-volume
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsUser: 1001
+            runAsGroup: 2001
+      serviceAccountName: crab
+      nodeSelector:
+        "kubernetes.io/os": linux
+      # Comment the following tolerations if Dashboard must not be deployed on master
+      tolerations:
+        - key: node-role.kubernetes.io/master
+          effect: NoSchedule
+      volumes:
+        - name: tmp-volume
+          emptyDir: {}

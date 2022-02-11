@@ -8,7 +8,6 @@ while [ $# -gt 0 ]; do
     shift
     ;;
   esac
-  shift $(($# > 0 ? 1 : 0))
   case "$1" in
   --webssh)
     webssh="$2"
@@ -23,7 +22,6 @@ then
   echo "Missing domain."
   exit 0
 fi
-
 
 cat <<EOF | kubectl apply -f -
 apiVersion: v1
@@ -54,6 +52,25 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
 ---
 
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: island-plugin
+  namespace: island-system
+data:
+  description: plugin
+  webssh: '$webssh'
+---
+
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: island-system
+value: 1000000000
+globalDefault: false
+description: "island-system"
+---
+
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -71,6 +88,8 @@ spec:
           env:
             - name: ISLAND_DOMAIN
               value: $domain
+            - name: ISLAND_WEBSSH
+              value: '$webssh'
       restartPolicy: OnFailure
       serviceAccountName: crab
 EOF

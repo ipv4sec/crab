@@ -6,6 +6,7 @@ import (
 	"crab/cluster"
 	"crab/exec"
 	"crab/utils"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -15,6 +16,7 @@ import (
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/remotecommand"
 	"k8s.io/klog/v2"
+	"net"
 	"os"
 	"strings"
 	"time"
@@ -161,85 +163,88 @@ func main() {
 	}
 
 	klog.Infoln("开始设置根域")
-	yaml := `
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: island-info
-  namespace: island-system
-data:
-  root-domain: %s
-  mirror: https://github.com/GlobalSphare/workloads
-`
-	err = cluster.Client.Apply(context.Background(), []byte(fmt.Sprintf(yaml, os.Getenv("ISLAND_DOMAIN"))))
+	yamlBytes, err = ioutil.ReadFile("assets/island/raw/1.island-info.yaml")
+	if err != nil {
+		panic(fmt.Errorf("读取yaml错误: %w", err))
+	}
+	err = cluster.Client.Apply(context.Background(),
+		[]byte(fmt.Sprintf(string(yamlBytes), os.Getenv("ISLAND_DOMAIN"))))
 	if err != nil {
 		klog.Errorln("设置根域失败: ", err.Error())
 	}
 
-	klog.Infoln("开始设置密码")
-	_, err = cluster.Client.Clientset.CoreV1().ConfigMaps("island-system").
-		Create(context.Background(), &v1.ConfigMap{
-			TypeMeta: metav1.TypeMeta{},
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "island-administrator",
-			},
-			Data: map[string]string{"root": "toor"},
-		}, metav1.CreateOptions{})
+	klog.Infoln("开始部署前端应用")
+	yamlBytes, err = ioutil.ReadFile("assets/island/raw/6.island-ui.yaml")
 	if err != nil {
-		klog.Errorln("设置密码失败: ", err.Error())
+		panic(fmt.Errorf("读取yaml错误: %w", err))
+	}
+	err = cluster.Client.Apply(context.Background(),
+		[]byte(fmt.Sprintf(string(yamlBytes), fmt.Sprintf("http://webssh.%s", os.Getenv("ISLAND_DOMAIN")))))
+	if err != nil {
+		klog.Errorln("部署前端应用失败: ", err.Error())
 	}
 
 	klog.Infoln("开始部署应用")
-	files, err := ioutil.ReadDir("assets/island/")
+	files, err := ioutil.ReadDir("assets/island/cooked/")
 	if err != nil {
 		panic(fmt.Errorf("读取应用列表错误 :%w", err))
 	}
 	for i := 0; i < len(files); i++ {
 		klog.Infoln("要安装的应用为: ", files[i].Name())
-		command := fmt.Sprintf("/usr/local/bin/kubectl apply -f assets/island/%s", files[i].Name())
+		command := fmt.Sprintf("/usr/local/bin/kubectl apply -f assets/island/cooked/%s", files[i].Name())
 		output, _ := executor.ExecuteCommandWithCombinedOutput("bash", "-c", command)
 		klog.Infoln("执行命令结果:", output)
 	}
 
 	klog.Infoln("开始设置访问路由")
-	yaml = `
-apiVersion: networking.istio.io/v1alpha3
-kind: VirtualService
-metadata:
-  name: island-ui
-  namespace: island-system
-spec:
-  hosts:
-    - "*"
-  gateways:
-    - crab
-  http:
-    - route:
-        - destination:
-            host: island-ui
-            port:
-              number: 80
----
-
-apiVersion: networking.istio.io/v1alpha3
-kind: Gateway
-metadata:
-  name: crab
-  namespace: island-system
-spec:
-  selector:
-    istio: ingressgateway
-  servers:
-    - port:
-        number: 80
-        name: http
-        protocol: HTTP
-      hosts:
-        - "crab.%s"
-`
-	err = cluster.Client.Apply(context.Background(), []byte(fmt.Sprintf(yaml, os.Getenv("ISLAND_DOMAIN"))))
+	yamlBytes, err = ioutil.ReadFile("assets/istio/crab.yaml")
+	if err != nil {
+		panic(fmt.Errorf("读取yaml错误: %w", err))
+	}
+	err = cluster.Client.Apply(context.Background(), []byte(
+		fmt.Sprintf(string(yamlBytes), os.Getenv("ISLAND_DOMAIN"))))
 	if err != nil {
 		klog.Errorln("设置访问路由失败: ", err.Error())
 	}
+
+	klog.Infoln("开始设置插件")
+	plugins, err := cluster.Client.Clientset.CoreV1().ConfigMaps("island-system").Get(context.Background(), "island-plugin", metav1.GetOptions{})
+	if err != nil {
+		klog.Errorln("读取插件信息错误: ", err.Error())
+	}
+	if v, ok := plugins.Data["webssh"]; ok {
+		if v != "false" {
+			var vv struct {
+				Hostname string `json:"hostname"`
+				Port int `json:"port"`
+				Username string `json:"username"`
+				Password string `json:"password"`
+			}
+			err = json.Unmarshal([]byte(v), &vv)
+			if err == nil {
+				klog.Infoln("开始设置WEBSSH")
+				yamlBytes, err = ioutil.ReadFile("assets/plugin/island-webssh.yaml")
+				if err != nil {
+					panic(fmt.Errorf("读取yaml错误: %w", err))
+				}
+
+				addr := net.ParseIP(vv.Hostname)
+				if addr == nil {
+					err = cluster.Client.Apply(context.Background(),
+						[]byte(fmt.Sprintf(string(yamlBytes), vv.Hostname, "127.0.0.1", os.Getenv("ISLAND_DOMAIN"))))
+					if err != nil {
+						klog.Errorln("设置WEBSSH失败: ", err.Error())
+					}
+				}else {
+					err = cluster.Client.Apply(context.Background(),
+						[]byte(fmt.Sprintf(string(yamlBytes), "island-webssh", vv.Hostname, os.Getenv("ISLAND_DOMAIN"))))
+					if err != nil {
+						klog.Errorln("设置WEBSSH失败: ", err.Error())
+					}
+				}
+			}
+		}
+	}
+
 	klog.Info("结束退出程序")
 }

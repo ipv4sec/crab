@@ -10,6 +10,7 @@ RUN chmod +x /usr/local/bin/istioctl
 
 ADD assets/istio/ assets/istio/
 ADD assets/island/ assets/island/
+ADD assets/plugin/ assets/plugin/
 
 ADD scripts/istio.sh scripts/istio.sh
 RUN chmod +x scripts/istio.sh
